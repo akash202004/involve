@@ -1,4 +1,4 @@
-// app/components/Map.tsx
+// app/components/ClientMap.tsx
 "use client";
 
 import { useEffect } from 'react';
@@ -14,13 +14,12 @@ const userIcon = new L.DivIcon({
 const createWorkerIcon = (imageUrl: string, isSelected = false) => new L.DivIcon({
     html: `<img src="${imageUrl}" alt="worker" />`,
     className: `${styles.workerMarker} ${isSelected ? styles.selected : ''}`,
-    iconSize: [48, 48],
-    iconAnchor: [24, 48],
+    iconSize: [50, 50],
+    iconAnchor: [25, 50],
 });
 const liveWorkerIcon = new L.DivIcon({
     className: styles.liveWorkerMarker,
-    html: `<div style="--color: #ff9500"></div>`,
-    iconSize: [24, 24],
+    iconSize: [26, 26],
 });
 
 export interface Worker {
@@ -44,24 +43,25 @@ interface MapProps {
     userLocation: LatLngTuple; workers: Worker[]; selectedWorker: Worker | null;
     isBooked: boolean; livePosition: LatLngTuple | null; route: LatLngExpression[];
     onWorkerSelect: (worker: Worker) => void;
+    onMapClick: () => void;
 }
-
-export default function Map({ userLocation, workers, selectedWorker, isBooked, livePosition, route, onWorkerSelect }: MapProps) {
-    const initialBounds = L.circle(userLocation, { radius: 20000 }).getBounds();
+export default function ClientMap({ userLocation, workers, selectedWorker, isBooked, livePosition, route, onWorkerSelect, onMapClick }: MapProps) {
+    const MapEvents = () => {
+        useMap().on('click', onMapClick);
+        return null;
+    }
 
     return (
-        <MapContainer bounds={initialBounds} className={styles.mapContainer} zoomControl={false}>
+        <MapContainer center={userLocation} zoom={12} className={styles.mapContainer} zoomControl={false}>
+            <MapEvents />
             <MapController selectedWorker={selectedWorker} userLocation={userLocation} />
-            <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                attribution='&copy; CARTO'
-            />
+            <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />
             <Marker position={userLocation} icon={userIcon} />
             {!isBooked && workers.map(worker => (
                 <Marker key={worker.id} position={[worker.lat, worker.lng]} icon={createWorkerIcon(worker.imageUrl, selectedWorker?.id === worker.id)} eventHandlers={{ click: (e) => { L.DomEvent.stopPropagation(e); onWorkerSelect(worker); }}} />
             ))}
             {isBooked && livePosition && <Marker position={livePosition} icon={liveWorkerIcon} />}
-            {route.length > 0 && <Polyline positions={route} color="#000000" weight={5} opacity={0.75}/>}
+            {route.length > 0 && <Polyline positions={route} color="#007aff" weight={7} opacity={0.7}/>}
         </MapContainer>
     );
 }
