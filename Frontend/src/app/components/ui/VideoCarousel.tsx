@@ -17,14 +17,21 @@ interface VideoCarouselProps {
 
 const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(false);
   const videoRefs = useRef<HTMLVideoElement[]>([]);
 
   const handleResize = useCallback(() => {
-    setIsMobile(window.innerWidth < 768);
+    if (typeof window !== 'undefined') {
+      setIsMobile(window.innerWidth < 768);
+    }
   }, []);
 
   useEffect(() => {
+    // Set initial mobile state
+    if (typeof window !== 'undefined') {
+      setIsMobile(window.innerWidth < 768);
+    }
+    
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [handleResize]);
