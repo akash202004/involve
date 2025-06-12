@@ -1,11 +1,12 @@
+import HeroWithCarousel from "@/app/components/ui/HeroWithCarousel";
+import VideoCarousel from "@/app/components/ui/VideoCarousel";
 
-import Hero from "@/app/components/ui/Hero/page"
 export default function Home() {
   return (
-   <div>
-    <div className="flex flex-col items-center justify-center h-screen"><Hero/></div>
-    
-   </div>
-  
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 pt-32 sm:pt-40 md:pt-48 pb-8">
+      <div className="relative w-full bg-transparent flex items-center justify-center overflow-hidden">
+        <HeroWithCarousel />
+      </div>
+    </div>
   );
 }

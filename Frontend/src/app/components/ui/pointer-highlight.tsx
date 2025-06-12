@@ -56,7 +56,7 @@ export function PointerHighlight({
         >
           <motion.div
             className={cn(
-              "absolute inset-0 border border-neutral-800 dark:border-neutral-200",
+              "absolute inset-0 border-2 border-black",
               rectangleClassName,
             )}
             initial={{
@@ -90,7 +90,7 @@ export function PointerHighlight({
             }}
           >
             <Pointer
-              className={cn("h-5 w-5 text-blue-500", pointerClassName)}
+              className={cn("h-7 w-7 text-blue-500", pointerClassName)}
             />
           </motion.div>
         </motion.div>
