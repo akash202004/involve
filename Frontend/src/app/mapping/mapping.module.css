@@ -1,183 +1,148 @@
+/* --- Page Wrapper --- */
+.appWrapper {
+  background-color: #f0f2f5;
+  padding: 2rem;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* --- Main App Container (The "Box") --- */
 .pageContainer {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem 1rem;
-  min-height: 100vh;
-  background-color: #f4f6f8;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  position: relative;
-  overflow-x: hidden;
-}
-
-.header {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #1c1c1e;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.mapBox {
-  width: 100%;
-  max-width: 1100px;
-  height: 65vh;
-  min-height: 500px;
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e5e5;
-  position: relative;
+  flex-direction: column; /* Mobile-first stack */
+  max-width: 1400px;
+  margin: 0 auto;
+  height: 85vh; /* Fixed height for the box */
+  min-height: 650px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
   overflow: hidden;
-  background-color: #e9ecef;
+  position: relative; /* Positioning context for children */
 }
 
-.mapContainer {
+/* --- Map Containers --- */
+.mapBox {
+  flex-grow: 1; 
+  height: 60%; /* Mobile view height */
+  width: 100%;
+  background: #e9ecef;
+}
+.mapView, .mapLoading {
   height: 100%;
   width: 100%;
-  border-radius: 20px;
 }
 
-.bookingCard {
-  position: absolute;
-  bottom: -300px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 420px;
-  background-color: white;
-  border-radius: 20px;
-  box-shadow: 0 5px 25px rgba(0,0,0,0.15);
-  padding: 20px 25px;
-  z-index: 1000;
-  transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+/* --- Side Panel --- */
+.sidePanel {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.5rem;
+  box-sizing: border-box;
+  background: #ffffff;
+  height: 40%; /* Mobile view height */
 }
-
-.bookingCard.visible {
-  bottom: 30px;
+.panelContent {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
-
-.cardHeader {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
+.header {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1c1c1e;
+  margin: 0.5rem 0 1rem 0;
+  text-align: center;
 }
-
-.workerAvatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 15px;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-
-.workerInfo h3 {
-    margin: 0;
-    font-size: 1.3rem;
-    color: #1c1c1e;
-    line-height: 1.2;
-}
-
-.workerInfo p {
-    margin: 4px 0 0 0;
-    color: #8a8a8e;
-    font-size: 0.9rem;
-}
-
-.detailsGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    text-align: center;
-    margin-bottom: 20px;
-    padding-top: 10px;
-    border-top: 1px solid #f0f0f0;
-}
-
-.detailsGrid div p {
-    margin: 0 0 5px 0;
-    font-size: 0.9rem;
-    color: #8a8a8e;
-    text-transform: uppercase;
-}
-
-.detailsGrid div .value {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #1c1c1e;
-}
-
-.confirmButton {
-  width: 100%;
-  cursor: pointer;
-  padding: 15px;
-  border: none;
-  background-color: #000000;
-  color: white;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.userLocationMarker {
-    border-radius: 50%;
-    background-color: #007aff;
-    width: 18px;
-    height: 18px;
-    border: 3px solid #ffffff;
-    box-shadow: 0 0 0 3px #007aff;
-}
-
-.workerMarker {
-    transition: all 0.2s;
-}
-
-.workerMarker img {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    border: 3px solid #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-
-.workerMarker.selected img {
-    transform: scale(1.2);
-    border-color: #000;
-}
-
-.liveWorkerMarker {
-    background-color: #007aff;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    border: 4px solid #ffffff;
-    box-shadow: 0 0 10px rgba(0, 122, 255, 0.8);
-}
-
 .categoryFilters {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 2rem;
-    z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 1rem;
 }
 
-.filterButton {
-    padding: 8px 18px;
-    border: 1px solid #ddd;
-    background: #fff;
-    color: #555;
-    font-weight: 500;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.2s;
+/* --- Booking Card (Mobile Overlay Style) --- */
+.bookingCard {
+  position: absolute; /* Relative to pageContainer */
+  bottom: -100%; /* Start hidden */
+  left: 0;
+  right: 0;
+  width: 100%;
+  background-color: white;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -5px 30px rgba(0,0,0,0.1);
+  padding: 20px 20px 30px 20px;
+  z-index: 1000;
+  transition: bottom 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  box-sizing: border-box;
+}
+.bookingCard.visible {
+  bottom: 0;
 }
 
-.filterButton:hover {
-    background: #f0f0f0;
+/* --- Footer --- */
+.footer {
+    padding-top: 2rem;
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+}
+.footer div {
+    margin-bottom: 0.5rem;
+}
+.footer span {
+    padding: 0 1rem;
 }
 
-.filterButton.active {
-    background: #000;
-    color: #fff;
-    border-color: #000;
+
+/* --- Desktop Layout (Side-by-Side in a Box) --- */
+@media (min-width: 1024px) {
+  .pageContainer {
+    flex-direction: row; /* Side-by-side on desktop */
+  }
+  .sidePanel {
+    width: 380px;
+    height: 100%; /* Full height of the box */
+    flex-shrink: 0;
+    padding: 1.5rem 2rem;
+    border-right: 1px solid #e5e5e5;
+    overflow-y: auto;
+  }
+  .mapBox {
+    height: 100%; /* Full height of the box */
+  }
+  .header {
+    text-align: left;
+    margin-top: 1rem;
+  }
+  .categoryFilters {
+    justify-content: flex-start;
+  }
+
+  /* Override mobile overlay for desktop */
+  .bookingCard {
+    position: static;
+    width: auto;
+    border-radius: 16px;
+    box-shadow: none;
+    padding: 0;
+    margin-top: 2rem;
+    transition: opacity 0.5s, transform 0.5s;
+    transform: translateY(20px);
+    opacity: 0;
+    display: none; /* Hide until visible */
+    border-top: 1px solid #eee;
+    padding-top: 1.5rem;
+  }
+  .bookingCard.visible {
+    bottom: auto; /* Unset mobile style */
+    display: block; /* Show in the panel */
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
+
+/* (All other styles for buttons, markers, text, etc., remain the same) */
+.cardHeader{display:flex;align-items:center;margin-bottom:18px}.workerAvatar{width:55px;height:55px;border-radius:50%;margin-right:15px;object-fit:cover;flex-shrink:0;border:2px solid #eee}.workerInfo h3{margin:0;font-size:1.25rem;color:#1c1c1e;line-height:1.2;font-weight:600}.workerInfo p{margin:4px 0 0 0;color:#8a8a8e;font-size:.95rem}.detailsGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;text-align:center;margin-bottom:20px;padding-top:15px;border-top:1px solid #f0f0f0}.detailsGrid div p{margin:0 0 5px 0;font-size:.8rem;color:#8a8a8e;text-transform:uppercase;font-weight:500}.detailsGrid div .value{font-size:1.15rem;font-weight:600;color:#1c1c1e}.confirmButton,.cancelButton{width:100%;cursor:pointer;padding:16px;border:none;border-radius:16px;font-size:1.1rem;font-weight:600;transition:transform .2s ease,background-color .2s ease}.confirmButton{background-color:#000;color:#fff}.confirmButton:disabled{background-color:#ccc;cursor:not-allowed}.confirmButton:hover:not(:disabled){transform:translateY(-2px)}.cancelButton{background-color:#e53e3e;color:#fff;margin-top:10px}.cancelButton:hover{background-color:#c53030}.trackingInfo{text-align:center}.trackingInfo h3{margin:0 0 8px 0;font-size:1.3rem;color:#1c1c1e}.trackingInfo p{margin:0 0 15px 0;font-size:1rem;color:#555}.trackingInfo span{font-weight:700;font-size:1.2rem;color:#007aff}.userLocationMarker{border-radius:50%;background-color:#007aff;width:18px;height:18px;border:3px solid #fff;box-shadow:0 0 0 3px #007aff}.workerMarker{transition:all .3s cubic-bezier(.175,.885,.32,1.275)}.workerMarker img{width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);background:#fff}.workerMarker.selected{transform:scale(1.25)}.workerMarker.selected img{border-color:#000}.liveWorkerMarker{background-color:#007aff;border-radius:50%;width:22px;height:22px;border:4px solid #fff;box-shadow:0 0 0 6px rgba(0,122,255,.3)}.filterButton{padding:10px 22px;border:1px solid #ddd;background:#fff;color:#333;font-weight:500;border-radius:50px;cursor:pointer;transition:all .2s ease-in-out;font-size:.9rem}.filterButton:hover{background:#f0f0f0;border-color:#ccc}.filterButton.active{background:#000;color:#fff;border-color:#000;transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,.1)}
