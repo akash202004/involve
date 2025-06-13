@@ -21,3 +21,14 @@ export const paymentMethodEnum = pgEnum("payment_method", [
   "netbanking",
   "wallet",
 ]);
+
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "general",
+  "success",
+  "warning",
+  "error",
+  "info",
+  "transaction",
+  "order_status_update",
+  "worker_location_update",
+]);
