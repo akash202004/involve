@@ -15,14 +15,24 @@ import {
 
 // Users Table
 export const users = pgTable("users", {
-  id: uuid("id").notNull(),
+  id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("full_name", { length: 100 }).notNull(),
   email: varchar("email").notNull(),
+  phoneNumber: varchar("phone_number", { length: 12 }).notNull(),
   password: varchar("password", { length: 30 }),
-  phoneNumber: varchar("phone_number", { length: 12 }),
-  location: text("location"),
+
+  // Manual location input fields
+  address: text("address"),
+  city: varchar("city", { length: 50 }),
+  state: varchar("state", { length: 50 }),
+  country: varchar("country", { length: 50 }),
+  zipCode: integer("zip_code"),
+
+  // Auto-detected location fields (via GPS)
+  autoLocation: text("auto_location"),
   lat: doublePrecision("lat"),
   lng: doublePrecision("lng"),
+
   createdAt: timestamp("created_at").defaultNow(),
 });
 
