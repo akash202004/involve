@@ -77,29 +77,34 @@ const ServiceSelection: React.FC = () => {
   };
 
   return (
-    <div className="w-250 mx-auto p-6 bg-white">
-      <div className="grid grid-cols-3 gap-4">
-        {services.map((service) => (
-          <div
-            key={service.id}
-            onClick={() => handleServiceClick(service.id)}
-            className="relative flex flex-col items-center p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-[#fdc700] transition-colors duration-200 border border-black"
-          >
-            {service.isNew && (
-              <div className="absolute -top-2 -right-2 w-6 h-6  rounded-full flex items-center justify-center">
-                
+    <div className="w-full flex flex-col items-center justify-center pt-8 pb-8">
+      <h2 className="text-4xl font-bold mb-8 passion-one-black bg-yellow-400 block px-4 py-2 leading-none align-baseline border-4 border-black">
+        What Service We Provide
+      </h2>
+      <div className="w-250 mx-auto p-6 bg-white">
+        <div className="grid grid-cols-3 gap-4">
+          {services.map((service) => (
+            <div
+              key={service.id}
+              onClick={() => handleServiceClick(service.id)}
+              className="relative flex flex-col items-center p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-[#fdc700] transition-colors duration-200 border border-black"
+            >
+              {service.isNew && (
+                <div className="absolute -top-2 -right-2 w-6 h-6  rounded-full flex items-center justify-center">
+                  
+                </div>
+              )}
+              
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
+                <span className="text-2xl">{service.icon}</span>
               </div>
-            )}
-            
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
-              <span className="text-2xl">{service.icon}</span>
+              
+              <span className="text-xs text-gray-700 text-center leading-tight font-medium">
+                {service.title}
+              </span>
             </div>
-            
-            <span className="text-xs text-gray-700 text-center leading-tight font-medium">
-              {service.title}
-            </span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

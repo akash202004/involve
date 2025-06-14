@@ -1,5 +1,33 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Setup
+
+Before running the application, you need to set up your environment variables:
+
+### Option 1: Using the Setup Script (Recommended)
+```bash
+# Using npm script
+npm run setup your_civic_client_id_here
+
+# Or directly with node
+node setup-env.js your_civic_client_id_here
+```
+
+### Option 2: Manual Setup
+1. Create a `.env.local` file in the root directory
+2. Add your Civic authentication client ID:
+
+```bash
+# Civic Authentication Configuration
+CIVIC_CLIENT_ID=your_civic_client_id_here
+```
+
+**Important Security Notes:**
+- Never commit your `.env.local` file to version control
+- The `.env.local` file is already included in `.gitignore`
+- Replace `your_civic_client_id_here` with your actual Civic client ID
+- For production deployment, set these environment variables in your hosting platform
+
 ## Getting Started
 
 First, run the development server:

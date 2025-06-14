@@ -27,6 +27,7 @@ interface NavItemsProps {
   items: {
     name: string;
     link: string;
+    className?: string;
   }[];
   className?: string;
   onItemClick?: () => void;
@@ -121,7 +122,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
     <motion.div
       onMouseLeave={() => setHovered(null)}
       className={cn(
-        "absolute inset-0 hidden flex-1 flex-row items-center justify-center space-x-2 text-sm font-medium text-zinc-600 transition duration-200 hover:text-zinc-800 lg:flex lg:space-x-2",
+        "hidden flex-1 flex-row items-center justify-center space-x-2 text-sm font-medium text-zinc-600 transition duration-200 hover:text-zinc-800 lg:flex lg:space-x-2",
         className,
       )}
     >
@@ -129,16 +130,10 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
         <a
           onMouseEnter={() => setHovered(idx)}
           onClick={onItemClick}
-          className="relative px-4 text-black"
+          className={cn("relative px-4 py-2 rounded-lg text-sm font-semibold relative cursor-pointer hover:-translate-y-0.5 transition duration-200 inline-block text-center text-black hover:bg-yellow-200 hover:text-yellow-800", item.className)}
           key={`link-${idx}`}
           href={item.link}
         >
-          {hovered === idx && (
-            <motion.div
-              layoutId="hovered"
-              className="absolute inset-0 h-full w-full rounded-full bg-white dark:bg-neutral-900"
-            />
-          )}
           <span className="relative z-20">{item.name}</span>
         </a>
       ))}
@@ -261,21 +256,23 @@ export const NavbarButton = ({
   as?: React.ElementType;
   children: React.ReactNode;
   className?: string;
-  variant?: "primary" | "secondary" | "dark" | "gradient";
+  variant?: "primary" | "secondary" | "dark" | "gradient" | "transparent";
 } & (
   | React.ComponentPropsWithoutRef<"a">
   | React.ComponentPropsWithoutRef<"button">
 )) => {
   const baseStyles =
-    "px-3 sm:px-4 rounded-md text-sm font-semibold relative cursor-pointer hover:-translate-y-0.5 transition duration-200 inline-block text-center border-2";
+    "px-3 sm:px-4 py-2 rounded-md text-sm font-semibold relative cursor-pointer hover:-translate-y-0.5 transition duration-200 inline-block text-center";
 
   const variantStyles = {
     primary:
-      "bg-black text-white shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] border-black hover:bg-gray-800",
-    secondary: "bg-white text-black border-black hover:bg-gray-50 shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset]",
-    dark: "bg-black text-white shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] border-black hover:bg-gray-800",
+      "bg-transparent text-black shadow-none hover:bg-yellow-200 hover:text-yellow-800",
+    secondary: "bg-transparent text-black hover:bg-yellow-200 hover:text-yellow-800 shadow-none",
+    dark: "bg-transparent text-black shadow-none hover:bg-yellow-200 hover:text-yellow-800",
     gradient:
-      "bg-gradient-to-b from-blue-500 to-blue-700 text-white shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset] border-blue-600 hover:from-blue-600 hover:to-blue-800",
+      "bg-transparent text-black shadow-none hover:bg-yellow-200 hover:text-yellow-800",
+    transparent:
+      "bg-transparent border-none shadow-none text-black hover:bg-yellow-200 hover:text-yellow-800",
   };
 
   return (

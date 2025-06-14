@@ -6,9 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup": "node setup-env.js"
   },
   "dependencies": {
+    "@civic/auth": "^0.7.0",
     "@tabler/icons-react": "^3.34.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.17.0",
