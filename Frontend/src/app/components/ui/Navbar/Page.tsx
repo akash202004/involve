@@ -30,6 +30,10 @@ export function NavbarDemo() {
     {
       name: "Map",
       link: "/mapping",
+    },
+    {
+      name: "Onboarding",
+      link: "/worker-onboarding",
     }
   ];
 

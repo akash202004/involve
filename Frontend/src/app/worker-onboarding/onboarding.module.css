@@ -1,0 +1,65 @@
+/* Base & Form Container */
+.pageWrapper { background-color: #f4f6f8; padding: 2rem 1rem; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.formContainer { background-color: #ffffff; width: 100%; max-width: 750px; padding: 2rem 2.5rem; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); }
+.header { text-align: center; margin-bottom: 1rem; }
+.header h1 { font-size: 1.8rem; color: #1c1c1e; margin: 0; }
+.header p { color: #6c757d; margin: 0.5rem 0 0; }
+
+/* Stepper */
+.stepper{display:flex;align-items:center;justify-content:space-between;margin:2rem 0;padding:0 1rem}.step{display:flex;flex-direction:column;align-items:center;text-align:center;color:#adb5bd;transition:color .3s}.stepNumber{height:36px;width:36px;border-radius:50%;background-color:#e9ecef;display:grid;place-items:center;font-weight:600;border:2px solid #e9ecef;transition:background-color .3s,border-color .3s}.stepLabel{font-size:.85rem;margin-top:.5rem;font-weight:500}.stepConnector{flex-grow:1;height:2px;background-color:#e9ecef;margin:0 1rem;transform:translateY(-8px)}.step.active{color:#007aff}.step.active .stepNumber{background-color:#e6f2ff;border-color:#007aff;color:#007aff}
+
+/* Form Elements */
+.fieldset { border: none; padding: 0 0 1.5rem 0; margin: 0 0 1.5rem 0; border-bottom: 1px solid #e9ecef; }
+.fieldset:last-of-type { border-bottom: none; }
+.legend { font-size: 1.2rem; font-weight: 600; color: #343a40; padding: 0; margin-bottom: 1.5rem; }
+.formGroup { margin-bottom: 1.25rem; }
+.formGroup label { display: block; font-size: 0.9rem; font-weight: 500; color: #495057; margin-bottom: 0.5rem; }
+.formGroup input, .formGroup select { width: 100%; padding: 12px; font-size: 1rem; border: 1px solid #ced4da; border-radius: 8px; background-color: #f8f9fa; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
+.formGroup input:focus, .formGroup select:focus { outline: none; border-color: #007aff; box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2); background-color: #fff; }
+.requiredStar { color: #dc3545; font-weight: 600; margin-left: 2px; }
+
+/* Grids */
+.gridTwoCol, .gridThreeCol { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+
+/* --- Centered Profile Picture Uploader --- */
+.uploaderGroup { display: flex; flex-direction: column; align-items: center; } /* This centers the uploader */
+.fileInputHidden { display: none; }
+.profilePicUploader { display: inline-flex; justify-content: center; align-items: center; width: 120px; height: 120px; border-radius: 50%; border: 2px dashed #ced4da; cursor: pointer; position: relative; overflow: hidden; background-color: #f8f9fa; transition: border-color 0.2s, background-color 0.2s; margin-top: 0.5rem; }
+.profilePicUploader:hover { border-color: #007aff; background-color: #f1f8ff; }
+.uploadPlaceholder { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #6c757d; }
+.uploaderIcon { color: #8a95a1; margin-bottom: 0.5rem; }
+.uploadPlaceholder span { font-size: 0.9rem; font-weight: 500; }
+
+/* --- OTP Verification Styles --- */
+.inputWithButton { display: flex; align-items: center; gap: 0.5rem; }
+.inputWithButton input { flex-grow: 1; }
+.inputWithButton button {
+  padding: 0 15px; height: 45px; flex-shrink: 0; border: 1px solid #ced4da;
+  background-color: #e9ecef; color: #495057; border-radius: 8px;
+  cursor: pointer; font-weight: 500; transition: background-color 0.2s;
+}
+.inputWithButton button:hover { background-color: #dee2e6; }
+.verifiedText { color: #28a745; font-weight: 600; padding-right: 1rem; }
+.otpSection {
+  display: flex; gap: 0.5rem; margin-top: 0.75rem;
+}
+.otpSection input {
+  letter-spacing: 0.5em; text-align: center;
+}
+.verifyButton {
+  padding: 0 20px; height: 45px; border: none;
+  background-color: #007aff; color: white;
+  border-radius: 8px; cursor: pointer; font-weight: 600;
+}
+
+/* Form Navigation & Responsive */
+.formNavigation { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e9ecef; }
+.backButton, .nextButton, .submitButton { padding: 14px 30px; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+.backButton { background-color: transparent; color: #6c757d; }
+.backButton:hover { background-color: #f8f9fa; }
+.nextButton, .submitButton { color: #fff; background-color: #000; }
+.nextButton:hover, .submitButton:hover { background-color: #333; transform: translateY(-2px); }
+@media (min-width: 768px) {
+  .gridTwoCol { grid-template-columns: 1fr 1fr; }
+  .gridThreeCol { grid-template-columns: 1fr 1fr 1fr; }
+}
