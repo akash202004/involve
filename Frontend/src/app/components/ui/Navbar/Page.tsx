@@ -41,8 +41,8 @@ export function NavbarDemo() {
       link: "/mapping",
     },
     {
-      name: "Onboarding",
-      link: "/worker-onboarding",
+      name: "Worker",
+      link: "/worker",
     },
   ];
 

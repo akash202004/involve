@@ -79,6 +79,11 @@
   border-color: #007aff;
   color: #007aff;
 }
+.readOnlyInput {
+  background-color: #e9ecef !important;
+  color: #6c757d;
+  cursor: not-allowed;
+}
 
 /* Form Elements */
 .fieldset {
