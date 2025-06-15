@@ -1,4 +1,7 @@
-import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import express from "express";
 
-const db = drizzle(process.env.DATABASE_URL!);
+const app = express();
+
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
+});

@@ -3,7 +3,7 @@ import { db } from "@/config/drizzle";
 import { transactions, users } from "@/db/schema";
 import { orders } from "@/db/schema";
 import { transactionSchema } from "@/types/validation";
-import { eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { verifyRazorpaySignature } from "@/utils/verifySignature";
 
 // Usually stored in env
@@ -117,19 +117,31 @@ export const getTransactionByUserId = async (req: Request, res: Response) => {
       return;
     }
 
-    const order = await db
+    const orderList = await db
       .select()
       .from(orders)
       .where(eq(orders.userId, userId));
-    if (!order.length) {
+    if (!orderList.length) {
       res.status(404).json({ error: "No order found for this user" });
       return;
+    }
+
+    const orderIds = orderList.map((order) => order.id);
+    if (orderIds.length === 0) {
+      return res.status(404).json({ error: "No orders found for this user" });
     }
 
     const tx = await db
       .select()
       .from(transactions)
-      .where(eq(transactions.orderId, order.id));
+      .where(inArray(transactions.orderId, orderIds))
+      .orderBy(desc(transactions.createdAt))
+
+    if (!tx.length) {
+      return res.status(404).json({ error: "No transactions found for this user" });
+    }
+
+    return res.status(200).json(tx);
     if (!tx.length) {
       res.status(404).json({ error: "No transaction found for this user" });
       return;

@@ -49,8 +49,10 @@ export const orderSchema = z.object({
   userId: z.string(),
   workerId: z.string(),
   status: z
-    .enum(["pending", "confirmed", "in-progress", "completed", "cancelled"])
+    .enum(["pending", "confirmed", "in_progress", "completed", "cancelled"])
     .default("pending"),
+  bookedFor: z.date(),
+  durationMinutes: z.number().int().positive(),
   createdAt: z.date().optional(),
 });
 

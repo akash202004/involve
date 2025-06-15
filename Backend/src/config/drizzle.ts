@@ -1,7 +1,27 @@
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { schema } from "@/db/schema";
+import {
+  users,
+  workers,
+  specializations,
+  liveLocations,
+  orders,
+  transactions,
+  reviews,
+  notifications,
+} from "@/db/schema";
+
+const schema = {
+  users,
+  workers,
+  specializations,
+  liveLocations,
+  orders,
+  transactions,
+  reviews,
+  notifications,
+};
 
 // Create a new pool instance
 const pool = new Pool({

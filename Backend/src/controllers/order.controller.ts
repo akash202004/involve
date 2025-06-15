@@ -9,35 +9,48 @@ import { eq } from "drizzle-orm";
 // ✅ Create Order
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const parsed = orderSchema.omit({ createdAt: true }).parse(req.body);
+    const parsed = orderSchema
+      .omit({ id: true, createdAt: true })
+      .parse(req.body);
 
-    // Check if user exists
+    // ✅ Check if user exists
     const userExists = await db
       .select()
       .from(users)
       .where(eq(users.id, parsed.userId));
     if (!userExists.length) {
-      res.status(404).json({ error: "User not found" });
-      return;
+      return res.status(404).json({ error: "User not found" });
     }
 
-    // Check if worker exists
+    // ✅ Check if worker exists
     const workerExists = await db
       .select()
       .from(workers)
       .where(eq(workers.id, parsed.workerId));
     if (!workerExists.length) {
-      res.status(404).json({ error: "Worker not found" });
-      return;
+      return res.status(404).json({ error: "Worker not found" });
     }
 
-    // Insert order
-    const newOrder = await db.insert(orders).values(parsed).returning();
-    res.status(201).json({ message: "Order created", data: newOrder[0] });
+    // ✅ Insert order (only required fields)
+    const newOrder = await db
+      .insert(orders)
+      .values({
+        userId: parsed.userId,
+        workerId: parsed.workerId,
+        status: parsed.status ?? "pending",
+        bookedFor: parsed.bookedFor,
+        durationMinutes: parsed.durationMinutes,
+      })
+      .returning();
+
+    return res
+      .status(201)
+      .json({ message: "Order created", data: newOrder[0] });
   } catch (error) {
-    console.error(error);
-    res.status(400).json({ error: "Invalid data or failed to create order" });
-    return;
+    console.error("Order creation failed:", error);
+    return res
+      .status(400)
+      .json({ error: "Invalid data or failed to create order" });
   }
 };
 
@@ -82,7 +95,7 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
     const validStatuses = [
       "pending",
       "confirmed",
-      "in-progress",
+      "in_progress",
       "completed",
       "cancelled",
     ] as const;
