@@ -1,17 +1,15 @@
 import { Request, Response } from "express";
-import { db } from "@/lib/db";
-import { orders } from "@/models/schema";
-import { workers } from "@/models/schema";
-import { users } from "@/models/schema";
+import { db } from "@/config/drizzle";
+import { orders } from "@/db/schema";
+import { workers } from "@/db/schema";
+import { users } from "@/db/schema";
 import { orderSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 
 // ✅ Create Order
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const parsed = orderSchema
-      .omit({ id: true, createdAt: true })
-      .parse(req.body);
+    const parsed = orderSchema.omit({ createdAt: true }).parse(req.body);
 
     // Check if user exists
     const userExists = await db

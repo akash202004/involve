@@ -1,5 +1,5 @@
-import { db } from "@/lib/db";
-import { workers } from "@/models/schema";
+import { db } from "@/config/drizzle";
+import { workers } from "@/db/schema";
 import { workerSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 import { Request, Response } from "express";
@@ -7,9 +7,7 @@ import { Request, Response } from "express";
 // Create Worker
 export const createWorker = async (req: Request, res: Response) => {
   try {
-    const parsedData = workerSchema
-      .omit({ id: true, createdAt: true })
-      .parse(req.body);
+    const parsedData = workerSchema.omit({ createdAt: true }).parse(req.body);
 
     const newWorker = await db.insert(workers).values(parsedData).returning();
 

@@ -1,5 +1,5 @@
-import { db } from "@/lib/db";
-import { users } from "@/models/schema";
+import { db } from "@/config/drizzle";
+import { users } from "@/db/schema";
 import { userSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 import { Request, Response } from "express";

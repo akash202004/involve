@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { db } from "@/lib/db";
-import { liveLocations } from "@/models/schema";
-import { workers } from "@/models/schema";
+import { db } from "@/config/drizzle";
+import { liveLocations } from "@/db/schema";
+import { workers } from "@/db/schema";
 import { liveLocationSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 

@@ -1,5 +1,5 @@
-import { db } from "@/lib/db";
-import { specializations, workers } from "@/models/schema";
+import { db } from "@/config/drizzle";
+import { specializations, workers } from "@/db/schema";
 import { specializationSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 import { Request, Response } from "express";

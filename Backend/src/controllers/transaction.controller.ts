@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { db } from "@/lib/db";
-import { transactions, users } from "@/models/schema";
-import { orders } from "@/models/schema";
+import { db } from "@/config/drizzle";
+import { transactions, users } from "@/db/schema";
+import { orders } from "@/db/schema";
 import { transactionSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 import { verifyRazorpaySignature } from "@/utils/verifySignature";
@@ -42,9 +42,7 @@ export const createTransaction = async (req: Request, res: Response) => {
 
     // Insert transaction
     const result = await db.insert(transactions).values(parsed).returning();
-     res
-      .status(201)
-      .json({ message: "Transaction recorded", data: result[0] });
+    res.status(201).json({ message: "Transaction recorded", data: result[0] });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: "Failed to create transaction" });
