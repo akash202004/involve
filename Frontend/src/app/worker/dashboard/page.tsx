@@ -112,10 +112,9 @@ export default function WorkerDashboardPage() {
     if (civicSignOutButtonRef.current) {
       civicSignOutButtonRef.current.click();
     }
-    router.push('/worker'); 
+    window.location.href = '/'; 
   };
 
-  // The error was here. It should be "return (" not "return (>"
   return (
     <div className={styles.pageWrapper}>
       {jobStatus === 'incoming' && jobRequest && (
@@ -133,7 +132,10 @@ export default function WorkerDashboardPage() {
             </button>
           </div>
         </header>
-        
+
+    
+
+        {/* Live Status & Map Section */}
         <div className={styles.card}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
                 <h3 className={styles.cardTitle}>{jobStatus === 'accepted' ? 'On the way to Client' : 'Live Status'}</h3>
@@ -155,6 +157,7 @@ export default function WorkerDashboardPage() {
             </div>
         </div>
         
+        {/* Earnings Card */}
         <div className={styles.card}>
           <h3 className={styles.cardTitle}>Your Earnings (₹)</h3>
           <div className={styles.earningsGrid}>
@@ -173,6 +176,7 @@ export default function WorkerDashboardPage() {
           </div>
         </div>
 
+        {/* Profile Section */}
         <div className={styles.profileGrid}>
           <div className={styles.card}>
             <div className={styles.profileHeader}>
@@ -185,7 +189,6 @@ export default function WorkerDashboardPage() {
               </div>
             </div>
           </div>
-
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>Your Service</h3>
             <div className={styles.serviceInfo}>
