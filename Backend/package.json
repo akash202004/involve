@@ -21,6 +21,8 @@
     "zod": "^3.25.64"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/morgan": "^1.9.10",
     "@types/pg": "^8.15.4",
     "drizzle-kit": "^0.31.1",
     "ts-node": "^10.9.2"

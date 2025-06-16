@@ -67,7 +67,7 @@ export const liveLocations = pgTable("workers_location", {
 });
 
 // Orders Table
-export const orders = pgTable("orders", {
+export const jobs = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
     .references(() => users.id)
@@ -84,8 +84,8 @@ export const orders = pgTable("orders", {
 // Transactions Table
 export const transactions = pgTable("transactions", {
   id: uuid("id").defaultRandom().primaryKey(),
-  orderId: uuid("order_id")
-    .references(() => orders.id)
+  jobId: uuid("job_id")
+    .references(() => jobs.id)
     .notNull(),
   paymentId: varchar("payment_id", { length: 100 }),
   razorpaySignature: varchar("signature", { length: 255 }),
@@ -101,8 +101,8 @@ export const transactions = pgTable("transactions", {
 // Reviews Table
 export const reviews = pgTable("reviews", {
   id: uuid("id").defaultRandom().primaryKey(),
-  orderId: uuid("order_id")
-    .references(() => orders.id)
+  jobId: uuid("job_id")
+    .references(() => jobs.id)
     .notNull(),
   workerId: uuid("worker_id")
     .references(() => workers.id)
