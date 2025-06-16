@@ -7,7 +7,7 @@ import {
   integer,
   doublePrecision,
 } from "drizzle-orm/pg-core";
-import { orderStatusEnum, paymentMethodEnum, paymentStatusEnum } from "./enum";
+import { jobStatusEnum, paymentMethodEnum, paymentStatusEnum } from "./enum";
 
 // Users Table
 export const users = pgTable("users", {
@@ -75,7 +75,7 @@ export const jobs = pgTable("orders", {
   workerId: uuid("worker_id")
     .references(() => workers.id)
     .notNull(),
-  status: orderStatusEnum("status").default("pending"),
+  status: jobStatusEnum("status").default("pending"),
   bookedFor: timestamp("booked_for"),
   durationMinutes: integer("duration_minutes"),
   createdAt: timestamp("created_at").defaultNow(),

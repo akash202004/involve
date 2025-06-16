@@ -5,7 +5,7 @@ import {
   getWorkerById,
   updateWorker,
   deleteWorker,
-} from "@/controllers/worker.controller"
+} from "@/controllers/worker.controller";
 
 const router = express.Router();
 

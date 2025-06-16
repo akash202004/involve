@@ -3,13 +3,13 @@ import { db } from "@/config/drizzle";
 import { jobs } from "@/db/schema";
 import { workers } from "@/db/schema";
 import { users } from "@/db/schema";
-import { orderSchema } from "@/types/validation";
+import { jobSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 
 // ✅ Create Order
 export const createJob = async (req: Request, res: Response) => {
   try {
-    const parsed = orderSchema
+    const parsed = jobSchema
       .omit({ id: true, createdAt: true })
       .parse(req.body);
 

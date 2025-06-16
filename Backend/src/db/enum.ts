@@ -1,6 +1,6 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
-export const orderStatusEnum = pgEnum("order_status", [
+export const jobStatusEnum = pgEnum("order_status", [
   "pending",
   "confirmed",
   "in_progress",

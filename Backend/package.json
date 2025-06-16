@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/app.ts",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,10 +12,12 @@
   "description": "",
   "dependencies": {
     "@types/express": "^5.0.3",
+    "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.44.2",
     "express": "^5.1.0",
+    "morgan": "^1.10.0",
     "nodemon": "^3.1.10",
     "pg": "^8.16.0",
     "zod": "^3.25.64"
@@ -25,6 +27,7 @@
     "@types/morgan": "^1.9.10",
     "@types/pg": "^8.15.4",
     "drizzle-kit": "^0.31.1",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0"
   }
 }

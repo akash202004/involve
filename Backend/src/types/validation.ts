@@ -44,7 +44,7 @@ export const liveLocationSchema = z.object({
   createdAt: z.date().optional(),
 });
 
-export const orderSchema = z.object({
+export const jobSchema = z.object({
   id: z.string(),
   userId: z.string(),
   workerId: z.string(),
@@ -58,7 +58,7 @@ export const orderSchema = z.object({
 
 export const transactionSchema = z.object({
   id: z.string(),
-  orderId: z.string(),
+  jobId: z.string(),
   paymentId: z.string().optional(),
   razorpaySignature: z.string().max(255).optional(),
   amount: z.number().positive(),
@@ -72,7 +72,7 @@ export const transactionSchema = z.object({
 
 export const reviewSchema = z.object({
   id: z.string(),
-  orderId: z.string(),
+  jobId: z.string(),
   userId: z.string(),
   workerId: z.string(),
   rating: z.number().min(1).max(5),
