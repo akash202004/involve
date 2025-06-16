@@ -1,7 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ApplianceRepairPopup from '@/app/components/ui/PopUp/ApplianceRepairPopup/Page';
+import WomenSalonPopup from '@/app/components/ui/PopUp/WomenSaloon/Page';
+import MenSalonPopup from '@/app/components/ui/PopUp/MenSaloon/Page';
 
 interface ServiceItem {
   id: string;
@@ -13,26 +16,29 @@ interface ServiceItem {
 
 const ServiceSelection: React.FC = () => {
   const router = useRouter();
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isWomenSalonPopupOpen, setIsWomenSalonPopupOpen] = useState(false);
+  const [isMenSalonPopupOpen, setIsMenSalonPopupOpen] = useState(false);
   
   const services: ServiceItem[] = [
     {
       id: 'womens-salon',
       title: "Women's Salon & Spa",
       icon: '👩‍💼',
-      route: '/services/womens-salon',
+      route: '', // No direct route, will open popup
     },
     {
       id: 'mens-salon',
       title: "Men's Salon & Massage",
       icon: '👨‍💼',
-      route: '/services/mens-salon',
+      route: '', // No direct route, will open popup
     },
     {
       id: 'appliance-repair',
       title: 'AC & Appliance Repair',
       icon: '❄️',
       isNew: true,
-      route: '/services/appliance-repair',
+      route: '', // No direct route, will open popup
     },
     {
       id: 'cleaning',
@@ -72,8 +78,31 @@ const ServiceSelection: React.FC = () => {
     },
   ];
 
-  const handleServiceClick = (route: string) => {
-    router.push(route);
+  const handleServiceClick = (serviceId: string) => {
+    if (serviceId === 'appliance-repair') {
+      setIsPopupOpen(true);
+    } else if (serviceId === 'womens-salon') {
+      setIsWomenSalonPopupOpen(true);
+    } else if (serviceId === 'mens-salon') {
+      setIsMenSalonPopupOpen(true);
+    } else {
+      const service = services.find(s => s.id === serviceId);
+      if (service && service.route) {
+        router.push(service.route);
+      }
+    }
+  };
+
+  const closePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+  const closeWomenSalonPopup = () => {
+    setIsWomenSalonPopupOpen(false);
+  };
+
+  const closeMenSalonPopup = () => {
+    setIsMenSalonPopupOpen(false);
   };
 
   return (
@@ -106,6 +135,9 @@ const ServiceSelection: React.FC = () => {
           ))}
         </div>
       </div>
+      {isPopupOpen && <ApplianceRepairPopup onClose={closePopup} />}
+      {isWomenSalonPopupOpen && <WomenSalonPopup onClose={closeWomenSalonPopup} />}
+      {isMenSalonPopupOpen && <MenSalonPopup onClose={closeMenSalonPopup} />}
     </div>
   );
 };

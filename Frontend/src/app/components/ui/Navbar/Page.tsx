@@ -87,7 +87,7 @@ export function NavbarDemo() {
               key={`mobile-link-${idx}`}
               href={item.link}
               onClick={() => setIsMobileMenuOpen(false)}
-              className={`relative text-black hover:text-yellow-600 hover:bg-yellow-100 transition-colors duration-200 py-2 border-b border-gray-100 last:border-b-0 w-full ${item.className || ''}`}
+              className={`relative text-black hover:text-yellow-600 hover:bg-yellow-100 transition-colors duration-200 py-2 border-b border-gray-200 last:border-b-0 w-full ${item.className || ''}`}
             >
               <span className="block text-base font-medium">{item.name}</span>
             </a>
@@ -95,7 +95,7 @@ export function NavbarDemo() {
           {user && (
             <Link href="/profile"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="relative text-black hover:text-yellow-600 hover:bg-yellow-100 transition-colors duration-200 py-2 border-b border-gray-100 last:border-b-0 w-full
+                  className="relative text-black hover:text-yellow-600 hover:bg-yellow-100 transition-colors duration-200 py-2 border-b border-gray-200 last:border-b-0 w-full
                              bg-transparent border-none shadow-none text-black hover:bg-yellow-100"
             >
               <span className="block text-base font-medium">Profile</span>
