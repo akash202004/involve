@@ -1,0 +1,376 @@
+.pageWrapper {
+  background-color: #f0f2f5;
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.dashboardContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.editButton {
+  background-color: #3182ce;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.editButton:hover {
+  background-color: #2b6cb0;
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #2d3748;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-right: 1rem;
+}
+
+.profileName {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.profileEmail {
+  font-size: 0.875rem;
+  color: #718096;
+}
+
+.profileDetails p {
+  margin-bottom: 0.5rem;
+}
+
+.serviceInfo {
+  background-color: #ebf8ff;
+  border-left: 4px solid #3182ce;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.serviceName {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c5282;
+  text-transform: capitalize;
+}
+
+.serviceExperience {
+  font-size: 1rem;
+  color: #2b6cb0;
+}
+
+.headerButtons {
+  display: flex;
+  gap: 1rem; 
+}
+
+.logoutButton {
+  background-color: #a0aec0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.logoutButton:hover {
+  background-color: #c53030; 
+}
+
+.toggleContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #f7fafc;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+}
+
+.toggleLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a5568;
+  padding-left: 0.5rem;
+}
+
+.toggleButton {
+  background-color: #cbd5e0;
+  border: none;
+  border-radius: 9999px;
+  width: 50px;
+  height: 28px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.toggleButton.live {
+  background-color: #48bb78; /* Green when live */
+}
+
+.toggleCircle {
+  background-color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.3s ease;
+}
+
+.toggleButton.live .toggleCircle {
+  transform: translateX(22px);
+}
+
+/* --- Map and Live Info Styles --- */
+.liveInfo {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #e6fffa;
+  border-left: 4px solid #38b2ac;
+  border-radius: 4px;
+}
+
+.liveInfo p {
+  color: #234e52;
+}
+
+.mapContainer {
+  height: 400px;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden; 
+  margin-top: 1rem;
+  background-color: #e2e8f0;
+}
+
+.mapPlaceholder {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #718096;
+    font-size: 1.2rem;
+}
+
+.earningsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+}
+
+.earningItem {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f7fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.earningLabel {
+  font-size: 0.875rem;
+  color: #718096;
+  margin-bottom: 0.5rem;
+}
+
+.earningValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.earningValueBonus {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #38a169; 
+}
+
+.mapView { 
+    height: 100%;
+    width: 100%;
+}
+
+.liveWorkerMarker {
+  background-color: #fff;
+  border: 4px solid #007aff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.userLocationMarker { 
+  background-color: #007aff;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 122, 255, 0.8);
+}
+
+.jobRequestOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end; 
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.jobRequestCard {
+  background-color: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.jobRequestCard h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.jobLocation {
+    text-align: center;
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+}
+
+.jobDetailsGrid {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.jobDetailsGrid .value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a202c;
+}
+.jobDetailsGrid .valueBonus {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #38a169;
+}
+
+.jobActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.declineButton, .acceptButton {
+  flex: 1;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.declineButton {
+  background-color: #edf2f7;
+  color: #4a5568;
+}
+
+.declineButton:hover {
+    background-color: #e2e8f0;
+}
+
+.acceptButton {
+  background-color: #2d3748;
+  color: white;
+}
+
+.acceptButton:hover {
+    background-color: #1a202c;
+}
+.simulateButton {
+  background-color: #4a5568;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.simulateButton:hover {
+  background-color: #2d3748;
+}

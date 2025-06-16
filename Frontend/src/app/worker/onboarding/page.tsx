@@ -1,13 +1,21 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent, useRef } from 'react';
+// 1. ADD 'useEffect' TO THIS IMPORT
+import { useState, ChangeEvent, FormEvent, useRef, useEffect } from 'react';
 import styles from './onboarding.module.css';
 import Image from 'next/image';
+// 2. ADD THE TWO IMPORTS NEEDED FOR USER DATA AND REDIRECTION
+import { useRouter } from 'next/navigation';
+import { useUser } from '@civic/auth/react';
 
 const CameraIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={styles.uploaderIcon}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>);
 const CrossIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
 
 export default function WorkerOnboardingPage() {
+  // 3. ADD THESE TWO LINES TO GET THE ROUTER AND THE LOGGED-IN USER
+  const router = useRouter();
+  const { user } = useUser();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: '', middleName: '', lastName: '', dob: '', gender: '',
@@ -21,6 +29,20 @@ export default function WorkerOnboardingPage() {
     phoneOtpSent: false, phoneVerified: false, phoneLoading: false,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 4. ADD THIS FUNCTION TO LOAD EXISTING DATA WHEN THE PAGE OPENS
+  useEffect(() => {
+    if (user) {
+      // Use a unique key for each user, e.g., 'profile_CIVIC_USER_ID'
+      const savedProfileJSON = localStorage.getItem(`workerProfile_${user.did}`);
+    
+      if (savedProfileJSON) {
+        const savedProfile = JSON.parse(savedProfileJSON);
+        // Pre-fill the form with the saved data
+        setFormData({ ...savedProfile, profilePicture: null });
+      }
+    }
+  }, [user]); // This runs when the 'user' object is available
 
   // All handler functions (handleInputChange, handleFileChange, etc.) remain the same
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -62,15 +84,29 @@ export default function WorkerOnboardingPage() {
 
   const nextStep = () => setCurrentStep(prev => prev + 1);
   const prevStep = () => setCurrentStep(prev => prev - 1);
-  const handleSubmit = (e: FormEvent) => { e.preventDefault(); alert("Profile submitted successfully!"); };
+  
+  // 5. REPLACE THE OLD SUBMIT FUNCTION WITH THIS NEW ONE
+  const handleSubmit = (e: FormEvent) => { 
+    e.preventDefault(); 
+    if (!user) {
+      alert("You must be logged in to submit a profile.");
+      return;
+    }
+    
+    // Save the data using the unique user key
+    localStorage.setItem(`workerProfile_${user.did}`, JSON.stringify(formData));
+
+    // Redirect to the dashboard
+    router.push('/worker/dashboard');
+  };
 
   const RequiredStar = () => <span className={styles.requiredStar}>*</span>;
 
   return (
     <div className={styles.pageWrapper}>
       <div className={styles.formContainer}>
+        {/* The rest of the file (the JSX) is completely unchanged */}
         <header className={styles.header}><h1>Join Our Professional Network</h1><p>Complete your profile to start accepting jobs.</p></header>
-        {/* --- 3-Step Stepper --- */}
         <div className={styles.stepper}>
           <div className={`${styles.step} ${currentStep >= 1 ? styles.active : ''}`}><div className={styles.stepNumber}>1</div><div className={styles.stepLabel}>Worker Details</div></div>
           <div className={styles.stepConnector}></div>
@@ -78,7 +114,6 @@ export default function WorkerOnboardingPage() {
           <div className={styles.stepConnector}></div>
           <div className={`${styles.step} ${currentStep >= 3 ? styles.active : ''}`}><div className={styles.stepNumber}>3</div><div className={styles.stepLabel}>Profile Photo</div></div>
         </div>
-
         <form onSubmit={handleSubmit}>
           {currentStep === 1 && (
             <>
@@ -92,7 +127,6 @@ export default function WorkerOnboardingPage() {
                 <div className={styles.formGroup}>
                     <label htmlFor="phone">Phone Number <RequiredStar/></label>
                     <div className={styles.inputWithButton}>
-                        {/* --- MODIFIED PHONE INPUT STRUCTURE --- */}
                         <div className={styles.phoneInputWrapper}>
                             <span className={styles.countryCode}>+91</span>
                             <input type="tel" id="phone" name="phone" pattern="\d{10}" title="Enter a 10-digit mobile number" value={formData.phone} onChange={handleInputChange} required disabled={verification.phoneVerified}/>

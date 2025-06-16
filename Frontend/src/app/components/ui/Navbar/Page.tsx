@@ -1,4 +1,5 @@
 "use client";
+import { usePathname } from 'next/navigation';
 import {
   Navbar,
   NavBody,
@@ -17,6 +18,10 @@ import Link from 'next/link';
 
 export function NavbarDemo() {
   const { user } = useUser();
+  const pathname = usePathname();
+  if (pathname.startsWith('/worker')) {
+    return null; // If on a worker page, render nothing
+  }
   
   const baseNavItems = [
     {

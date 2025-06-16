@@ -2,42 +2,37 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@civic/auth/react'; // Import Civic's hook
-import { CivicAuthButton } from '@/app/components/ui/CivicAuthButton'; // Import your Civic button
+import { useUser } from '@civic/auth/react';
+import { CivicAuthButton } from '@/app/components/ui/CivicAuthButton';
 import styles from './worker.module.css';
 
 export default function WorkerGatewayPage() {
   const router = useRouter();
-  // Get the user and loading status from the Civic hook
   const { user, isInitializing } = useUser();
 
-  // This function handles the redirect after a successful login
-  const handleLoginRedirect = () => {
-    // --- SIMULATION CONTROL ---
-    // Change this to `true` to test the login flow for an EXISTING user
-    const IS_EXISTING_USER = false;
+  // handles  login flow for workers
+  useEffect(() => {
     
-    console.log("Civic login successful. Simulating backend check...");
-    setTimeout(() => {
-      if (IS_EXISTING_USER) {
-        console.log("Redirecting existing user to dashboard...");
+    if (user) {
+     
+      localStorage.setItem('workerSessionActive', 'true');
+
+      // 2. Check if this specific user already has a profile saved.
+      const workerProfile = localStorage.getItem(`workerProfile_${user.did}`);
+      
+      if (workerProfile) {
+        
+        console.log("Existing worker found. Redirecting to dashboard...");
         router.push('/worker/dashboard');
       } else {
-        console.log("Redirecting new user to onboarding...");
-        router.push('/worker/onboarding');
+        // If not, they are a new worker.
+        console.log("New worker. Redirecting to onboarding...");
+        // We pass their email to the onboarding form to be auto-filled.
+        router.push(`/worker/onboarding?email=${encodeURIComponent(user.email || '')}`);
       }
-    }, 1500); // 1.5 second delay
-  };
-
-  // This useEffect hook is the key. It "listens" for when the `user` object
-  // is populated by Civic after a successful authentication.
-  useEffect(() => {
-    if (user) {
-      // Once we have a user, trigger the redirect logic.
-      handleLoginRedirect();
     }
-  }, [user]); // This hook runs only when the user object changes.
-
+  }, [user, router]); 
+  
   return (
     <div className={styles.pageWrapper}>
       <div className={styles.container}>
@@ -47,11 +42,9 @@ export default function WorkerGatewayPage() {
         </p>
 
         <div className={styles.buttonContainer}>
-          {/* While Civic is loading or redirecting, show a spinner */}
           {isInitializing || user ? (
             <div className={styles.spinner}></div>
           ) : (
-            // Otherwise, show the Civic button with Google and Apple options
             <CivicAuthButton signInMethods={['google', 'apple']} />
           )}
         </div>
