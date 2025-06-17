@@ -1,8 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import ApplianceRepairPopup from '@/app/components/ui/PopUp/ApplianceRepairPopup/Page';
+import WomenSalonPopup from '@/app/components/ui/PopUp/WomenSaloon/Page';
+import MenSalonPopup from '@/app/components/ui/PopUp/MenSaloon/Page';
+import CleaningPopup from '@/app/components/ui/PopUp/Cleaning/Page';
+import ElectricianPopup from '@/app/components/ui/PopUp/ElectricianPlumber/Page';
+import WaterPurifierPopup from '@/app/components/ui/PopUp/WaterPurifier/Page';
+import SmartLockPopup from '@/app/components/ui/PopUp/SmartLock/Page';
 interface ServiceItem {
   id: string;
   title: string;
@@ -13,67 +19,118 @@ interface ServiceItem {
 
 const ServiceSelection: React.FC = () => {
   const router = useRouter();
-  
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isWomenSalonPopupOpen, setIsWomenSalonPopupOpen] = useState(false);
+  const [isMenSalonPopupOpen, setIsMenSalonPopupOpen] = useState(false);
+  const [isCleaningPopupOpen, setIsCleaningPopupOpen] = useState(false);
+  const [isElectricianPopupOpen, setIsElectricianPopupOpen] = useState(false);
+  const [isWaterPurifierPopupOpen, setIsWaterPurifierPopupOpen] = useState(false);
+  const [isSmartLockPopupOpen, setIsSmartLockPopupOpen] = useState(false);
   const services: ServiceItem[] = [
     {
       id: 'womens-salon',
       title: "Women's Salon & Spa",
       icon: '👩‍💼',
-      route: '/services/womens-salon',
+      route: '', // No direct route, will open popup
     },
     {
       id: 'mens-salon',
       title: "Men's Salon & Massage",
       icon: '👨‍💼',
-      route: '/services/mens-salon',
+      route: '', // No direct route, will open popup
     },
     {
       id: 'appliance-repair',
       title: 'AC & Appliance Repair',
       icon: '❄️',
       isNew: true,
-      route: '/services/appliance-repair',
+      route: '', // No direct route, will open popup
     },
     {
       id: 'cleaning',
       title: 'Cleaning',
       icon: '🧹',
-      route: '/services/cleaning',
+      route: '',
     },
     {
       id: 'electrician',
       title: 'Electrician, Plumber & Carpenter',
       icon: '🔧',
-      route: '/services/electrician',
+      route: '',
     },
     {
       id: 'water-purifier',
       title: 'Native Water Purifier',
       icon: '💧',
-      route: '/services/water-purifier',
+      route: '',
     },
     {
       id: 'smart-locks',
       title: 'Native Smart Locks',
       icon: '🔐',
-      route: '/services/smart-locks',
+      route: '',
     },
     {
       id: 'home-painting',
       title: 'Full home painting',
       icon: '🎨',
-      route: '/services/home-painting',
+      route: '',
     },
     {
       id: 'pest-control',
       title: 'Pest Control',
       icon: '🐛',
-      route: '/services/pest-control',
+      route: '',
     },
   ];
 
-  const handleServiceClick = (route: string) => {
-    router.push(route);
+  const handleServiceClick = (serviceId: string) => {
+    if (serviceId === 'appliance-repair') {
+      setIsPopupOpen(true);
+    } else if (serviceId === 'womens-salon') {
+      setIsWomenSalonPopupOpen(true);
+    } else if (serviceId === 'mens-salon') {
+      setIsMenSalonPopupOpen(true);
+    } else if (serviceId === 'cleaning') {
+      setIsCleaningPopupOpen(true);
+    } else if (serviceId === 'electrician') {
+      setIsElectricianPopupOpen(true);
+    } else if (serviceId === 'water-purifier') {
+      setIsWaterPurifierPopupOpen(true);
+    } 
+    else if (serviceId === 'smart-locks') {
+      setIsSmartLockPopupOpen(true);
+    }
+    else {
+      const service = services.find(s => s.id === serviceId);
+      if (service && service.route) {
+        router.push(service.route);
+      }
+    }
+  };
+
+  const closePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+  const closeWomenSalonPopup = () => {
+    setIsWomenSalonPopupOpen(false);
+  };
+
+  const closeMenSalonPopup = () => {
+    setIsMenSalonPopupOpen(false);
+  };
+  const closeCleaningPopup = () => {
+    setIsCleaningPopupOpen(false);
+  };
+  const closeElectricianPopup = () => {
+    setIsElectricianPopupOpen(false);
+  };
+  const closeWaterPurifierPopup = () => {
+    setIsWaterPurifierPopupOpen(false);
+  };
+  const closeSmartLockPopup = () => {
+    setIsSmartLockPopupOpen(false);
   };
 
   return (
@@ -106,8 +163,18 @@ const ServiceSelection: React.FC = () => {
           ))}
         </div>
       </div>
+      {isPopupOpen && <ApplianceRepairPopup onClose={closePopup} />}
+      {isWomenSalonPopupOpen && <WomenSalonPopup onClose={closeWomenSalonPopup} />}
+      {isMenSalonPopupOpen && <MenSalonPopup onClose={closeMenSalonPopup} />}
+      {isCleaningPopupOpen && <CleaningPopup onClose={closeCleaningPopup} />}
+      {isElectricianPopupOpen && <ElectricianPopup onClose={closeElectricianPopup} />}
+      {isWaterPurifierPopupOpen && <WaterPurifierPopup onClose={closeWaterPurifierPopup} />}
+      {isSmartLockPopupOpen && <SmartLockPopup onClose={closeSmartLockPopup} />}
+
     </div>
   );
 };
 
 export default ServiceSelection;
+
+

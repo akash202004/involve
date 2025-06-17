@@ -46,3 +46,29 @@ body {
   font-weight: 400;
   font-style: normal;
 }
+
+/* Global styles for Leaflet map to prevent navbar overlap */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+.leaflet-control-container {
+  z-index: 5 !important;
+}
+
+.leaflet-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-control-zoom {
+  z-index: 5 !important;
+}
+
+.leaflet-control-attribution {
+  z-index: 5 !important;
+}
+
+/* Ensure navbar stays on top */
+.navbar-fixed {
+  z-index: 50 !important;
+}

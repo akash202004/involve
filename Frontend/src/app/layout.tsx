@@ -4,7 +4,7 @@ import "./globals.css";
 import { NavbarDemo } from "@/app/components/ui/Navbar/Page";
 import FooterSecond from "@/app/components/ui/Footer/Page";
 import { CivicAuthProvider } from "@civic/auth/nextjs";
-// THIS IS THE LINE THAT FIXES THE MAP
+
 import "leaflet/dist/leaflet.css";
 
 const geistSans = Geist({

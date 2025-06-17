@@ -1,3 +1,4 @@
+import { primaryKey } from "drizzle-orm/gel-core";
 import {
   pgTable,
   uuid,
@@ -6,12 +7,45 @@ import {
   text,
   integer,
   doublePrecision,
+  pgEnum,
 } from "drizzle-orm/pg-core";
-import { orderStatusEnum, paymentMethodEnum, paymentStatusEnum } from "./enum";
+
+export const jobStatusEnum = pgEnum("job_status", [
+  "pending",
+  "confirmed",
+  "in_progress",
+  "completed",
+  "cancelled",
+]);
+
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "created",
+  "authorized",
+  "captured",
+  "failed",
+]);
+
+export const paymentMethodEnum = pgEnum("payment_method", [
+  "card",
+  "upi",
+  "netbanking",
+  "wallet",
+]);
+
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "general",
+  "success",
+  "warning",
+  "error",
+  "info",
+  "transaction",
+  "order_status_update",
+  "worker_location_update",
+]);
 
 // Users Table
 export const users = pgTable("users", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: uuid("id").primaryKey().notNull(),
   name: varchar("full_name", { length: 100 }).notNull(),
   email: varchar("email").notNull(),
   phoneNumber: varchar("phone_number", { length: 12 }).notNull(),
@@ -34,7 +68,7 @@ export const users = pgTable("users", {
 
 // Workers Table
 export const workers = pgTable("workers", {
-  id: uuid("id").notNull(),
+  id: uuid("id").primaryKey().notNull(),
   name: varchar("full_name", { length: 100 }).notNull(),
   email: varchar("email").notNull(),
   password: varchar("password", { length: 30 }),
@@ -67,7 +101,7 @@ export const liveLocations = pgTable("workers_location", {
 });
 
 // Orders Table
-export const orders = pgTable("orders", {
+export const jobs = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
     .references(() => users.id)
@@ -75,7 +109,7 @@ export const orders = pgTable("orders", {
   workerId: uuid("worker_id")
     .references(() => workers.id)
     .notNull(),
-  status: orderStatusEnum("status").default("pending"),
+  status: jobStatusEnum("status").default("pending"),
   bookedFor: timestamp("booked_for"),
   durationMinutes: integer("duration_minutes"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -84,8 +118,8 @@ export const orders = pgTable("orders", {
 // Transactions Table
 export const transactions = pgTable("transactions", {
   id: uuid("id").defaultRandom().primaryKey(),
-  orderId: uuid("order_id")
-    .references(() => orders.id)
+  jobId: uuid("job_id")
+    .references(() => jobs.id)
     .notNull(),
   paymentId: varchar("payment_id", { length: 100 }),
   razorpaySignature: varchar("signature", { length: 255 }),
@@ -101,8 +135,8 @@ export const transactions = pgTable("transactions", {
 // Reviews Table
 export const reviews = pgTable("reviews", {
   id: uuid("id").defaultRandom().primaryKey(),
-  orderId: uuid("order_id")
-    .references(() => orders.id)
+  jobId: uuid("job_id")
+    .references(() => jobs.id)
     .notNull(),
   workerId: uuid("worker_id")
     .references(() => workers.id)
@@ -123,6 +157,6 @@ export const notifications = pgTable("notifications", {
     .notNull(),
   title: varchar("title", { length: 150 }).notNull(),
   message: text("message").notNull(),
-  type: varchar("type", { length: 50 }).default("general"),
+  type: notificationTypeEnum("type").default("general"),
   createdAt: timestamp("created_at").defaultNow(),
 });

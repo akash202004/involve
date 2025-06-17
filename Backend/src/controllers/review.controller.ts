@@ -11,7 +11,7 @@ export const createReview = async (req: Request, res: Response) => {
     const review = await db
       .insert(reviews)
       .values({
-        orderId: parsed.orderId,
+        jobId: parsed.jobId,
         userId: parsed.userId,
         workerId: parsed.workerId,
         rating: parsed.rating,

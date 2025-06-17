@@ -1,9 +1,15 @@
+"use client";
+import { usePathname } from 'next/navigation';
 import React from 'react';
 import Link from 'next/link';
 import { FaGithub, FaLinkedin, FaDiscord, FaHome } from 'react-icons/fa';
 import { RiTwitterXFill } from "react-icons/ri";
 
 const FooterSecond = () => {
+  const pathname = usePathname();
+  if (pathname.startsWith('/worker')) {
+    return null;//If on a worker page, render nothing
+  }
 
   const brandDetails = {
     brandIcon: <FaHome className="w-6 h-6 text-gray-600" />,

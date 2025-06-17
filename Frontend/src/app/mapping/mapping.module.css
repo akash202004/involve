@@ -4,6 +4,9 @@
   padding: 2rem;
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  position: relative;
+  z-index: 1; /* Lower than navbar */
+  margin-top: 80px; /* Add top margin to account for fixed navbar */
 }
 
 /* --- Main App Container (The "Box") --- */
@@ -20,6 +23,8 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
   overflow: hidden;
   position: relative; /* Positioning context for children */
+  transition: all 0.3s ease;
+  z-index: 1; /* Lower than navbar */
 }
 
 /* --- Map Containers --- */
@@ -28,10 +33,46 @@
   height: 60%; /* Mobile view height */
   width: 100%;
   background: #e9ecef;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 24px 24px;
+  z-index: 1; /* Lower than navbar */
 }
+
 .mapView, .mapLoading {
   height: 100%;
   width: 100%;
+  border-radius: inherit;
+  transition: all 0.3s ease;
+  z-index: 1; /* Lower than navbar */
+}
+
+/* Enhanced map hover effects - but ensure it doesn't overlap navbar */
+.mapBox:hover .mapView {
+  transform: scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Professional map styling */
+.mapView {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Ensure Leaflet controls and tiles are properly contained */
+.mapView :global(.leaflet-control-container) {
+  z-index: 5 !important; /* Lower than navbar but higher than map */
+}
+
+.mapView :global(.leaflet-pane) {
+  z-index: 1 !important; /* Keep map tiles below navbar */
+}
+
+.mapView :global(.leaflet-control-zoom) {
+  z-index: 5 !important;
+}
+
+.mapView :global(.leaflet-control-attribution) {
+  z-index: 5 !important;
 }
 
 /* --- Side Panel --- */
@@ -42,19 +83,28 @@
   box-sizing: border-box;
   background: #ffffff;
   height: 40%; /* Mobile view height */
+  border-top: 1px solid #f0f0f0;
+  z-index: 1; /* Lower than navbar */
 }
+
 .panelContent {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
 }
+
 .header {
   font-size: 1.75rem;
   font-weight: 700;
   color: #1c1c1e;
   margin: 0.5rem 0 1rem 0;
   text-align: center;
+  background: linear-gradient(135deg, #1c1c1e 0%, #4a4a4a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
+
 .categoryFilters {
   display: flex;
   flex-wrap: wrap;
@@ -74,10 +124,13 @@
   border-radius: 24px 24px 0 0;
   box-shadow: 0 -5px 30px rgba(0,0,0,0.1);
   padding: 20px 20px 30px 20px;
-  z-index: 1000;
+  z-index: 10; /* Lower than navbar (50) but higher than other content */
   transition: bottom 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   box-sizing: border-box;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
 }
+
 .bookingCard.visible {
   bottom: 0;
 }
@@ -89,36 +142,60 @@
     color: #888;
     font-size: 0.9rem;
 }
+
 .footer div {
     margin-bottom: 0.5rem;
 }
+
 .footer span {
     padding: 0 1rem;
 }
 
-
 /* --- Desktop Layout (Side-by-Side in a Box) --- */
 @media (min-width: 1024px) {
+  .appWrapper {
+    margin-top: 100px; /* More space for desktop navbar */
+  }
+  
   .pageContainer {
     flex-direction: row; /* Side-by-side on desktop */
+    height: 90vh; /* Slightly taller on desktop */
   }
+  
   .sidePanel {
     width: 380px;
     height: 100%; /* Full height of the box */
     flex-shrink: 0;
     padding: 1.5rem 2rem;
     border-right: 1px solid #e5e5e5;
+    border-top: none;
     overflow-y: auto;
+    border-radius: 24px 0 0 24px;
   }
+  
   .mapBox {
     height: 100%; /* Full height of the box */
+    border-radius: 0 24px 24px 0;
+    flex-grow: 1;
   }
+  
+  .mapView, .mapLoading {
+    border-radius: 0 24px 24px 0;
+  }
+  
   .header {
     text-align: left;
     margin-top: 1rem;
   }
+  
   .categoryFilters {
     justify-content: flex-start;
+  }
+
+  /* Enhanced desktop map hover effects - but keep below navbar */
+  .mapBox:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
   }
 
   /* Override mobile overlay for desktop */
@@ -135,7 +212,10 @@
     display: none; /* Hide until visible */
     border-top: 1px solid #eee;
     padding-top: 1.5rem;
+    backdrop-filter: none;
+    background: transparent;
   }
+  
   .bookingCard.visible {
     bottom: auto; /* Unset mobile style */
     display: block; /* Show in the panel */
@@ -144,5 +224,316 @@
   }
 }
 
-/* (All other styles for buttons, markers, text, etc., remain the same) */
-.cardHeader{display:flex;align-items:center;margin-bottom:18px}.workerAvatar{width:55px;height:55px;border-radius:50%;margin-right:15px;object-fit:cover;flex-shrink:0;border:2px solid #eee}.workerInfo h3{margin:0;font-size:1.25rem;color:#1c1c1e;line-height:1.2;font-weight:600}.workerInfo p{margin:4px 0 0 0;color:#8a8a8e;font-size:.95rem}.detailsGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;text-align:center;margin-bottom:20px;padding-top:15px;border-top:1px solid #f0f0f0}.detailsGrid div p{margin:0 0 5px 0;font-size:.8rem;color:#8a8a8e;text-transform:uppercase;font-weight:500}.detailsGrid div .value{font-size:1.15rem;font-weight:600;color:#1c1c1e}.confirmButton,.cancelButton{width:100%;cursor:pointer;padding:16px;border:none;border-radius:16px;font-size:1.1rem;font-weight:600;transition:transform .2s ease,background-color .2s ease}.confirmButton{background-color:#000;color:#fff}.confirmButton:disabled{background-color:#ccc;cursor:not-allowed}.confirmButton:hover:not(:disabled){transform:translateY(-2px)}.cancelButton{background-color:#e53e3e;color:#fff;margin-top:10px}.cancelButton:hover{background-color:#c53030}.trackingInfo{text-align:center}.trackingInfo h3{margin:0 0 8px 0;font-size:1.3rem;color:#1c1c1e}.trackingInfo p{margin:0 0 15px 0;font-size:1rem;color:#555}.trackingInfo span{font-weight:700;font-size:1.2rem;color:#007aff}.userLocationMarker{border-radius:50%;background-color:#007aff;width:18px;height:18px;border:3px solid #fff;box-shadow:0 0 0 3px #007aff}.workerMarker{transition:all .3s cubic-bezier(.175,.885,.32,1.275)}.workerMarker img{width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);background:#fff}.workerMarker.selected{transform:scale(1.25)}.workerMarker.selected img{border-color:#000}.liveWorkerMarker{background-color:#007aff;border-radius:50%;width:22px;height:22px;border:4px solid #fff;box-shadow:0 0 0 6px rgba(0,122,255,.3)}.filterButton{padding:10px 22px;border:1px solid #ddd;background:#fff;color:#333;font-weight:500;border-radius:50px;cursor:pointer;transition:all .2s ease-in-out;font-size:.9rem}.filterButton:hover{background:#f0f0f0;border-color:#ccc}.filterButton.active{background:#000;color:#fff;border-color:#000;transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,.1)}
+/* --- Tablet Layout --- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .appWrapper {
+    margin-top: 90px; /* Medium space for tablet navbar */
+  }
+  
+  .pageContainer {
+    height: 88vh;
+  }
+  
+  .mapBox {
+    height: 65%;
+  }
+  
+  .sidePanel {
+    height: 35%;
+  }
+  
+  .header {
+    font-size: 1.5rem;
+  }
+}
+
+/* --- Mobile Optimizations --- */
+@media (max-width: 767px) {
+  .appWrapper {
+    padding: 1rem;
+    margin-top: 70px; /* Less space for mobile navbar */
+  }
+  
+  .pageContainer {
+    height: 80vh;
+    min-height: 600px;
+    border-radius: 16px;
+  }
+  
+  .mapBox {
+    height: 55%;
+    border-radius: 0 0 16px 16px;
+  }
+  
+  .sidePanel {
+    height: 45%;
+    padding: 1rem;
+  }
+  
+  .header {
+    font-size: 1.5rem;
+    margin: 0.25rem 0 0.75rem 0;
+  }
+  
+  .categoryFilters {
+    gap: 8px;
+  }
+}
+
+/* Enhanced marker styles */
+.userLocationMarker {
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 3px #007aff, 0 4px 12px rgba(0, 122, 255, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 3px #007aff, 0 4px 12px rgba(0, 122, 255, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(0, 122, 255, 0.2), 0 4px 12px rgba(0, 122, 255, 0.5); }
+  100% { box-shadow: 0 0 0 3px #007aff, 0 4px 12px rgba(0, 122, 255, 0.3); }
+}
+
+.workerMarker {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+}
+
+.workerMarker:hover {
+  transform: scale(1.1);
+  filter: brightness(1.1);
+}
+
+.workerMarker img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+.workerMarker.selected {
+  transform: scale(1.25);
+  z-index: 1000;
+}
+
+.workerMarker.selected img {
+  border-color: #007aff;
+  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+}
+
+.liveWorkerMarker {
+  background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 6px rgba(0, 122, 255, 0.3), 0 4px 12px rgba(0, 122, 255, 0.4);
+  animation: livePulse 1.5s infinite;
+}
+
+@keyframes livePulse {
+  0% { box-shadow: 0 0 0 6px rgba(0, 122, 255, 0.3), 0 4px 12px rgba(0, 122, 255, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(0, 122, 255, 0.1), 0 4px 12px rgba(0, 122, 255, 0.6); }
+  100% { box-shadow: 0 0 0 6px rgba(0, 122, 255, 0.3), 0 4px 12px rgba(0, 122, 255, 0.4); }
+}
+
+/* Enhanced filter buttons */
+.filterButton {
+  padding: 10px 22px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #333;
+  font-weight: 500;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  font-size: 0.9rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.filterButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.filterButton:hover::before {
+  left: 100%;
+}
+
+.filterButton:hover {
+  background: #f8f9fa;
+  border-color: #007aff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+}
+
+.filterButton.active {
+  background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
+  color: #fff;
+  border-color: #007aff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3);
+}
+
+/* Enhanced card styles */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 15px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.workerAvatar {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  margin-right: 15px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.workerAvatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.workerInfo h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1c1c1e;
+  line-height: 1.2;
+  font-weight: 600;
+  background: linear-gradient(135deg, #1c1c1e 0%, #4a4a4a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.workerInfo p {
+  margin: 4px 0 0 0;
+  color: #8a8a8e;
+  font-size: 0.95rem;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  text-align: center;
+  margin-bottom: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.detailsGrid div p {
+  margin: 0 0 5px 0;
+  font-size: 0.8rem;
+  color: #8a8a8e;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.detailsGrid div .value {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1c1c1e;
+  background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.confirmButton, .cancelButton {
+  width: 100%;
+  cursor: pointer;
+  padding: 16px;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.confirmButton {
+  background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.confirmButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.confirmButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 122, 255, 0.4);
+}
+
+.cancelButton {
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+  color: #fff;
+  margin-top: 10px;
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+}
+
+.cancelButton:hover {
+  background: linear-gradient(135deg, #c53030 0%, #a53030 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(229, 62, 62, 0.4);
+}
+
+.trackingInfo {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.trackingInfo h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.3rem;
+  color: #1c1c1e;
+  background: linear-gradient(135deg, #1c1c1e 0%, #4a4a4a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.trackingInfo p {
+  margin: 0 0 15px 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.trackingInfo span {
+  font-weight: 700;
+  font-size: 1.2rem;
+  background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

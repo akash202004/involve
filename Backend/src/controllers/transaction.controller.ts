@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { db } from "@/config/drizzle";
-import { transactions, users } from "@/db/schema";
-import { orders } from "@/db/schema";
+import { jobs, transactions, users } from "@/db/schema";
 import { transactionSchema } from "@/types/validation";
 import { desc, eq, inArray } from "drizzle-orm";
 import { verifyRazorpaySignature } from "@/utils/verifySignature";
@@ -16,11 +15,11 @@ export const createTransaction = async (req: Request, res: Response) => {
       .parse(req.body);
 
     // Check order exists
-    const order = await db
+    const job = await db
       .select()
-      .from(orders)
-      .where(eq(orders.id, parsed.orderId));
-    if (!order.length) {
+      .from(jobs)
+      .where(eq(jobs.id, parsed.jobId));
+    if (!job.length) {
       res.status(404).json({ error: "Order not found" });
       return;
     }
@@ -28,7 +27,7 @@ export const createTransaction = async (req: Request, res: Response) => {
     // ✅ Verify Razorpay Signature if available
     if (parsed.paymentId && parsed.razorpaySignature) {
       const isValid = verifyRazorpaySignature(
-        parsed.orderId,
+        parsed.jobId,
         parsed.paymentId,
         parsed.razorpaySignature,
         RAZORPAY_SECRET
@@ -84,15 +83,15 @@ export const getTransactionById = async (req: Request, res: Response) => {
   }
 };
 
-// ✅ Get Transaction by Order ID
-export const gsetTransactionByOrderId = async (req: Request, res: Response) => {
+// ✅ Get Transaction by Job ID
+export const getTransactionByJobId = async (req: Request, res: Response) => {
   try {
-    const { orderId } = req.params;
+    const { jobId } = req.params;
 
     const tx = await db
       .select()
       .from(transactions)
-      .where(eq(transactions.orderId, orderId));
+      .where(eq(transactions.jobId, jobId));
     if (!tx.length) {
       res.status(404).json({ error: "No transaction found for this order" });
       return;
@@ -117,24 +116,24 @@ export const getTransactionByUserId = async (req: Request, res: Response) => {
       return;
     }
 
-    const orderList = await db
+    const jobList = await db
       .select()
-      .from(orders)
-      .where(eq(orders.userId, userId));
-    if (!orderList.length) {
+      .from(jobs)
+      .where(eq(jobs.userId, userId));
+    if (!jobList.length) {
       res.status(404).json({ error: "No order found for this user" });
       return;
     }
 
-    const orderIds = orderList.map((order) => order.id);
-    if (orderIds.length === 0) {
+    const jobIds = jobList.map((job) => job.id);
+    if (jobIds.length === 0) {
       return res.status(404).json({ error: "No orders found for this user" });
     }
 
     const tx = await db
       .select()
       .from(transactions)
-      .where(inArray(transactions.orderId, orderIds))
+      .where(inArray(transactions.jobId, jobIds))
       .orderBy(desc(transactions.createdAt))
 
     if (!tx.length) {
