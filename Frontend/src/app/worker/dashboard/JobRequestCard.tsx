@@ -1,12 +1,14 @@
+// JobRequestCard.tsx
 "use client";
 
 import styles from './dashboard.module.css';
+import { FiMapPin, FiDollarSign, FiStar } from 'react-icons/fi';
 
 interface JobRequest {
   distance: number;
   fare: number;
   bonus: number;
-  clientLocationName: string; // e.g., "Kolkata City Center"
+  clientLocationName: string;
 }
 
 interface JobRequestCardProps {
@@ -17,22 +19,24 @@ interface JobRequestCardProps {
 
 export default function JobRequestCard({ job, onAccept, onDecline }: JobRequestCardProps) {
   return (
-    <div className={styles.jobRequestOverlay}>
+    <div className={styles.confirmationOverlay}>
       <div className={styles.jobRequestCard}>
-        <h3>New Job Request!</h3>
-        <p className={styles.jobLocation}>Pickup from: {job.clientLocationName}</p>
-        <div className={styles.jobDetailsGrid}>
-          <div>
-            <p>Trip Fare</p>
-            <p className={styles.value}>₹{job.fare}</p>
+        <div className={styles.jobRequestHeader}>
+          <h3>New Job Request</h3>
+          <p>Pickup from {job.clientLocationName}</p>
+        </div>
+        <div className={styles.jobDetails}>
+          <div className={styles.jobDetailItem}>
+            <FiMapPin />
+            <span>{job.distance} km</span>
           </div>
-          <div>
-            <p>Distance</p>
-            <p className={styles.value}>{job.distance} km</p>
+          <div className={styles.jobDetailItem}>
+            <FiDollarSign />
+            <span>₹{job.fare}</span>
           </div>
-          <div>
-            <p>Bonus</p>
-            <p className={styles.valueBonus}>+ ₹{job.bonus}</p>
+          <div className={styles.jobDetailItem}>
+            <FiStar />
+            <span className={styles.earningValueBonus}>+ ₹{job.bonus}</span>
           </div>
         </div>
         <div className={styles.jobActions}>
