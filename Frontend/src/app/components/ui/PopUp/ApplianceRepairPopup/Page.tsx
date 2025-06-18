@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ApplianceRepairPopupProps {
   onClose: () => void;
@@ -13,29 +14,34 @@ interface ApplianceItem {
 }
 
 const ApplianceRepairPopup: React.FC<ApplianceRepairPopupProps> = ({ onClose }) => {
+  const router = useRouter();
   const [selectedAppliance, setSelectedAppliance] = useState<string | null>(null);
 
   const homeAppliances: ApplianceItem[] = [
-    { name: 'AC', icon: '❄️' },
-    { name: 'Washing Machine', icon: '🧺' },
-    { name: 'Television', icon: '📺' },
-    { name: 'Laptop', icon: '💻' },
-    { name: 'Air Purifier', icon: '🌬️' },
-    { name: 'Air Cooler', icon: '🌪️' },
-    { name: 'Geyser', icon: '🔥' },
+    { name: 'AC Repair', icon: '❄️' },
+    { name: 'Washing Machine Repair', icon: '🧺' },
+    { name: 'Television Repair', icon: '📺' },
+    { name: 'Laptop Repair', icon: '💻' },
+    { name: 'Air Purifier Repair', icon: '🌬️' },
+    { name: 'Air Cooler Repair', icon: '🌪️' },
+    { name: 'Geyser Repair', icon: '🔥' },
   ];
 
   const kitchenAppliances: ApplianceItem[] = [
-    { name: 'Water Purifier', icon: '💧' },
-    { name: 'Refrigerator', icon: '🧊' },
-    { name: 'Microwave', icon: '🍽️' },
-    { name: 'Chimney', icon: '🏠' },
+    { name: 'Water Purifier Installation', icon: '💧' },
+    { name: 'Refrigerator Repair', icon: '🧊' },
+    { name: 'Microwave Repair', icon: '🍽️' },
+    { name: 'Chimney Repair', icon: '🏠' },
   ];
 
   const handleApplianceClick = (applianceName: string) => {
     setSelectedAppliance(applianceName);
-    // Here you can add navigation logic or booking functionality
-    console.log(`Selected appliance: ${applianceName}`);
+    // Navigate to booking page with service details
+    const category = homeAppliances.find(s => s.name === applianceName) ? 'Appliance Repair' :
+                    kitchenAppliances.find(s => s.name === applianceName) ? 'Appliance Repair' : 'Appliance Repair';
+    
+    router.push(`/booking/services?service=${encodeURIComponent(applianceName)}&category=${encodeURIComponent(category)}`);
+    onClose(); // Close the popup after navigation
   };
 
   const handleClose = () => {

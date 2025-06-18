@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface WomenSalonPopupProps {
   onClose: () => void;
@@ -12,6 +13,7 @@ interface SalonService {
 }
 
 const WomenSalonPopup: React.FC<WomenSalonPopupProps> = ({ onClose }) => {
+  const router = useRouter();
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
   const hairServices: SalonService[] = [
@@ -43,8 +45,13 @@ const WomenSalonPopup: React.FC<WomenSalonPopupProps> = ({ onClose }) => {
 
   const handleServiceClick = (serviceName: string) => {
     setSelectedService(serviceName);
-    // Here you can add navigation logic or booking functionality
-    console.log(`Selected service: ${serviceName}`);
+    // Navigate to booking page with service details
+    const category = hairServices.find(s => s.name === serviceName) ? 'Hair Services' :
+                    beautyServices.find(s => s.name === serviceName) ? 'Beauty Services' :
+                    spaServices.find(s => s.name === serviceName) ? 'Spa Services' : 'Hair Services';
+    
+    router.push(`/booking/services?service=${encodeURIComponent(serviceName)}&category=${encodeURIComponent(category)}`);
+    onClose(); // Close the popup after navigation
   };
 
   const handleClose = () => {

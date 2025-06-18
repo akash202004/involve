@@ -1,50 +1,57 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-interface MenSalonPopupProps {
+interface CleaningPopupProps {
   onClose: () => void;
 }
 
-interface SalonService {
+interface CleaningService {
   name: string;
   icon: string;
 }
 
-const MenSalonPopup: React.FC<MenSalonPopupProps> = ({ onClose }) => {
+const CleaningPopup: React.FC<CleaningPopupProps> = ({ onClose }) => {
+  const router = useRouter();
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
-  const hairServices: SalonService[] = [
-    { name: 'Haircut', icon: '✂️' },
-    { name: 'Hair Color', icon: '🎨' },
-    { name: 'Hair Styling', icon: '💇‍♂️' },
-    { name: 'Hair Treatment', icon: '💆‍♂️' },
-    { name: 'Hair Spa', icon: '🧖‍♂️' },
-    { name: 'Beard Trim', icon: '🪒' },
+  const homeCleaningServices: CleaningService[] = [
+    { name: 'Home Cleaning', icon: '🏠' },
+    { name: 'Kitchen Cleaning', icon: '🍳' },
+    { name: 'Bathroom Cleaning', icon: '🚿' },
+    { name: 'Living Room Cleaning', icon: '🛋️' },
+    { name: 'Bedroom Cleaning', icon: '🛏️' },
+    { name: 'Balcony Cleaning', icon: '🌿' },
   ];
 
-  const groomingServices: SalonService[] = [
-    { name: 'Shave', icon: '🪒' },
-    { name: 'Beard Styling', icon: '🧔' },
-    { name: 'Facial', icon: '✨' },
-    { name: 'Threading', icon: '🧵' },
-    { name: 'Waxing', icon: '🪒' },
-    { name: 'Manicure', icon: '💅' },
+  const specializedCleaningServices: CleaningService[] = [
+    { name: 'Carpet Cleaning', icon: '🟫' },
+    { name: 'Sofa Cleaning', icon: '🛋️' },
+    { name: 'Curtain Cleaning', icon: '🪟' },
+    { name: 'Window Cleaning', icon: '🪟' },
+    { name: 'Deep Cleaning', icon: '🧹' },
+    { name: 'Move-in/Move-out Cleaning', icon: '📦' },
   ];
 
-  const massageServices: SalonService[] = [
-    { name: 'Head Massage', icon: '💆‍♂️' },
-    { name: 'Body Massage', icon: '💆‍♂️' },
-    { name: 'Foot Massage', icon: '🦶' },
-    { name: 'Thai Massage', icon: '🧘‍♂️' },
-    { name: 'Deep Tissue', icon: '💪' },
-    { name: 'Relaxation', icon: '😌' },
+  const commercialCleaningServices: CleaningService[] = [
+    { name: 'Office Cleaning', icon: '🏢' },
+    { name: 'Shop Cleaning', icon: '🏪' },
+    { name: 'Restaurant Cleaning', icon: '🍽️' },
+    { name: 'Warehouse Cleaning', icon: '🏭' },
+    { name: 'Event Venue Cleaning', icon: '🎉' },
+    { name: 'Post-Construction Cleaning', icon: '🏗️' },
   ];
 
   const handleServiceClick = (serviceName: string) => {
     setSelectedService(serviceName);
-    // Here you can add navigation logic or booking functionality
-    console.log(`Selected service: ${serviceName}`);
+    // Navigate to booking page with service details
+    const category = homeCleaningServices.find(s => s.name === serviceName) ? 'Cleaning Services' :
+                    specializedCleaningServices.find(s => s.name === serviceName) ? 'Cleaning Services' :
+                    commercialCleaningServices.find(s => s.name === serviceName) ? 'Cleaning Services' : 'Cleaning Services';
+    
+    router.push(`/booking/services?service=${encodeURIComponent(serviceName)}&category=${encodeURIComponent(category)}`);
+    onClose(); // Close the popup after navigation
   };
 
   const handleClose = () => {
@@ -67,13 +74,13 @@ const MenSalonPopup: React.FC<MenSalonPopupProps> = ({ onClose }) => {
         </button>
 
         <div className="p-6">
-          {/* Hair Services Section */}
+          {/* Home Cleaning Services Section */}
           <div className="mb-8">
             <h3 className="text-xl font-semibold mb-4">
-              Hair Services
+              Home Cleaning Services
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4">
-              {hairServices.map((item, index) => (
+              {homeCleaningServices.map((item, index) => (
                 <div
                   key={index}
                   onClick={() => handleServiceClick(item.name)}
@@ -86,13 +93,13 @@ const MenSalonPopup: React.FC<MenSalonPopupProps> = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Grooming Services Section */}
+          {/* Specialized Cleaning Services Section */}
           <div className="mb-8">
             <h3 className="text-xl font-semibold mb-4">
-              Grooming Services
+              Specialized Cleaning Services
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4">
-              {groomingServices.map((item, index) => (
+              {specializedCleaningServices.map((item, index) => (
                 <div
                   key={index}
                   onClick={() => handleServiceClick(item.name)}
@@ -105,13 +112,13 @@ const MenSalonPopup: React.FC<MenSalonPopupProps> = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Massage Services Section */}
+          {/* Commercial Cleaning Services Section */}
           <div className="mb-8">
             <h3 className="text-xl font-semibold mb-4">
-              Massage Services
+              Commercial Cleaning Services
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4">
-              {massageServices.map((item, index) => (
+              {commercialCleaningServices.map((item, index) => (
                 <div
                   key={index}
                   onClick={() => handleServiceClick(item.name)}
@@ -127,7 +134,7 @@ const MenSalonPopup: React.FC<MenSalonPopupProps> = ({ onClose }) => {
           {/* Call to Action */}
           <div className="text-center mt-8">
             <p className="text-sm text-gray-500 mt-3">
-              Professional grooming experts available
+              Professional cleaning experts available
             </p>
           </div>
         </div>
@@ -136,4 +143,4 @@ const MenSalonPopup: React.FC<MenSalonPopupProps> = ({ onClose }) => {
   );
 };
 
-export default MenSalonPopup;
+export default CleaningPopup;
