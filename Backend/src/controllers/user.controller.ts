@@ -3,15 +3,35 @@ import { users } from "@/db/schema";
 import { userSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 import { Request, Response } from "express";
+import { ZodError } from "zod";
 
 // Create User
 export const createUser = async (req: Request, res: Response) => {
   try {
     const parsedData = userSchema.omit({ createdAt: true }).parse(req.body);
 
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, parsedData.email));
+    if (existingUser.length > 0) {
+      res.status(400).json({ error: "User with this email already exists" });
+      return;
+    }
+
     const newUser = await db.insert(users).values(parsedData).returning();
     res.status(201).json({ message: "User created", data: newUser[0] });
   } catch (error) {
+    if (error instanceof ZodError) {
+      const formattedErrors = error.errors.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      }));
+      res
+        .status(400)
+        .json({ message: "Validation failed", errors: formattedErrors });
+      return;
+    }
     res.status(400).json({ error: "Failed to create user" });
     return;
   }
@@ -52,6 +72,12 @@ export const updateUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     const parsedData = userSchema.partial().parse(req.body);
 
+    const existingUser = await db.select().from(users).where(eq(users.id, id));
+    if (existingUser.length === 0) {  
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
     const updatedUser = await db
       .update(users)
       .set(parsedData)
@@ -65,6 +91,16 @@ export const updateUser = async (req: Request, res: Response) => {
 
     res.status(200).json({ message: "User updated", data: updatedUser[0] });
   } catch (error) {
+    if(error instanceof ZodError) {
+      const formattedErrors = error.errors.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      }));
+      res
+        .status(400)
+        .json({ message: "Validation failed", errors: formattedErrors });
+      return;
+    }
     res.status(400).json({ error: "Failed to update user" });
     return;
   }

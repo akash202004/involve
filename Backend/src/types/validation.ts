@@ -1,38 +1,123 @@
 import { z } from "zod";
 
 export const userSchema = z.object({
-  id: z.string(),
-  name: z.string().min(1).max(100),
-  email: z.string().email(),
-  phoneNumber: z.string().length(12),
-  password: z.string().min(8).max(30).optional(),
-  address: z.string().optional(),
-  city: z.string().max(50).optional(),
-  state: z.string().max(50).optional(),
-  country: z.string().max(50).optional(),
-  zipCode: z.number().max(10).optional(),
-  autoLocation: z.string(),
-  lat: z.number().optional(),
-  lng: z.number().optional(),
-  createdAt: z.date().optional(),
+  id: z.string({ message: "ID is required" }),
+
+  name: z
+    .string({ message: "Name is required" })
+    .min(1, { message: "Name cannot be empty" })
+    .max(100, { message: "Name must be at most 100 characters" }),
+
+  email: z
+    .string({ message: "Email is required" })
+    .email({ message: "Invalid email format" }),
+
+  phoneNumber: z
+    .string({ message: "Phone number is required" })
+    .length(12, { message: "Phone number must be exactly 12 digits" }),
+
+  password: z
+    .string({ message: "Password must be a string" })
+    .min(8, { message: "Password must be at least 8 characters" })
+    .max(30, { message: "Password must be at most 30 characters" })
+    .optional(),
+
+  address: z.string({ message: "Address must be a string" }).optional(),
+
+  city: z
+    .string({ message: "City must be a string" })
+    .max(50, { message: "City must be at most 50 characters" })
+    .optional(),
+
+  state: z
+    .string({ message: "State must be a string" })
+    .max(50, { message: "State must be at most 50 characters" })
+    .optional(),
+
+  country: z
+    .string({ message: "Country must be a string" })
+    .max(50, { message: "Country must be at most 50 characters" })
+    .optional(),
+
+  zipCode: z
+    .number({ message: "Zip code must be a number" })
+    .int({ message: "Zip code must be an integer" })
+    .positive({ message: "Zip code must be a positive number" })
+    .optional(),
+
+  autoLocation: z.string({ message: "Auto location is required" }),
+
+  lat: z.number({ message: "Latitude must be a number" }).optional(),
+
+  lng: z.number({ message: "Longitude must be a number" }).optional(),
+
+  createdAt: z.date({ message: "CreatedAt must be a date" }).optional(),
 });
 
 export const workerSchema = z.object({
-  id: z.string(),
-  firstName: z.string().min(1).max(100),
-  middleName: z.string().max(100).optional(),
-  lastName: z.string().min(1).max(100),
-  email: z.string().email(),
-  password: z.string().min(8).max(30).optional(),
-  profilePicture: z.string().optional(),
-  address: z.string(),
-  description: z.string().optional(),
-  phoneNumber: z.string().length(12),
-  dateOfBirth: z.date(),
-  gender: z.enum(["male", "female", "not_specified", "others"]).default("not_specified"),
-  experienceYears: z.number().int().min(0).default(0),
-  panCard: z.string().max(15).optional(),
-  createdAt: z.date().optional(),
+  id: z.string({ message: "Worker ID is required" }),
+
+  firstName: z
+    .string({ message: "First name is required" })
+    .min(1, { message: "First name cannot be empty" })
+    .max(100, { message: "First name must be at most 100 characters" }),
+
+  middleName: z
+    .string({ message: "Middle name must be a string" })
+    .max(100, { message: "Middle name must be at most 100 characters" })
+    .optional(),
+
+  lastName: z
+    .string({ message: "Last name is required" })
+    .min(1, { message: "Last name cannot be empty" })
+    .max(100, { message: "Last name must be at most 100 characters" }),
+
+  email: z
+    .string({ message: "Email is required" })
+    .email({ message: "Invalid email format" }),
+
+  password: z
+    .string({ message: "Password must be a string" })
+    .min(8, { message: "Password must be at least 8 characters" })
+    .max(30, { message: "Password must be at most 30 characters" })
+    .optional(),
+
+  profilePicture: z
+    .string({ message: "Profile picture must be a string" })
+    .optional(),
+
+  address: z.string({ message: "Address is required" }),
+
+  description: z.string({ message: "Description must be a string" }).optional(),
+
+  phoneNumber: z
+    .string({ message: "Phone number is required" })
+    .length(13, { message: "Phone number must be exactly 13 digits" }),
+
+  dateOfBirth: z.date({
+    message: "Date of birth is required and must be a valid date",
+  }),
+
+  gender: z
+    .enum(["male", "female", "not_specified"], {
+      errorMap: () => ({
+        message: "Gender must be either 'male', 'female', or 'not_specified'",
+      }),
+    })
+    .default("not_specified"),
+
+  experienceYears: z
+    .number({ message: "Experience years must be a number" })
+    .int({ message: "Experience years must be an integer" })
+    .min(0, { message: "Experience years must be at least 0" })
+    .default(0),
+
+  panCard: z
+    .string({ message: "PAN card must be a string" })
+    .max(15, { message: "PAN card must be at most 15 characters" })
+    .optional(),
+
+  createdAt: z.date({ message: "CreatedAt must be a valid date" }).optional(),
 });
 
 export const specializationSchema = z.object({
@@ -44,11 +129,15 @@ export const specializationSchema = z.object({
 });
 
 export const liveLocationSchema = z.object({
-  id: z.string(),
-  workerId: z.string(),
-  lat: z.number(),
-  lng: z.number(),
-  createdAt: z.date().optional(),
+  id: z.string({ message: "Location ID is required" }),
+
+  workerId: z.string({ message: "Worker ID is required" }),
+
+  lat: z.number({ message: "Latitude must be a number" }),
+
+  lng: z.number({ message: "Longitude must be a number" }),
+
+  createdAt: z.date({ message: "CreatedAt must be a valid date" }).optional(),
 });
 
 export const jobSchema = z.object({

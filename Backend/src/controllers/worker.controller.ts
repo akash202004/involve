@@ -9,23 +9,38 @@ export const createWorker = async (req: Request, res: Response) => {
   try {
     const parsedData = workerSchema.omit({ createdAt: true }).parse(req.body);
 
-    const newWorker = await db.insert(workers).values(parsedData).returning();
+    const formattedData = {
+      ...parsedData,
+      dateOfBirth: parsedData.dateOfBirth.toISOString().split("T")[0],
+    };
 
-    res.status(201).json({ message: "Worker created", data: newWorker[0] });
-  } catch (error) {
-    res.status(400).json({ error: "Failed to create user" });
-    return;
-  }
+    const newWorker = await db
+      .insert(workers)
+      .values(formattedData)
+      .returning();
+
+     res
+      .status(201)
+      .json({ message: "Worker created", data: newWorker[0] });
+  } catch (error: any) {
+    console.error("Error creating worker:", error);
+     res
+      .status(400)
+      .json({ error: error.message || "Failed to create worker" });
+      return
+    }
 };
 
-// Get All Workers
-export const getAllWorkers = async (req: Request, res: Response) => {
+//  Get All Workers
+export const getAllWorkers = async (_req: Request, res: Response) => {
   try {
-    const all = await db.select().from(workers);
-    res.status(200).json(all);
+    const allWorkers = await db.select().from(workers);
+     res.status(200).json({ data: allWorkers });
   } catch (error) {
+    console.error("Error fetching workers:", error);
+    
     res.status(500).json({ error: "Failed to fetch workers" });
-    return;
+    return
   }
 };
 
@@ -33,61 +48,80 @@ export const getAllWorkers = async (req: Request, res: Response) => {
 export const getWorkerById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
     const worker = await db.select().from(workers).where(eq(workers.id, id));
 
     if (worker.length === 0) {
-      res.status(404).json({ error: "Worker not found" });
-      return;
-    }
+       res.status(404).json({ error: "Worker not found" });
+       return
+      }
 
-    res.status(200).json(worker[0]);
+     res.status(200).json({ data: worker[0] });
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch worker" });
-    return;
-  }
+    console.error("Error fetching worker:", error);
+     res.status(500).json({ error: "Failed to fetch worker" });
+     return
+    }
 };
 
-// Update Worker
+//  Update Worker
 export const updateWorker = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const parsedData = workerSchema.partial().parse(req.body);
 
+    // Format data for database
+    const updatedData: any = { ...parsedData };
+    if (parsedData.dateOfBirth) {
+      updatedData.dateOfBirth = parsedData.dateOfBirth
+        .toISOString()
+        .split("T")[0];
+    }
+
     const updated = await db
       .update(workers)
-      .set(parsedData)
+      .set(updatedData)
       .where(eq(workers.id, id))
       .returning();
 
     if (updated.length === 0) {
-      res.status(404).json({ error: "Worker not found or not updated" });
-      return;
-    }
+       res.status(404).json({ error: "Worker not found or not updated" });
+       return
+      }
 
-    res.status(200).json({ message: "Worker updated", data: updated[0] });
-  } catch (error) {
-    res.status(400).json({ error: "Failed to update worker" });
-    return;
-  }
+     res
+      .status(200)
+      .json({ message: "Worker updated", data: updated[0] });
+  } catch (error: any) {
+    console.error("Error updating worker:", error);
+     res
+      .status(400)
+      .json({ error: error.message || "Failed to update worker" });
+      return
+    }
 };
 
-// Delete Worker
+//  Delete Worker
 export const deleteWorker = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
     const deleted = await db
       .delete(workers)
       .where(eq(workers.id, id))
       .returning();
 
     if (deleted.length === 0) {
-      res.status(404).json({ error: "Worker not found" });
-      return;
-    }
+       res.status(404).json({ error: "Worker not found" });
+       return;
+      }
 
-    res.status(200).json({ message: "Worker deleted", data: deleted[0] });
+     res
+      .status(200)
+      .json({ message: "Worker deleted", data: deleted[0] });
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete worker" });
-    return;
-  }
+    console.error("Error deleting worker:", error);
+     res.status(500).json({ error: "Failed to delete worker" });
+     return;
+    }
 };

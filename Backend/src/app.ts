@@ -23,14 +23,14 @@ app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use("api/v1/users", userRoutes);
-app.use("api/v1/workers", workerRoutes);
-app.use("api/v1/specializations", specializationRoutes);
-app.use("api/v1/live-locations", liveLocationRoutes);
-app.use("api/v1/jobs", jobRoutes);
-app.use("api/v1/transactions", transactionRoutes);
-app.use("api/v1/reviews", reviewRoutes);
-app.use("api/v1/notifications", notificationRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/workers", workerRoutes);
+app.use("/api/v1/specializations", specializationRoutes);
+app.use("/api/v1/live-locations", liveLocationRoutes);
+app.use("/api/v1/jobs", jobRoutes);
+app.use("/api/v1/transactions", transactionRoutes);
+app.use("/api/v1/reviews", reviewRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 
 // Global Error Handler
 app.use(globalErrorHandler);

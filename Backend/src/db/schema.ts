@@ -14,7 +14,6 @@ export const genderEnum = pgEnum("gender", [
   "male",
   "female",
   "not_specified",
-  "other",
 ]);
 
 export const jobStatusEnum = pgEnum("job_status", [
@@ -76,15 +75,15 @@ export const users = pgTable("users", {
 // Workers Table
 export const workers = pgTable("workers", {
   id: uuid("id").primaryKey().notNull(),
-  firstName: varchar("first_name", { length: 100 }).notNull(),
-  middleName: varchar("middle_name", { length: 100 }),
-  LastName: varchar("last_name", { length: 100 }).notNull(),
+  firstName: text("first_name").notNull(),
+  middleName: text("middle_name"),
+  lastName: text("last_name").notNull(),
   email: varchar("email").notNull(),
   password: varchar("password", { length: 30 }),
   profilePicture: varchar("profile_picture", { length: 255 }),
   address: text("location"),
-  description: text("description").notNull(),
-  phoneNumber: varchar("phone_number", { length: 12 }).notNull(),
+  description: text("description"),
+  phoneNumber: varchar("phone_number", { length: 13 }).notNull(),
   dateOfBirth: date("date_of_birth").notNull(),
   gender: genderEnum("gender").default("not_specified"),
   experienceYears: integer("experience_years").default(0),
