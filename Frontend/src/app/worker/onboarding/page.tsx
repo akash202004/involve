@@ -1,10 +1,8 @@
 "use client";
 
-// 1. ADD 'useEffect' TO THIS IMPORT
 import { useState, ChangeEvent, FormEvent, useRef, useEffect } from 'react';
 import styles from './onboarding.module.css';
 import Image from 'next/image';
-// 2. ADD THE TWO IMPORTS NEEDED FOR USER DATA AND REDIRECTION
 import { useRouter } from 'next/navigation';
 import { useUser } from '@civic/auth/react';
 
@@ -12,7 +10,6 @@ const CameraIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="40" hei
 const CrossIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
 
 export default function WorkerOnboardingPage() {
-  // 3. ADD THESE TWO LINES TO GET THE ROUTER AND THE LOGGED-IN USER
   const router = useRouter();
   const { user } = useUser();
 
@@ -30,21 +27,19 @@ export default function WorkerOnboardingPage() {
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 4. ADD THIS FUNCTION TO LOAD EXISTING DATA WHEN THE PAGE OPENS
+  // --- NEW: State to handle the submission animation ---
+  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+
   useEffect(() => {
     if (user) {
-      // Use a unique key for each user, e.g., 'profile_CIVIC_USER_ID'
       const savedProfileJSON = localStorage.getItem(`workerProfile_${user.did}`);
-    
       if (savedProfileJSON) {
         const savedProfile = JSON.parse(savedProfileJSON);
-        // Pre-fill the form with the saved data
         setFormData({ ...savedProfile, profilePicture: null });
       }
     }
-  }, [user]); // This runs when the 'user' object is available
+  }, [user]);
 
-  // All handler functions (handleInputChange, handleFileChange, etc.) remain the same
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -85,7 +80,7 @@ export default function WorkerOnboardingPage() {
   const nextStep = () => setCurrentStep(prev => prev + 1);
   const prevStep = () => setCurrentStep(prev => prev - 1);
   
-  // 5. REPLACE THE OLD SUBMIT FUNCTION WITH THIS NEW ONE
+  // --- UPDATED: handleSubmit function with animation logic ---
   const handleSubmit = (e: FormEvent) => { 
     e.preventDefault(); 
     if (!user) {
@@ -93,11 +88,20 @@ export default function WorkerOnboardingPage() {
       return;
     }
     
-    // Save the data using the unique user key
-    localStorage.setItem(`workerProfile_${user.did}`, JSON.stringify(formData));
+    // 1. Start loading animation
+    setSubmissionStatus('loading');
 
-    // Redirect to the dashboard
-    router.push('/worker/dashboard');
+    // 2. Simulate saving data and show success
+    setTimeout(() => {
+      localStorage.setItem(`workerProfile_${user.did}`, JSON.stringify(formData));
+      setSubmissionStatus('success');
+
+      // 3. Redirect after showing success animation
+      setTimeout(() => {
+        router.push('/worker/dashboard');
+      }, 1500); // Wait 1.5s to show the tick
+
+    }, 2000); // Wait 2s for loading
   };
 
   const RequiredStar = () => <span className={styles.requiredStar}>*</span>;
@@ -105,7 +109,6 @@ export default function WorkerOnboardingPage() {
   return (
     <div className={styles.pageWrapper}>
       <div className={styles.formContainer}>
-        {/* The rest of the file (the JSX) is completely unchanged */}
         <header className={styles.header}><h1>Join Our Professional Network</h1><p>Complete your profile to start accepting jobs.</p></header>
         <div className={styles.stepper}>
           <div className={`${styles.step} ${currentStep >= 1 ? styles.active : ''}`}><div className={styles.stepNumber}>1</div><div className={styles.stepLabel}>Worker Details</div></div>
@@ -155,7 +158,7 @@ export default function WorkerOnboardingPage() {
 
           {currentStep === 3 && (
              <fieldset className={styles.fieldset}><legend className={styles.legend}>Profile Picture</legend>
-               <div className={`${styles.formGroup} ${styles.uploaderGroup}`}><label className={styles.mainUploaderLabel}>Profile Picture <RequiredStar/></label><div className={styles.profilePicContainer}><label htmlFor="profilePicture" className={styles.profilePicUploader}>{imagePreview ? <Image src={imagePreview} alt="Preview" layout="fill" objectFit="cover"/> : <div className={styles.uploadPlaceholder}><CameraIcon/><span>Upload Photo</span></div>}</label>{imagePreview && <button type="button" onClick={handleRemoveImage} className={styles.removePicButton}><CrossIcon/></button>}<input type="file" id="profilePicture" className={styles.fileInputHidden} onChange={handleFileChange} accept="image/png, image/jpeg" required ref={fileInputRef}/></div><p className={styles.uploaderHelpText}>Supports: JPG, PNG | Max Size: 5MB</p></div>
+              <div className={`${styles.formGroup} ${styles.uploaderGroup}`}><label className={styles.mainUploaderLabel}>Profile Picture <RequiredStar/></label><div className={styles.profilePicContainer}><label htmlFor="profilePicture" className={styles.profilePicUploader}>{imagePreview ? <Image src={imagePreview} alt="Preview" layout="fill" objectFit="cover"/> : <div className={styles.uploadPlaceholder}><CameraIcon/><span>Upload Photo</span></div>}</label>{imagePreview && <button type="button" onClick={handleRemoveImage} className={styles.removePicButton}><CrossIcon/></button>}<input type="file" id="profilePicture" className={styles.fileInputHidden} onChange={handleFileChange} accept="image/png, image/jpeg" required ref={fileInputRef}/></div><p className={styles.uploaderHelpText}>Supports: JPG, PNG | Max Size: 5MB</p></div>
             </fieldset>
           )}
           
@@ -166,6 +169,29 @@ export default function WorkerOnboardingPage() {
           </div>
         </form>
       </div>
+
+      {/* --- NEW: Submission Overlay JSX --- */}
+      {submissionStatus !== 'idle' && (
+        <div className={styles.submissionOverlay}>
+          <div className={styles.submissionContent}>
+            {submissionStatus === 'loading' && (
+              <>
+                <div className={styles.spinner}></div>
+                <p>Submitting your profile...</p>
+              </>
+            )}
+            {submissionStatus === 'success' && (
+              <div className={styles.successAnimation}>
+                <svg className={styles.checkmark} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                  <circle className={styles.checkmarkCircle} cx="26" cy="26" r="25" fill="none"/>
+                  <path className={styles.checkmarkCheck} fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+                <p>Profile Created Successfully!</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
