@@ -104,7 +104,7 @@ export const specializations = pgTable("specializations", {
 });
 
 // Worker Live Locations
-export const liveLocations = pgTable("workers_location", {
+export const liveLocations = pgTable("live_locations", {
   id: uuid("id").defaultRandom().primaryKey(),
   workerId: uuid("worker_id")
     .references(() => workers.id)
@@ -115,7 +115,7 @@ export const liveLocations = pgTable("workers_location", {
 });
 
 // Orders Table
-export const jobs = pgTable("orders", {
+export const jobs = pgTable("jobs", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
     .references(() => users.id)
