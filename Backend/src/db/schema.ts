@@ -1,4 +1,3 @@
-import { primaryKey } from "drizzle-orm/gel-core";
 import {
   pgTable,
   uuid,
@@ -8,7 +7,15 @@ import {
   integer,
   doublePrecision,
   pgEnum,
+  date,
 } from "drizzle-orm/pg-core";
+
+export const genderEnum = pgEnum("gender", [
+  "male",
+  "female",
+  "not_specified",
+  "other",
+]);
 
 export const jobStatusEnum = pgEnum("job_status", [
   "pending",
@@ -69,13 +76,19 @@ export const users = pgTable("users", {
 // Workers Table
 export const workers = pgTable("workers", {
   id: uuid("id").primaryKey().notNull(),
-  name: varchar("full_name", { length: 100 }).notNull(),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  middleName: varchar("middle_name", { length: 100 }),
+  LastName: varchar("last_name", { length: 100 }).notNull(),
   email: varchar("email").notNull(),
   password: varchar("password", { length: 30 }),
   profilePicture: varchar("profile_picture", { length: 255 }),
-  location: text("location"),
-  description: text("description"),
-  phoneNumber: varchar("phone_number", { length: 12 }),
+  address: text("location"),
+  description: text("description").notNull(),
+  phoneNumber: varchar("phone_number", { length: 12 }).notNull(),
+  dateOfBirth: date("date_of_birth").notNull(),
+  gender: genderEnum("gender").default("not_specified"),
+  experienceYears: integer("experience_years").default(0),
+  panCard: varchar("pan_card", { length: 15 }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -85,7 +98,8 @@ export const specializations = pgTable("specializations", {
   workerId: uuid("worker_id")
     .references(() => workers.id)
     .notNull(),
-  name: varchar("name", { length: 100 }).notNull(),
+  category: varchar("name", { length: 100 }).notNull(),
+  subCategory: varchar("sub_category", { length: 100 }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

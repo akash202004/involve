@@ -19,20 +19,27 @@ export const userSchema = z.object({
 
 export const workerSchema = z.object({
   id: z.string(),
-  name: z.string().min(1).max(100),
+  firstName: z.string().min(1).max(100),
+  middleName: z.string().max(100).optional(),
+  lastName: z.string().min(1).max(100),
   email: z.string().email(),
   password: z.string().min(8).max(30).optional(),
-  location: z.string(),
   profilePicture: z.string().optional(),
+  address: z.string(),
   description: z.string().optional(),
   phoneNumber: z.string().length(12),
+  dateOfBirth: z.date(),
+  gender: z.enum(["male", "female", "not_specified", "others"]).default("not_specified"),
+  experienceYears: z.number().int().min(0).default(0),
+  panCard: z.string().max(15).optional(),
   createdAt: z.date().optional(),
 });
 
 export const specializationSchema = z.object({
   id: z.string(),
   workerId: z.string(),
-  name: z.string().min(1).max(100),
+  category: z.string().min(1).max(100),
+  subCategory: z.string().max(100),
   createdAt: z.date().optional(),
 });
 
