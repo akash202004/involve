@@ -71,7 +71,7 @@ export const Navbar = ({ children, className }: NavbarProps) => {
     <motion.div
       ref={ref}
       // IMPORTANT: Change this to class of `fixed` if you want the navbar to be fixed
-      className={cn("fixed inset-x-0 top-0 z-50 min-h-0 h-auto pt-4", className)}
+      className={cn("fixed inset-x-0 top-0 z-50 min-h-0 h-auto pt-4 rounded-full", className)}
     >
       {React.Children.map(children, (child) =>
         React.isValidElement(child)
@@ -201,7 +201,7 @@ export const MobileNavMenu = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className={cn(
-            "absolute inset-x-0 top-16 z-[9999] flex w-full flex-col items-start justify-start gap-4 rounded-lg bg-white px-4 py-8 shadow-[0_0_24px_rgba(0,_0,_0,_0.1),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(0,_0,_0,_0.04),_0_0_4px_rgba(0,_0,_0,_0.08),_0_16px_68px_rgba(0,_0,_0,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] dark:bg-neutral-950",
+            "absolute inset-x-0 top-16 z-[9999] flex flex-col items-start justify-start gap-4 rounded-2xl border border-black bg-white backdrop-blur-2xl shadow-md text-black max-w-7xl w-full px-2 sm:px-4 py-6 sm:py-8 mt-4 mx-auto",
             className,
           )}
         >
@@ -220,9 +220,9 @@ export const MobileNavToggle = ({
   onClick: () => void;
 }) => {
   return isOpen ? (
-    <IconX className="text-black dark:text-white" onClick={onClick} />
+    <IconX className="text-black pl-2" size={36} onClick={onClick} />
   ) : (
-    <IconMenu2 className="text-black dark:text-white" onClick={onClick} />
+    <IconMenu2 className="text-black pl-2" size={36} onClick={onClick} />
   );
 };
 

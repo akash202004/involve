@@ -151,12 +151,12 @@ const ServiceSelection: React.FC = () => {
   const closePestControlPopup = () => setIsPestControlPopupOpen(false);
 
   return (
-    <div className="w-full flex flex-col items-center justify-center pt-8 pb-8">
-      <h2 className="text-4xl font-bold mb-8 passion-one-black bg-yellow-400 block px-4 py-2 leading-none align-baseline border-4 border-black">
+    <div className="w-full flex flex-col items-center justify-center pt-8 pb-8 px-2 sm:px-4">
+      <h2 className="text-3xl sm:text-4xl font-bold mb-8 passion-one-black bg-yellow-400 block px-4 py-2 leading-none align-baseline border-4 border-black text-center w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl mx-auto">
         What Service We Provide
       </h2>
-      <div className="w-250 mx-auto p-6 bg-white">
-        <div className="grid grid-cols-3 gap-4">
+      <div className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl mx-auto p-2 sm:p-6 bg-white">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {services.map((service) => (
             <div
               key={service.id}

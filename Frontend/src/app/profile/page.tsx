@@ -23,6 +23,7 @@ export default function ProfilePage() {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -34,21 +35,34 @@ export default function ProfilePage() {
   // Load user data when authenticated
   useEffect(() => {
     if (user) {
-      setProfile(prev => ({
-        ...prev,
-        email: user.email || ''
-      }));
-      
-      // Load saved profile data from localStorage
-      const savedProfile = localStorage.getItem('userProfile');
-      if (savedProfile) {
-        const parsed = JSON.parse(savedProfile);
-        setProfile(prev => ({
-          ...prev,
-          ...parsed,
-          email: user.email || '' // Always use current email from auth
-        }));
-      }
+      const loadProfile = async () => {
+        setIsLoading(true);
+        try {
+          // Fetch profile from backend
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const data = await response.json();
+            setProfile({
+              firstName: data.first_name || '',
+              lastName: data.last_name || '',
+              phoneNumber: data.phone_number || '',
+              email: user.email || ''
+            });
+          } else {
+            // Initialize with auth email if no profile exists
+            setProfile(prev => ({
+              ...prev,
+              email: user.email || ''
+            }));
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadProfile();
     }
   }, [user]);
 
@@ -60,34 +74,35 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
-      // Save to localStorage (in a real app, you'd save to a database)
-      localStorage.setItem('userProfile', JSON.stringify({
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        phoneNumber: profile.phoneNumber
-      }));
-      
+      const response = await fetch('http://localhost:5000/api/v1/users/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: profile.firstName,
+          last_name: profile.lastName,
+          phone_number: profile.phoneNumber,
+          email: profile.email
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save profile');
+      }
+
       setIsEditing(false);
     } catch (error) {
       console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      router.push('/');
-    } catch (error) {
-      console.error('Sign-out failed:', error);
-    }
-  };
-
-  // Show loading spinner while auth is loading
-  if (authLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -126,23 +141,6 @@ export default function ProfilePage() {
           {/* Profile Content */}
           <div className="px-6 py-8">
             <div className="space-y-6">
-              {/* Email (Read-only) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={profile.email}
-                  disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-500 cursor-not-allowed"
-                  placeholder="Email will be fetched automatically"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Email is automatically fetched from your Civic Auth account
-                </p>
-              </div>
-
               {/* First Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -158,7 +156,7 @@ export default function ProfilePage() {
                       ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
                       : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
                   }`}
-                  placeholder="Enter your first name"
+                    placeholder="Enter your first name"
                 />
               </div>
 
@@ -177,7 +175,20 @@ export default function ProfilePage() {
                       ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
                       : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
                   }`}
-                  placeholder="Enter your last name"
+                    placeholder="Enter your last name"
+                />
+              </div>
+
+              {/* Email (Read-only) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={profile.email}
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-500 cursor-not-allowed"
                 />
               </div>
 
@@ -197,6 +208,7 @@ export default function ProfilePage() {
                       : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
                   }`}
                   placeholder="Enter your phone number"
+                  maxLength={12}
                 />
               </div>
 
@@ -216,17 +228,17 @@ export default function ProfilePage() {
                   <>
                     <button
                       onClick={handleSave}
-                      disabled={isLoading}
+                      disabled={isSubmitting}
                       className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
                     >
-                      {isLoading ? (
+                      {isSubmitting ? (
                         <LoadingSpinner size="sm" />
                       ) : (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       )}
-                      {isLoading ? 'Saving...' : 'Save Changes'}
+                      {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
@@ -243,4 +255,4 @@ export default function ProfilePage() {
       </div>
     </div>
   );
-} 
+}
