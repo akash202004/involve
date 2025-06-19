@@ -6,9 +6,8 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 
 interface UserProfile {
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
+  full_name: string;
+  phone_number: string;
   email: string;
 }
 
@@ -16,13 +15,13 @@ export default function ProfilePage() {
   const { user, isLoading: authLoading, signOut } = useUser();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile>({
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
+    full_name: '',
+    phone_number: '',
     email: ''
   });
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -34,21 +33,33 @@ export default function ProfilePage() {
   // Load user data when authenticated
   useEffect(() => {
     if (user) {
-      setProfile(prev => ({
-        ...prev,
-        email: user.email || ''
-      }));
-      
-      // Load saved profile data from localStorage
-      const savedProfile = localStorage.getItem('userProfile');
-      if (savedProfile) {
-        const parsed = JSON.parse(savedProfile);
-        setProfile(prev => ({
-          ...prev,
-          ...parsed,
-          email: user.email || '' // Always use current email from auth
-        }));
-      }
+      const loadProfile = async () => {
+        setIsLoading(true);
+        try {
+          // Fetch profile from backend
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const data = await response.json();
+            setProfile({
+              full_name: data.full_name || '',
+              phone_number: data.phone_number || '',
+              email: user.email || ''
+            });
+          } else {
+            // Initialize with auth email if no profile exists
+            setProfile(prev => ({
+              ...prev,
+              email: user.email || ''
+            }));
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadProfile();
     }
   }, [user]);
 
@@ -60,34 +71,34 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
-      // Save to localStorage (in a real app, you'd save to a database)
-      localStorage.setItem('userProfile', JSON.stringify({
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        phoneNumber: profile.phoneNumber
-      }));
-      
+      const response = await fetch('http://localhost:5000/api/v1/users/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          full_name: profile.full_name,
+          phone_number: profile.phone_number,
+          email: profile.email
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save profile');
+      }
+
       setIsEditing(false);
     } catch (error) {
       console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      router.push('/');
-    } catch (error) {
-      console.error('Sign-out failed:', error);
-    }
-  };
-
-  // Show loading spinner while auth is loading
-  if (authLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -126,6 +137,25 @@ export default function ProfilePage() {
           {/* Profile Content */}
           <div className="px-6 py-8">
             <div className="space-y-6">
+              {/* Full Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={profile.full_name}
+                  onChange={(e) => handleInputChange('full_name', e.target.value)}
+                  disabled={!isEditing}
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    isEditing 
+                      ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
+                      : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
+                  }`}
+                  placeholder="Enter your full name"
+                />
+              </div>
+
               {/* Email (Read-only) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -136,48 +166,6 @@ export default function ProfilePage() {
                   value={profile.email}
                   disabled
                   className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-500 cursor-not-allowed"
-                  placeholder="Email will be fetched automatically"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Email is automatically fetched from your Civic Auth account
-                </p>
-              </div>
-
-              {/* First Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  value={profile.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  disabled={!isEditing}
-                  className={`w-full px-3 py-2 border rounded-md ${
-                    isEditing 
-                      ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
-                      : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
-                  }`}
-                  placeholder="Enter your first name"
-                />
-              </div>
-
-              {/* Last Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  value={profile.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  disabled={!isEditing}
-                  className={`w-full px-3 py-2 border rounded-md ${
-                    isEditing 
-                      ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
-                      : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
-                  }`}
-                  placeholder="Enter your last name"
                 />
               </div>
 
@@ -188,8 +176,8 @@ export default function ProfilePage() {
                 </label>
                 <input
                   type="tel"
-                  value={profile.phoneNumber}
-                  onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                  value={profile.phone_number}
+                  onChange={(e) => handleInputChange('phone_number', e.target.value)}
                   disabled={!isEditing}
                   className={`w-full px-3 py-2 border rounded-md ${
                     isEditing 
@@ -197,6 +185,7 @@ export default function ProfilePage() {
                       : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
                   }`}
                   placeholder="Enter your phone number"
+                  maxLength={12}
                 />
               </div>
 
@@ -216,17 +205,17 @@ export default function ProfilePage() {
                   <>
                     <button
                       onClick={handleSave}
-                      disabled={isLoading}
+                      disabled={isSubmitting}
                       className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
                     >
-                      {isLoading ? (
+                      {isSubmitting ? (
                         <LoadingSpinner size="sm" />
                       ) : (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       )}
-                      {isLoading ? 'Saving...' : 'Save Changes'}
+                      {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
@@ -243,4 +232,4 @@ export default function ProfilePage() {
       </div>
     </div>
   );
-} 
+}

@@ -37,6 +37,7 @@
     "@types/pg": "^8.15.4",
     "drizzle-kit": "^0.31.1",
     "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.8.3"
   }
 }
