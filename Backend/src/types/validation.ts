@@ -94,9 +94,12 @@ export const workerSchema = z.object({
     .string({ message: "Phone number is required" })
     .length(13, { message: "Phone number must be exactly 13 digits" }),
 
-  dateOfBirth: z.date({
-    message: "Date of birth is required and must be a valid date",
-  }),
+  dateOfBirth: z
+    .string({ message: "Date of birth is required" })
+    .transform((val) => new Date(val))
+    .refine((date) => !isNaN(date.getTime()), {
+      message: "Date of birth must be a valid date",
+    }),
 
   gender: z
     .enum(["male", "female", "not_specified"], {
@@ -121,11 +124,20 @@ export const workerSchema = z.object({
 });
 
 export const specializationSchema = z.object({
-  id: z.string(),
-  workerId: z.string(),
-  category: z.string().min(1).max(100),
-  subCategory: z.string().max(100),
-  createdAt: z.date().optional(),
+  id: z.string({ message: "Specialization ID is required" }),
+
+  workerId: z.string({ message: "Worker ID is required" }),
+
+  category: z
+    .string({ message: "Category is required" })
+    .min(1, { message: "Category cannot be empty" })
+    .max(100, { message: "Category must be at most 100 characters" }),
+
+  subCategory: z
+    .string({ message: "Subcategory is required" })
+    .max(100, { message: "Subcategory must be at most 100 characters" }),
+
+  createdAt: z.date({ message: "CreatedAt must be a valid date" }).optional(),
 });
 
 export const liveLocationSchema = z.object({
@@ -141,55 +153,127 @@ export const liveLocationSchema = z.object({
 });
 
 export const jobSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  workerId: z.string(),
+  id: z.string({ message: "Job ID is required" }),
+
+  userId: z.string({ message: "User ID is required" }),
+
+  workerId: z.string({ message: "Worker ID is required" }),
+
   status: z
-    .enum(["pending", "confirmed", "in_progress", "completed", "cancelled"])
+    .enum(["pending", "confirmed", "in_progress", "completed", "cancelled"], {
+      errorMap: () => ({
+        message:
+          "Status must be one of: pending, confirmed, in_progress, completed, or cancelled",
+      }),
+    })
     .default("pending"),
-  bookedFor: z.date(),
-  durationMinutes: z.number().int().positive(),
-  createdAt: z.date().optional(),
+
+  bookedFor: z.date({
+    message: "Booking date (bookedFor) must be a valid date",
+  }),
+
+  durationMinutes: z
+    .number({ message: "Duration is required" })
+    .int({ message: "Duration must be an integer" })
+    .positive({ message: "Duration must be a positive number" }),
+
+  createdAt: z.date({ message: "CreatedAt must be a valid date" }).optional(),
 });
 
 export const transactionSchema = z.object({
-  id: z.string(),
-  jobId: z.string(),
-  paymentId: z.string().optional(),
-  razorpaySignature: z.string().max(255).optional(),
-  amount: z.number().positive(),
-  currency: z.string().max(10),
-  status: z.enum(["created", "authorized", "captured", "failed"]),
-  method: z.enum(["card", "upi", "netbanking", "wallet"]),
-  email: z.string().email().optional(),
-  contact: z.string().length(15).optional(),
-  createdAt: z.date().optional(),
+  id: z.string({ message: "Transaction ID is required" }),
+
+  jobId: z.string({ message: "Job ID is required" }),
+
+  paymentId: z.string({ message: "Payment ID must be a string" }).optional(),
+
+  razorpaySignature: z
+    .string({ message: "Razorpay signature must be a string" })
+    .max(255, { message: "Razorpay signature must be at most 255 characters" })
+    .optional(),
+
+  amount: z
+    .number({ message: "Amount is required" })
+    .positive({ message: "Amount must be a positive number" }),
+
+  currency: z
+    .string({ message: "Currency is required" })
+    .max(10, { message: "Currency must be at most 10 characters" }),
+
+  status: z.enum(["created", "authorized", "captured", "failed"], {
+    errorMap: () => ({
+      message: "Status must be one of: created, authorized, captured, failed",
+    }),
+  }),
+
+  method: z.enum(["card", "upi", "netbanking", "wallet"], {
+    errorMap: () => ({
+      message: "Method must be one of: card, upi, netbanking, wallet",
+    }),
+  }),
+
+  email: z
+    .string({ message: "Email must be a valid string" })
+    .email({ message: "Email must be a valid email address" })
+    .optional(),
+
+  contact: z
+    .string({ message: "Contact must be a string" })
+    .length(15, { message: "Contact must be exactly 15 characters" })
+    .optional(),
+
+  createdAt: z.date({ message: "CreatedAt must be a valid date" }).optional(),
 });
 
 export const reviewSchema = z.object({
-  id: z.string(),
-  jobId: z.string(),
-  userId: z.string(),
-  workerId: z.string(),
-  rating: z.number().min(1).max(5),
-  comment: z.string().optional(),
-  createdAt: z.date().optional(),
+  id: z.string({ message: "Review ID is required" }),
+
+  jobId: z.string({ message: "Job ID is required" }),
+
+  userId: z.string({ message: "User ID is required" }),
+
+  workerId: z.string({ message: "Worker ID is required" }),
+
+  rating: z
+    .number({ message: "Rating is required" })
+    .min(1, { message: "Rating must be at least 1" })
+    .max(5, { message: "Rating must be at most 5" }),
+
+  comment: z.string({ message: "Comment must be a string" }).optional(),
+
+  createdAt: z.date({ message: "CreatedAt must be a valid date" }).optional(),
 });
 
 export const notificationSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  title: z.string().min(1).max(100),
-  message: z.string(),
-  type: z.enum([
-    "general",
-    "success",
-    "warning",
-    "error",
-    "info",
-    "transaction",
-    "order_status_update",
-    "worker_location_update",
-  ]),
-  createdAt: z.date().optional(),
+  id: z.string({ message: "Notification ID is required" }),
+
+  userId: z.string({ message: "User ID is required" }),
+
+  title: z
+    .string({ message: "Title is required" })
+    .min(1, { message: "Title cannot be empty" })
+    .max(100, { message: "Title must be at most 100 characters" }),
+
+  message: z.string({ message: "Message is required" }),
+
+  type: z.enum(
+    [
+      "general",
+      "success",
+      "warning",
+      "error",
+      "info",
+      "transaction",
+      "order_status_update",
+      "worker_location_update",
+    ],
+    {
+      errorMap: () => ({
+        message:
+          "Type must be one of: general, success, warning, error, info, transaction, order_status_update, worker_location_update",
+      }),
+    }
+  ),
+
+  createdAt: z.date({ message: "CreatedAt must be a valid date" }).optional(),
 });

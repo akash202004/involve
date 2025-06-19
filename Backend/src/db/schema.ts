@@ -10,11 +10,7 @@ import {
   date,
 } from "drizzle-orm/pg-core";
 
-export const genderEnum = pgEnum("gender", [
-  "male",
-  "female",
-  "not_specified",
-]);
+export const genderEnum = pgEnum("gender", ["male", "female", "not_specified"]);
 
 export const jobStatusEnum = pgEnum("job_status", [
   "pending",

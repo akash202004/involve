@@ -3,11 +3,11 @@ import { specializations, workers } from "@/db/schema";
 import { specializationSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 import { Request, Response } from "express";
+import { ZodError } from "zod";
 
 // Create Specialization
 export const createSpecialization = async (req: Request, res: Response) => {
   try {
-    // Validate input
     const parsedData = specializationSchema
       .omit({ id: true, createdAt: true })
       .parse(req.body);
@@ -32,6 +32,16 @@ export const createSpecialization = async (req: Request, res: Response) => {
       .status(201)
       .json({ message: "Specialization created", data: newSpec[0] });
   } catch (error) {
+    if (error instanceof ZodError) {
+      const formattedErrors = error.errors.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      }));
+      res
+        .status(400)
+        .json({ message: "Validation failed", errors: formattedErrors });
+      return;
+    }
     res.status(400).json({ error: "Failed to create specialization" });
     return;
   }
@@ -96,6 +106,16 @@ export const updateSpecialization = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: "Specialization updated", data: updated[0] });
   } catch (error) {
+    if (error instanceof ZodError) {
+      const formattedErrors = error.errors.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      }));
+      res
+        .status(400)
+        .json({ message: "Validation failed", errors: formattedErrors });
+      return;
+    }
     res.status(400).json({ error: "Failed to update specialization" });
     return;
   }
