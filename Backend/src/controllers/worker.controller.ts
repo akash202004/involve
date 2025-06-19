@@ -8,7 +8,7 @@ import { ZodError } from "zod";
 // Create Worker
 export const createWorker = async (req: Request, res: Response) => {
   try {
-    const parsedData = workerSchema.omit({ createdAt: true }).parse(req.body);
+    const parsedData = workerSchema.omit({ createdAt: true, id: true }).parse(req.body);
 
     const formattedData = {
       ...parsedData,
