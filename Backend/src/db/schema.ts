@@ -48,10 +48,10 @@ export const notificationTypeEnum = pgEnum("notification_type", [
 // Users Table
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
-  firstName: varchar("full_name", { length: 50 }).notNull(),
-  lastName: varchar("last_name", { length: 50 }).notNull(),
+  firstName: varchar("fullName", { length: 50 }).notNull(),
+  lastName: varchar("lastName", { length: 50 }).notNull(),
   email: varchar("email").notNull(),
-  phoneNumber: varchar("phone_number", { length: 12 }).notNull(),
+  phoneNumber: varchar("phoneNumber", { length: 12 }).notNull(),
   password: varchar("password", { length: 30 }),
 
   // Manual location input fields

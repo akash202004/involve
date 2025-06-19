@@ -4,12 +4,15 @@ import { useUser } from '@civic/auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
+// @ts-ignore
+import { v4 as uuidv4 } from 'uuid';
 
 interface UserProfile {
   firstName: string;
   lastName: string;
   phoneNumber: string;
   email: string;
+  autoLocation: string;
 }
 
 export default function ProfilePage() {
@@ -19,7 +22,8 @@ export default function ProfilePage() {
     firstName: '',
     lastName: '',
     phoneNumber: '',
-    email: ''
+    email: '',
+    autoLocation: '',
   });
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,21 +42,25 @@ export default function ProfilePage() {
       const loadProfile = async () => {
         setIsLoading(true);
         try {
-          // Fetch profile from backend
-          const response = await fetch('/api/user/profile');
+          // Fetch profile from backend using email
+          const response = await fetch(`http://localhost:5000/api/v1/users?email=${encodeURIComponent(user.email)}`);
           if (response.ok) {
             const data = await response.json();
+            // If backend returns an array of users, pick the first one
+            const userData = Array.isArray(data) ? data[0] : data;
             setProfile({
-              firstName: data.first_name || '',
-              lastName: data.last_name || '',
-              phoneNumber: data.phone_number || '',
-              email: user.email || ''
+              firstName: userData.firstName || '',
+              lastName: userData.lastName || '',
+              phoneNumber: userData.phoneNumber || '',
+              email: user.email || '',
+              autoLocation: userData.autoLocation || '',
             });
           } else {
             // Initialize with auth email if no profile exists
             setProfile(prev => ({
               ...prev,
-              email: user.email || ''
+              email: user.email || '',
+              autoLocation: '',
             }));
           }
         } catch (error) {
@@ -76,17 +84,37 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
+      // Ensure phoneNumber is 12 digits (e.g., '91' + 10 digit number)
+      let phoneNumber = profile.phoneNumber;
+      if (phoneNumber.length === 10) {
+        phoneNumber = '91' + phoneNumber;
+      }
+      if (phoneNumber.length !== 12) {
+        alert('Phone number must be 12 digits (including country code, e.g., 91XXXXXXXXXX)');
+        setIsSubmitting(false);
+        return;
+      }
+      // Generate or retrieve user id
+      let userId: string = localStorage.getItem('userId') || '';
+      if (!userId) {
+        userId = uuidv4();
+        localStorage.setItem('userId', userId);
+      }
+      const requestBody = {
+        id: userId,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        email: profile.email,
+        phoneNumber: phoneNumber,
+        autoLocation: profile.autoLocation,
+      };
+      console.log("Request body:", requestBody);
       const response = await fetch('http://localhost:5000/api/v1/users/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          first_name: profile.firstName,
-          last_name: profile.lastName,
-          phone_number: profile.phoneNumber,
-          email: profile.email
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -207,8 +235,27 @@ export default function ProfilePage() {
                       ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
                       : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
                   }`}
-                  placeholder="Enter your phone number"
+                  placeholder="Enter your phone number (e.g., 91XXXXXXXXXX)"
                   maxLength={12}
+                />
+              </div>
+
+              {/* Auto Location */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Auto Location
+                </label>
+                <input
+                  type="text"
+                  value={profile.autoLocation}
+                  onChange={(e) => handleInputChange('autoLocation', e.target.value)}
+                  disabled={!isEditing}
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    isEditing 
+                      ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
+                      : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
+                  }`}
+                  placeholder="Enter your location or allow location access"
                 />
               </div>
 
