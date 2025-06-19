@@ -9,6 +9,10 @@ import CleaningPopup from '@/app/components/ui/PopUp/Cleaning/Page';
 import ElectricianPopup from '@/app/components/ui/PopUp/ElectricianPlumber/Page';
 import WaterPurifierPopup from '@/app/components/ui/PopUp/WaterPurifier/Page';
 import SmartLockPopup from '@/app/components/ui/PopUp/SmartLock/Page';
+import FullHomePaintingPopup from '@/app/components/ui/PopUp/FullHomePainting/Page';
+import PestControlPopup from '@/app/components/ui/PopUp/PestControl/Page';
+import Image from 'next/image';
+
 interface ServiceItem {
   id: string;
   title: string;
@@ -26,86 +30,97 @@ const ServiceSelection: React.FC = () => {
   const [isElectricianPopupOpen, setIsElectricianPopupOpen] = useState(false);
   const [isWaterPurifierPopupOpen, setIsWaterPurifierPopupOpen] = useState(false);
   const [isSmartLockPopupOpen, setIsSmartLockPopupOpen] = useState(false);
+  const [isFullHomePaintingPopupOpen, setIsFullHomePaintingPopupOpen] = useState(false);
+  const [isPestControlPopupOpen, setIsPestControlPopupOpen] = useState(false);
   const services: ServiceItem[] = [
     {
       id: 'womens-salon',
       title: "Women's Salon & Spa",
-      icon: '👩‍💼',
-      route: '', // No direct route, will open popup
+      icon: '/Assets/female-svgrepo-com.svg',
+      route: '',
     },
     {
       id: 'mens-salon',
       title: "Men's Salon & Massage",
-      icon: '👨‍💼',
-      route: '', // No direct route, will open popup
+      icon: '/Assets/men-in-suits-to-guide-svgrepo-com.svg',
+      route: '',
     },
     {
       id: 'appliance-repair',
       title: 'AC & Appliance Repair',
-      icon: '❄️',
+      icon: '/Assets/air-conditioner-air-conditioning-svgrepo-com.svg',
       isNew: true,
-      route: '', // No direct route, will open popup
+      route: '',
     },
     {
       id: 'cleaning',
       title: 'Cleaning',
-      icon: '🧹',
+      icon: '/Assets/cleaning-mop-svgrepo-com.svg',
       route: '',
     },
     {
       id: 'electrician',
       title: 'Electrician, Plumber & Carpenter',
-      icon: '🔧',
+      icon: '/Assets/plumber-svgrepo-com.svg',
       route: '',
     },
     {
       id: 'water-purifier',
       title: 'Native Water Purifier',
-      icon: '💧',
+      icon: '/Assets/air-conditioner-air-conditioning-svgrepo-com.svg',
       route: '',
     },
     {
       id: 'smart-locks',
       title: 'Native Smart Locks',
-      icon: '🔐',
+      icon: '/Assets/lock-svgrepo-com.svg',
       route: '',
     },
     {
       id: 'home-painting',
       title: 'Full home painting',
-      icon: '🎨',
+      icon: '/Assets/painting-brush-svgrepo-com.svg',
       route: '',
     },
     {
       id: 'pest-control',
       title: 'Pest Control',
-      icon: '🐛',
+      icon: '/Assets/spraying-svgrepo-com.svg',
       route: '',
     },
   ];
 
   const handleServiceClick = (serviceId: string) => {
-    if (serviceId === 'appliance-repair') {
-      setIsPopupOpen(true);
-    } else if (serviceId === 'womens-salon') {
-      setIsWomenSalonPopupOpen(true);
-    } else if (serviceId === 'mens-salon') {
-      setIsMenSalonPopupOpen(true);
-    } else if (serviceId === 'cleaning') {
-      setIsCleaningPopupOpen(true);
-    } else if (serviceId === 'electrician') {
-      setIsElectricianPopupOpen(true);
-    } else if (serviceId === 'water-purifier') {
-      setIsWaterPurifierPopupOpen(true);
-    } 
-    else if (serviceId === 'smart-locks') {
-      setIsSmartLockPopupOpen(true);
-    }
-    else {
-      const service = services.find(s => s.id === serviceId);
-      if (service && service.route) {
-        router.push(service.route);
-      }
+    switch (serviceId) {
+      case 'appliance-repair':
+        setIsPopupOpen(true);
+        break;
+      case 'womens-salon':
+        setIsWomenSalonPopupOpen(true);
+        break;
+      case 'mens-salon':
+        setIsMenSalonPopupOpen(true);
+        break;
+      case 'cleaning':
+        setIsCleaningPopupOpen(true);
+        break;
+      case 'electrician':
+        setIsElectricianPopupOpen(true);
+        break;
+      case 'water-purifier':
+        setIsWaterPurifierPopupOpen(true);
+        break;
+      case 'smart-locks':
+        setIsSmartLockPopupOpen(true);
+        break;
+      case 'home-painting':
+        setIsFullHomePaintingPopupOpen(true);
+        break;
+      case 'pest-control':
+        setIsPestControlPopupOpen(true);
+        break;
+      default:
+        break;
     }
   };
 
@@ -132,6 +147,8 @@ const ServiceSelection: React.FC = () => {
   const closeSmartLockPopup = () => {
     setIsSmartLockPopupOpen(false);
   };
+  const closeFullHomePaintingPopup = () => setIsFullHomePaintingPopupOpen(false);
+  const closePestControlPopup = () => setIsPestControlPopupOpen(false);
 
   return (
     <div className="w-full flex flex-col items-center justify-center pt-8 pb-8">
@@ -153,7 +170,7 @@ const ServiceSelection: React.FC = () => {
               )}
               
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
-                <span className="text-2xl">{service.icon}</span>
+                <Image src={service.icon} alt={service.title + ' Icon'} width={48} height={48} />
               </div>
               
               <span className="text-xs text-gray-700 text-center leading-tight font-medium">
@@ -170,6 +187,8 @@ const ServiceSelection: React.FC = () => {
       {isElectricianPopupOpen && <ElectricianPopup onClose={closeElectricianPopup} />}
       {isWaterPurifierPopupOpen && <WaterPurifierPopup onClose={closeWaterPurifierPopup} />}
       {isSmartLockPopupOpen && <SmartLockPopup onClose={closeSmartLockPopup} />}
+      {isFullHomePaintingPopupOpen && <FullHomePaintingPopup onClose={closeFullHomePaintingPopup} />}
+      {isPestControlPopupOpen && <PestControlPopup onClose={closePestControlPopup} />}
 
     </div>
   );

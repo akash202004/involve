@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useUser } from '@civic/auth/react';
 
 interface ServiceDetails {
   name: string;
@@ -17,12 +18,16 @@ const ServiceBookingPage: React.FC = () => {
   const searchParams = useSearchParams();
   const serviceName = searchParams.get('service') || 'Haircut';
   const category = searchParams.get('category') || 'Hair Services';
+  const { user, signIn } = useUser();
 
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [selectedWorker, setSelectedWorker] = useState<string>('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('cod');
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false);
+  const [coupon, setCoupon] = useState('');
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [discount, setDiscount] = useState(0);
 
   // Comprehensive service details mapping
   const serviceDetails: Record<string, ServiceDetails> = {
@@ -161,8 +166,16 @@ const ServiceBookingPage: React.FC = () => {
     '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM'
   ];
 
-  const handleBooking = () => {
-    if (selectedDate && selectedTime && selectedWorker && selectedPaymentMethod) {
+  const handleBooking = async () => {
+    if (!user) {
+      try {
+        await signIn();
+      } catch (err) {
+        alert('Sign-in failed. Please try again.');
+      }
+      return;
+    }
+    if (selectedDate && selectedTime && selectedPaymentMethod) {
       setIsBookingConfirmed(true);
       // Here you would typically make an API call to book the service
       setTimeout(() => {
@@ -174,6 +187,17 @@ const ServiceBookingPage: React.FC = () => {
   const getMinDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
+  };
+
+  const handleApplyCoupon = () => {
+    if (coupon.trim().toUpperCase() === 'USER25') {
+      setDiscount(Math.round(currentService.price * 0.25));
+      setCouponApplied(true);
+    } else {
+      setDiscount(0);
+      setCouponApplied(false);
+      alert('Invalid coupon code');
+    }
   };
 
   return (
@@ -253,38 +277,6 @@ const ServiceBookingPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Worker Selection */}
-            <div className="rounded-xl p-8">
-              <h2 className="text-2xl font-bold mb-6 passion-one-black text-gray-800">Choose Your Professional</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {availableWorkers.map((worker) => (
-                  <div
-                    key={worker.id}
-                    onClick={() => setSelectedWorker(worker.id)}
-                    className={`p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${
-                      selectedWorker === worker.id
-                        ? 'border-yellow-500 bg-yellow-50 shadow-lg'
-                        : 'border-gray-200 hover:border-yellow-300 bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
-                        <span className="text-2xl">{worker.image}</span>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800">{worker.name}</h3>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className="text-yellow-500">★</span>
-                          <span className="text-sm text-gray-600">{worker.rating}</span>
-                        </div>
-                        <p className="text-sm text-gray-500">{worker.experience} experience</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Right Column - Booking Summary */}
@@ -292,7 +284,31 @@ const ServiceBookingPage: React.FC = () => {
             <div className="sticky top-8">
               <div className="rounded-xl p-8 bg-gray-50">
                 <h2 className="text-2xl font-bold mb-6 passion-one-black text-gray-800">Booking Summary</h2>
-                
+                {/* Coupon Input */}
+                <div className="mb-6">
+                  <label className="block text-gray-700 font-medium mb-2">Apply Coupon</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={coupon}
+                      onChange={e => setCoupon(e.target.value)}
+                      className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-gray-800"
+                      placeholder="Enter coupon code"
+                      disabled={couponApplied}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={couponApplied}
+                      className={`px-4 py-2 rounded-lg border-2 font-semibold transition-colors duration-200 ${couponApplied ? 'bg-green-200 border-green-400 text-green-800 cursor-not-allowed' : 'bg-white border-black text-black hover:bg-[#fdc700]'}`}
+                    >
+                      {couponApplied ? 'Applied' : 'Apply'}
+                    </button>
+                  </div>
+                  {couponApplied && (
+                    <p className="text-green-600 text-sm mt-2">Coupon applied! 25% discount</p>
+                  )}
+                </div>
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Service:</span>
@@ -319,7 +335,21 @@ const ServiceBookingPage: React.FC = () => {
                     </div>
                   )}
                 </div>
-
+                {/* Price Breakdown */}
+                <div className="border-t border-gray-200 pt-4 mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Original Price:</span>
+                    <span className="text-gray-800 line-through">₹{currentService.price}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Discount:</span>
+                    <span className="text-green-600">-₹{discount}</span>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
+                    <span className="text-2xl font-bold text-yellow-600">₹{currentService.price - discount}</span>
+                  </div>
+                </div>
                 {/* Payment Method Selection */}
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Payment Method</h3>
@@ -381,21 +411,15 @@ const ServiceBookingPage: React.FC = () => {
                 <div className="border-t border-gray-200 pt-4 mb-6">
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
-                    <span className="text-2xl font-bold text-yellow-600">₹{currentService.price}</span>
+                    <span className="text-2xl font-bold text-yellow-600">₹{currentService.price - discount}</span>
                   </div>
-                  {selectedPaymentMethod === 'cod' && (
-                    <p className="text-sm text-gray-500 mt-2">Pay ₹{currentService.price} after service</p>
-                  )}
-                  {selectedPaymentMethod === 'upi' && (
-                    <p className="text-sm text-gray-500 mt-2">Pay ₹{currentService.price} now via UPI</p>
-                  )}
                 </div>
 
                 <button
                   onClick={handleBooking}
-                  disabled={!selectedDate || !selectedTime || !selectedWorker || !selectedPaymentMethod}
+                  disabled={!selectedDate || !selectedTime || !selectedPaymentMethod}
                   className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
-                    selectedDate && selectedTime && selectedWorker && selectedPaymentMethod
+                    selectedDate && selectedTime && selectedPaymentMethod
                       ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-xl'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
