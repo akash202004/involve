@@ -8,7 +8,9 @@ import { ZodError } from "zod";
 // Create User
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const parsedData = userSchema.omit({ createdAt: true }).parse(req.body);
+    const parsedData = userSchema
+      .omit({ id: true, createdAt: true })
+      .parse(req.body);
 
     const existingUser = await db
       .select()
@@ -73,7 +75,7 @@ export const updateUser = async (req: Request, res: Response) => {
     const parsedData = userSchema.partial().parse(req.body);
 
     const existingUser = await db.select().from(users).where(eq(users.id, id));
-    if (existingUser.length === 0) {  
+    if (existingUser.length === 0) {
       res.status(404).json({ error: "User not found" });
       return;
     }
@@ -91,7 +93,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
     res.status(200).json({ message: "User updated", data: updatedUser[0] });
   } catch (error) {
-    if(error instanceof ZodError) {
+    if (error instanceof ZodError) {
       const formattedErrors = error.errors.map((err) => ({
         field: err.path.join("."),
         message: err.message,

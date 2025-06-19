@@ -1,10 +1,15 @@
 import { z } from "zod";
 
 export const userSchema = z.object({
-  id: z.string({ message: "ID is required" }),
+  id: z.string({ message: "ID is required" }).optional(),
 
-  name: z
-    .string({ message: "Name is required" })
+  firstName: z
+    .string({ message: "First name is required" })
+    .min(1, { message: "Name cannot be empty" })
+    .max(100, { message: "Name must be at most 100 characters" }),
+
+  lastName: z
+    .string({ message: "Last name is required" })
     .min(1, { message: "Name cannot be empty" })
     .max(100, { message: "Name must be at most 100 characters" }),
 
@@ -45,7 +50,7 @@ export const userSchema = z.object({
     .positive({ message: "Zip code must be a positive number" })
     .optional(),
 
-  autoLocation: z.string({ message: "Auto location is required" }),
+  autoLocation: z.string({ message: "Auto location is required" }).optional(),
 
   lat: z.number({ message: "Latitude must be a number" }).optional(),
 
@@ -156,8 +161,15 @@ export const jobSchema = z.object({
   id: z.string({ message: "Job ID is required" }),
 
   userId: z.string({ message: "User ID is required" }),
-
   workerId: z.string({ message: "Worker ID is required" }),
+
+  description: z
+    .string()
+    .min(10, { message: "Description must be at least 10 characters" }),
+  location: z.string({ message: "Location is required" }),
+
+  lat: z.number({ message: "Latitude is required" }),
+  lng: z.number({ message: "Longitude is required" }),
 
   status: z
     .enum(["pending", "confirmed", "in_progress", "completed", "cancelled"], {
@@ -168,12 +180,14 @@ export const jobSchema = z.object({
     })
     .default("pending"),
 
-  bookedFor: z.date({
+  bookedFor: z.string({
     message: "Booking date (bookedFor) must be a valid date",
   }),
 
   durationMinutes: z
-    .number({ message: "Duration is required" })
+    .number({
+      message: "Duration is required",
+    })
     .int({ message: "Duration must be an integer" })
     .positive({ message: "Duration must be a positive number" }),
 

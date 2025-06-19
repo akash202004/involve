@@ -47,8 +47,9 @@ export const notificationTypeEnum = pgEnum("notification_type", [
 
 // Users Table
 export const users = pgTable("users", {
-  id: uuid("id").primaryKey().notNull(),
-  name: varchar("full_name", { length: 100 }).notNull(),
+  id: uuid("id").defaultRandom().primaryKey(),
+  firstName: varchar("full_name", { length: 50 }).notNull(),
+  lastName: varchar("last_name", { length: 50 }).notNull(),
   email: varchar("email").notNull(),
   phoneNumber: varchar("phone_number", { length: 12 }).notNull(),
   password: varchar("password", { length: 30 }),
@@ -70,7 +71,7 @@ export const users = pgTable("users", {
 
 // Workers Table
 export const workers = pgTable("workers", {
-  id: uuid("id").primaryKey().notNull(),
+  id: uuid("id").defaultRandom().primaryKey(),
   firstName: text("first_name").notNull(),
   middleName: text("middle_name"),
   lastName: text("last_name").notNull(),
@@ -118,6 +119,10 @@ export const jobs = pgTable("jobs", {
   workerId: uuid("worker_id")
     .references(() => workers.id)
     .notNull(),
+  description: text("description"),
+  location: text("address"),
+  lat: doublePrecision("lat").notNull(),
+  lng: doublePrecision("lng").notNull(),
   status: jobStatusEnum("status").default("pending"),
   bookedFor: timestamp("booked_for"),
   durationMinutes: integer("duration_minutes"),

@@ -5,6 +5,8 @@ import { workers } from "@/db/schema";
 import { users } from "@/db/schema";
 import { jobSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
+import { parse } from "dotenv";
+import { ZodError } from "zod";
 
 // ✅ Create Order
 export const createJob = async (req: Request, res: Response) => {
@@ -34,17 +36,23 @@ export const createJob = async (req: Request, res: Response) => {
     const newJob = await db
       .insert(jobs)
       .values({
-        userId: parsed.userId,
-        workerId: parsed.workerId,
-        status: parsed.status ?? "pending",
-        bookedFor: parsed.bookedFor,
-        durationMinutes: parsed.durationMinutes,
+        ...parsed,
+        bookedFor: new Date(parsed.bookedFor),
       })
       .returning();
 
     res.status(201).json({ message: "Order created", data: newJob[0] });
   } catch (error) {
-    console.error("Job creation failed:", error);
+    if (error instanceof ZodError) {
+      const formattedErrors = error.errors.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      }));
+      res
+        .status(400)
+        .json({ message: "Validation failed", errors: formattedErrors });
+      return;
+    }
     res.status(400).json({ error: "Invalid data or failed to create job" });
     return;
   }
@@ -114,7 +122,16 @@ export const updateJobStatus = async (req: Request, res: Response) => {
 
     res.status(200).json({ message: "Job status updated", data: updated[0] });
   } catch (error) {
-    console.error(error);
+    if (error instanceof ZodError) {
+      const formattedErrors = error.errors.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      }));
+      res
+        .status(400)
+        .json({ message: "Validation failed", errors: formattedErrors });
+      return;
+    }
     res.status(400).json({ error: "Failed to update job status" });
     return;
   }
