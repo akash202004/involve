@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 
 interface UserProfile {
-  full_name: string;
-  phone_number: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
   email: string;
 }
 
@@ -15,8 +16,9 @@ export default function ProfilePage() {
   const { user, isLoading: authLoading, signOut } = useUser();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile>({
-    full_name: '',
-    phone_number: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
     email: ''
   });
   const [isEditing, setIsEditing] = useState(false);
@@ -41,8 +43,9 @@ export default function ProfilePage() {
           if (response.ok) {
             const data = await response.json();
             setProfile({
-              full_name: data.full_name || '',
-              phone_number: data.phone_number || '',
+              firstName: data.first_name || '',
+              lastName: data.last_name || '',
+              phoneNumber: data.phone_number || '',
               email: user.email || ''
             });
           } else {
@@ -79,8 +82,9 @@ export default function ProfilePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          full_name: profile.full_name,
-          phone_number: profile.phone_number,
+          first_name: profile.firstName,
+          last_name: profile.lastName,
+          phone_number: profile.phoneNumber,
           email: profile.email
         }),
       });
@@ -137,22 +141,41 @@ export default function ProfilePage() {
           {/* Profile Content */}
           <div className="px-6 py-8">
             <div className="space-y-6">
-              {/* Full Name */}
+              {/* First Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
+                  First Name
                 </label>
                 <input
                   type="text"
-                  value={profile.full_name}
-                  onChange={(e) => handleInputChange('full_name', e.target.value)}
+                  value={profile.firstName}
+                  onChange={(e) => handleInputChange('firstName', e.target.value)}
                   disabled={!isEditing}
                   className={`w-full px-3 py-2 border rounded-md ${
                     isEditing 
                       ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
                       : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
                   }`}
-                  placeholder="Enter your full name"
+                    placeholder="Enter your first name"
+                />
+              </div>
+
+              {/* Last Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={profile.lastName}
+                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  disabled={!isEditing}
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    isEditing 
+                      ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
+                      : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
+                  }`}
+                    placeholder="Enter your last name"
                 />
               </div>
 
@@ -176,8 +199,8 @@ export default function ProfilePage() {
                 </label>
                 <input
                   type="tel"
-                  value={profile.phone_number}
-                  onChange={(e) => handleInputChange('phone_number', e.target.value)}
+                  value={profile.phoneNumber}
+                  onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                   disabled={!isEditing}
                   className={`w-full px-3 py-2 border rounded-md ${
                     isEditing 
