@@ -2,7 +2,7 @@ import HeroWithCarousel from "@/app/components/ui/HeroWithCarousel";
 import Feature from "@/app/components/ui/Feature/Page";
 import FAQ from "@/app/components/ui/FAQ/Page";
 import { AuthRedirect } from "@/app/components/ui/AuthRedirect";
-
+import WaitingTime from "@/app/components/ui/Waiting-Time/Page";
 export default function Home() {
   return (  
     <>
@@ -16,6 +16,9 @@ export default function Home() {
         </div>
         <div className="w-full flex items-center justify-center">
           <FAQ />
+        </div>
+        <div className="w-full flex items-center justify-center">
+          <WaitingTime/>
         </div>
       </div>
     </>
