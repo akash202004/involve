@@ -1,4 +1,4 @@
-
+/* General Page and Form Container Styles */
 .pageWrapper {
   background-color: #f4f6f8;
   padding: 2rem 1rem;
@@ -63,6 +63,7 @@
   font-size: 0.85rem;
   margin-top: 0.5rem;
   font-weight: 500;
+  white-space: nowrap; /* Prevents labels from wrapping */
 }
 .stepConnector {
   flex: 1 1 auto;
@@ -113,7 +114,8 @@
   margin-bottom: 0.5rem;
 }
 .formGroup input,
-.formGroup select {
+.formGroup select,
+.formGroup textarea {
   width: 100%;
   padding: 12px;
   font-size: 1rem;
@@ -123,8 +125,12 @@
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
+.formGroup textarea.nonResizable {
+  resize: none; /* Disables resizing for textareas with this class */
+}
 .formGroup input:focus,
-.formGroup select:focus {
+.formGroup select:focus,
+.formGroup textarea:focus {
   outline: none;
   border-color: #007aff;
   box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
@@ -135,11 +141,50 @@
   font-weight: 600;
   margin-left: 2px;
 }
-.fieldDescription {
-  font-size: 0.9rem;
-  color: #6c757d;
-  margin-top: -1rem;
-  margin-bottom: 1.5rem;
+
+/* Address Input Styles */
+.addressInputWrapper {
+  position: relative;
+}
+.addressTextarea {
+  padding-right: 55px !important; /* Ensure text doesn't go under the button */
+}
+.locationIconButton {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background-color: #e9ecef;
+  color: #495057;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+.locationIconButton:hover:not(:disabled) {
+  background-color: #dee2e6;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.locationIconButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.locationIconButton svg {
+  width: 20px;
+  height: 20px;
+}
+.locationIconButton .spinner {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+  border-top-color: #007aff;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
 }
 
 /* Grids */
@@ -150,6 +195,7 @@
   gap: 1.25rem;
 }
 
+/* Uploader */
 .uploaderGroup {
   display: flex;
   flex-direction: column;
@@ -158,7 +204,7 @@
 .mainUploaderLabel {
   width: 100%;
   text-align: center; 
-  margin-bottom: 0.5rem; 
+  margin-bottom: 0.75rem;
 }
 .fileInputHidden {
   display: none;
@@ -184,7 +230,6 @@
 .profilePicUploader:hover {
   border-color: #007aff;
 }
-
 .uploadPlaceholder {
   display: flex;
   flex-direction: column;
@@ -225,7 +270,7 @@
   background-color: rgba(220, 53, 69, 0.8);
 }
 
-/* OTP & Phone Input Styles */
+/* Phone & OTP Input */
 .inputWithButton {
   display: flex;
   align-items: center;
@@ -302,12 +347,13 @@
 .verifyButton:disabled {
   background-color: #0056b3;
 }
+
 .spinner {
   width: 20px;
   height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  border: 3px solid rgba(0, 0, 0, 0.1);
   border-radius: 50%;
-  border-top-color: #fff;
+  border-top-color: #000;
   animation: spin 1s ease-in-out infinite;
 }
 @keyframes spin {
@@ -315,14 +361,18 @@
     transform: rotate(360deg);
   }
 }
+
 /* Form Navigation */
 .formNavigation {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e9ecef;
+}
+.formNavigation .backButton {
+  margin-right: auto;
 }
 .backButton,
 .nextButton,
@@ -352,6 +402,8 @@
   background-color: #333;
   transform: translateY(-2px);
 }
+
+/* Responsive Media Queries */
 @media (min-width: 768px) {
   .gridTwoCol {
     grid-template-columns: 1fr 1fr;
@@ -361,7 +413,29 @@
   }
 }
 
+@media (max-width: 480px) {
+  .formContainer {
+    padding: 1.5rem 1rem;
+  }
+  .stepper {
+    padding: 0;
+    margin: 1.5rem 0;
+  }
+  .stepLabel {
+    font-size: 0.75rem;
+  }
+  .backButton,
+  .nextButton,
+  .submitButton {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+  }
+}
 
+/* Submission Overlay & Success Animation */
 .submissionOverlay {
   position: fixed;
   inset: 0;
@@ -374,6 +448,9 @@
   z-index: 1000;
   color: #000;
 }
+.submissionContent .spinner {
+  border-top-color: #000;
+}
 .submissionContent p {
   font-size: 1.1rem;
   font-weight: 500;
@@ -385,7 +462,6 @@
   flex-direction: column;
   align-items: center;
 }
-
 .checkmark {
   width: 100px;
   height: 100px;
@@ -397,7 +473,6 @@
   box-shadow: inset 0px 0px 0px #4bb71b;
   animation: scale .5s ease-in-out .4s both, fill .5s ease-in-out .4s both;
 }
-
 .checkmarkCircle {
   stroke-dasharray: 166;
   stroke-dashoffset: 166;
@@ -407,20 +482,17 @@
   fill: none;
   animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
 }
-
 .checkmarkCheck {
   transform-origin: 50% 50%;
   stroke-dasharray: 48;
   stroke-dashoffset: 48;
   animation: stroke 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
 }
-
 @keyframes stroke {
   100% {
     stroke-dashoffset: 0;
   }
 }
-
 @keyframes scale {
   0%, 100% {
     transform: none;
@@ -429,20 +501,8 @@
     transform: scale3d(1.1, 1.1, 1);
   }
 }
-
 @keyframes fill {
   100% {
     box-shadow: inset 0px 0px 0px 50px #4bb71b;
   }
-}
-
-
-.pageWrapper {
-  background-color: #f4f6f8;
-  padding: 2rem 1rem;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
