@@ -1,364 +1,135 @@
-/* --- THEME DEFINITIONS --- */
-.lightTheme {
-  --primary-bg: #f0f2f5;
+/* src/app/worker/dashboard/dashboard.module.css */
+
+:root {
+  --app-bg: #f4f7fa;
   --card-bg: #ffffff;
-  --border-color: #e2e8f0;
-  --text-primary: #1a202c;
-  --text-secondary: #4a5568;
-  --accent-blue: #3182ce;
-  --accent-green: #38a169;
-  --accent-red: #c53030;
-  --accent-purple: #805AD5;
-  --button-secondary-bg: #edf2f7;
-  --toggle-track-bg: #cbd5e0;
-  --route-color: #3182ce;
-  --accent-blue-light: rgba(49, 130, 206, 0.1);
-  --gradient-start: var(--accent-blue);
-  --gradient-end: var(--accent-green);
+  --primary-text: #111827;
+  --secondary-text: #6b7280;
+  --accent-blue: #3b82f6;
+  --accent-green: #10b981;
+  --accent-orange: #f97316;
+  --accent-purple: #8b5cf6;
+  --accent-red: #ef4444;
+  --border-color: #e5e7eb;
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .darkTheme {
-  --primary-bg: #1a1a1e;
-  --card-bg: #242429;
-  --border-color: #3a3a40;
-  --text-primary: #f0f0f5;
-  --text-secondary: #a0a0a5;
-  --accent-blue: #007aff;
-  --accent-green: #34c759;
-  --accent-red: #ff3b30;
-  --accent-purple: #9F7AEA;
-  --button-secondary-bg: #3a3a40;
-  --toggle-track-bg: #4a5568;
-  --route-color: #007aff;
-  --accent-blue-light: rgba(0, 122, 255, 0.2);
-  --gradient-start: #007aff;
-  --gradient-end: #34c759;
+  --app-bg: #111827;
+  --card-bg: #1f2937;
+  --primary-text: #f9fafb;
+  --secondary-text: #9ca3af;
+  --border-color: #374151;
 }
 
-/* --- GLOBAL STYLES --- */
+/* --- GLOBAL & LAYOUT --- */
 .pageWrapper {
-  background-color: var(--primary-bg);
-  color: var(--text-primary);
+  background-color: var(--app-bg);
+  color: var(--primary-text);
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: var(--font-family);
+  transition: background-color 0.3s, color 0.3s;
 }
 
-.card {
-  background-color: var(--card-bg);
-  border-radius: 16px;
-  padding: 1.5rem;
-  border: 1px solid var(--border-color);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-.lightTheme .card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04); }
-.darkTheme .card { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-
-.cardHeader {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
-.cardHeader h2, .cardHeader h3 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-.cardHeader h3 { display: flex; align-items: center; }
-
-/* --- GRID LAYOUT --- */
-.dashboardGrid {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  grid-template-rows: auto minmax(0, 1fr);
-  grid-template-areas:
-    "header header"
-    "main sidebar";
-  gap: 1.5rem;
-  padding: 1.5rem;
-  max-width: 1600px;
-  margin: 0 auto;
-}
+.dashboardContainer { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
 
 /* --- HEADER --- */
-.header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
-.logo h1 { margin: 0; font-size: 2rem; font-weight: 700; }
-.titleGradient {
-  background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+.logo h1 { font-size: 1.75rem; font-weight: 700; margin: 0; }
+.headerActions { display: flex; align-items: center; gap: 1rem; }
+.iconButton {
+  background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--secondary-text);
+  width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; cursor: pointer; transition: all 0.2s ease; position: relative;
 }
-.headerActions { display: flex; align-items: center; gap: 0.75rem; }
-.iconButton, .themeToggleButton {
-  background: var(--card-bg);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 1.2rem;
-}
-.themeToggleButton { background: transparent; border: none; font-size: 1.4rem; }
-.iconButton:hover, .themeToggleButton:hover { color: var(--accent-blue); }
-.darkTheme .iconButton:hover, .darkTheme .themeToggleButton:hover {
-  background-color: var(--button-secondary-bg);
-}
-.logoutButton:hover { color: var(--accent-red); border-color: var(--accent-red); }
-.simulateButton:hover { color: var(--accent-purple); border-color: var(--accent-purple); }
+.iconButton:hover { color: var(--primary-text); border-color: var(--accent-blue); }
+.iconButton:disabled { cursor: not-allowed; background-color: var(--app-bg); opacity: 0.5; }
+.notificationIndicator { position: absolute; top: 5px; right: 5px; width: 10px; height: 10px; background-color: var(--accent-green); border-radius: 50%; border: 2px solid var(--card-bg); }
+.profileBlock { display: flex; align-items: center; gap: 0.75rem; padding: 0.25rem 1rem 0.25rem 0.25rem; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 9999px; }
+.profileName { font-weight: 600; font-size: 0.875rem; }
 
-/* --- MAIN CONTENT & MAP --- */
-.mainContent { grid-area: main; display: flex; }
-.mapCard { width: 100%; }
-.mapContainer {
-  flex-grow: 1;
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: #e2e8f0;
-  height: 65vh; 
-  position: relative;
-}
-.darkTheme .mapContainer { background-color: #000; }
-.mapView { width: 100%; height: 100%; }
-.mapPlaceholder {
-  display: flex; flex-direction: column; justify-content: center;
-  align-items: center; height: 100%; text-align: center;
-  color: var(--text-secondary);
-}
-.mapPlaceholder h2 { font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);}
+/* --- HEADER BUTTONS --- */
+.themeToggle { font-size: 1.5rem; }
+.goLiveButton { border-width: 2px; border-color: var(--secondary-text); color: var(--secondary-text); }
+.goLiveButton.live { background-color: var(--accent-green); border-color: var(--accent-green); color: white; animation: pulse 2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
-/* --- SIDEBAR --- */
-.sidebar {
-  grid-area: sidebar;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
+/* --- MAIN LAYOUT GRID (12 Columns) --- */
+.contentGrid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
+.card { background-color: var(--card-bg); border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; }
+.cardHeader { display: flex; align-items: center; gap: 0.75rem; font-size: 1rem; font-weight: 600; margin: 0 0 1rem 0; }
 
-.profileCard {
-  padding: 0;
-  align-items: center;
-  position: relative;
-  justify-content: flex-start;
-  overflow: hidden;
-}
+/* --- GRID SPANNING --- */
+.mapCard { grid-column: span 8; grid-row: span 3; }
+.statsSidebar { grid-column: span 4; grid-row: span 3; display: flex; flex-direction: column; gap: 1.5rem; }
+.statCard { flex-grow: 1; padding: 1rem; }
+.opportunitiesCard, .recentJobsCard { grid-column: span 6; }
+.performanceCard, .goalCard { grid-column: span 6; }
 
-.profileBanner {
-  width: 100%;
-  height: 80px;
-  background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-}
+/* --- MODAL --- */
+.modalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 1000; display: flex; justify-content: center; align-items: center; }
+.modalContent { background-color: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow-lg); width: 100%; max-width: 450px; border: 1px solid var(--border-color); }
+.modalHeader { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+.modalHeader h3 { margin: 0; font-size: 1.25rem; }
+.closeModalButton { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--secondary-text); }
+.modalBody { padding: 1.5rem; }
+.modalActions { display: flex; gap: 1rem; padding: 0 1.5rem 1.5rem; }
 
-.profileContent {
-  padding: 0 1.5rem 1.5rem;
-  margin-top: -50px;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
+/* --- MAP & STATS --- */
+.mapContainer { height: 100%; min-height: 400px; width: 100%; border-radius: 12px; overflow: hidden; background-color: #2c2c2e; flex-grow: 1; display: flex; }
+.mapPlaceholder { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; width: 100%; color: var(--secondary-text); }
+.leaflet-container { border-radius: 12px; }
+.subtleHeader { font-size: 0.8rem; font-weight: 500; color: var(--secondary-text); margin-bottom: 0.25rem; }
+.statValue { font-size: 1.75rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; width: 100%; }
+.statIcon { font-size: 1.5rem; }
 
-.profileAvatarContainer {
-  position: relative;
-  cursor: pointer;
-  border-radius: 50%;
-  margin-bottom: 1rem;
-  border: 4px solid var(--card-bg);
-  background-color: var(--card-bg);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-.avatar, .profileImage {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: filter 0.2s ease;
-}
-.avatar {
-  background-color: var(--primary-bg);
-  color: var(--text-secondary);
-  font-size: 2rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.profileImage { object-fit: cover; }
-.editAvatarOverlay {
-  position: absolute;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  font-size: 1.5rem;
-}
-.profileAvatarContainer:hover .editAvatarOverlay { opacity: 1; }
-.profileInfo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.profileName {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-.profileService {
-  margin: 0;
-  color: var(--accent-blue);
-  font-weight: 500;
-  background-color: var(--accent-blue-light);
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-}
+/* --- ACTIVE JOB & HISTORY --- */
+.jobDetails { display: flex; align-items: center; gap: 1.5rem; }
+.jobIcon { font-size: 2.5rem; color: var(--accent-blue); }
+.jobInfoText .title { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+.jobInfoText .detail { color: var(--secondary-text); display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; font-size: 1rem;}
+.opportunitiesCard.highlight { border-color: var(--accent-blue); }
+.jobRequestItem { display: flex; flex-direction: column; gap: 1rem; padding: 1rem; background-color: var(--app-bg); border-radius: 12px; }
+.jobRequestInfo { display: flex; align-items: center; justify-content: space-between; width: 100%;}
+.jobProgressDetails { display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem; }
+.jobButton { padding: 0.75rem 1.5rem; border-radius: 8px; border: 1px solid; font-weight: 600; cursor: pointer; transition: all 0.2s; flex-grow: 1; }
+.acceptButton { background-color: var(--accent-green); border-color: var(--accent-green); color: white; }
+.declineButton { background-color: transparent; border-color: var(--border-color); color: var(--secondary-text); }
+.completeButton { background-color: var(--accent-blue); border-color: var(--accent-blue); color: white; }
+.jobList { display: flex; flex-direction: column; gap: 1.25rem; }
+.jobItem { display: flex; align-items: center; justify-content: space-between; gap: 1rem;}
+.jobItemInfo { display: flex; flex-direction: column; }
+.jobItemTitle { font-weight: 600; }
+.jobItemCompany { font-size: 0.875rem; color: var(--secondary-text); }
+.statusBadge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
+.statusCompleted { background-color: #dcfce7; color: #166534; }
+.statusInProgress { background-color: #dbeafe; color: #1e40af; }
+.statusDeclined { background-color: #ffebee; color: #c62828; }
 
-.earningsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 1rem;
-}
-.earningItem {
-  display: flex; flex-direction: column; padding: 1rem;
-  border-radius: 12px;
-  background-color: var(--primary-bg);
-  border: 1px solid var(--border-color);
-  text-align: center;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.earningItem:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 15px rgba(0,0,0,0.08);
-}
-.darkTheme .earningItem:hover {
-  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-}
-.earningLabel {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.earningValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-.earningValueBonus {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--accent-green);
-  line-height: 1.2;
-}
+/* --- PERFORMANCE & GOAL --- */
+.performanceContent { display: flex; justify-content: space-around; text-align: center; padding: 1rem 0; flex-grow: 1; align-items: center; }
+.circularProgress { position: relative; width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--accent-orange) calc(var(--value) * 1%), #e5e7eb 0); }
+.circularProgress.green { background: conic-gradient(var(--accent-green) calc(var(--value) * 1%), #e5e7eb 0); }
+.circularProgress::before { content: ""; position: absolute; height: 80%; width: 80%; background-color: var(--card-bg); border-radius: 50%; }
+.progressValue { position: relative; font-size: 1.5rem; font-weight: 700; }
+.performanceLabel { margin-top: 0.75rem; font-weight: 500; font-size: 0.8rem; color: var(--secondary-text); }
+.goalCard { justify-content: center; }
+.goalStats { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem; }
+.goalCurrent { font-size: 1.5rem; font-weight: 700; }
+.goalTarget { font-size: 1rem; color: var(--secondary-text); }
+.goalProgress { width: 100%; height: 12px; background-color: var(--app-bg); border-radius: 6px; overflow: hidden; }
+.goalProgressBar { height: 100%; background-color: var(--accent-green); border-radius: 6px; }
 
-
-.toggleContainer {
-  display: flex; align-items: center; gap: 0.75rem;
-  background-color: var(--primary-bg); padding: 0.5rem;
-  border-radius: 9999px; border: 1px solid var(--border-color); cursor: pointer;
+/* --- RESPONSIVENESS --- */
+@media (max-width: 1200px) {
+    .mapCard, .statsSidebar, .opportunitiesCard, .recentJobsCard, .performanceCard, .goalCard { grid-column: span 12; }
+    .statsSidebar { flex-direction: row; }
 }
-.toggleLabel { font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); padding-left: 0.5rem; }
-.toggleTrack {
-  background-color: var(--toggle-track-bg); border: none;
-  border-radius: 9999px; width: 50px; height: 28px;
-  position: relative; transition: background-color 0.3s ease;
-}
-.toggleTrack.live { background-color: var(--accent-green); }
-.toggleThumb {
-  background-color: white; width: 22px; height: 22px; border-radius: 50%;
-  position: absolute; top: 3px; left: 3px;
-  transition: transform 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-.toggleTrack.live .toggleThumb { transform: translateX(22px); }
-
-/* --- MODALS --- */
-.confirmationOverlay {
-  position: fixed; inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(5px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000; padding: 1rem;
-}
-.jobRequestCard, .confirmationCard {
-  background-color: var(--card-bg);
-  border-radius: 20px; padding: 2rem;
-  width: 100%; max-width: 450px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  animation: popIn 0.4s ease-out;
-}
-@keyframes popIn {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-.confirmationIcon {
-  margin: 0 auto 1rem; width: 50px; height: 50px;
-  border-radius: 50%; background-color: var(--accent-red);
-  color: white; display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem;
-}
-.jobRequestHeader { text-align: center; margin-bottom: 1.5rem; }
-.jobRequestHeader h3 { font-size: 1.75rem; margin-bottom: 0.5rem; color: var(--text-primary); }
-.jobRequestHeader p { color: var(--text-secondary); margin: 0; }
-
-.jobDetails { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; margin-bottom: 2rem; gap: 1rem; }
-.jobDetailItem { font-size: 1.1rem; font-weight: 500; color: var(--text-primary); }
-.jobDetailItem svg { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-blue); }
-.jobDetailItem span { display: block; }
-.jobDetailItem .earningValueBonus { font-size: 1.1rem; }
-
-.jobActions { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.acceptButton, .declineButton, .simulateButton, .confirmSignOutButton {
-  padding: 0.8rem 1rem; border-radius: 12px; border: none;
-  font-size: 1rem; font-weight: 600; cursor: pointer;
-  transition: all 0.2s ease;
-}
-.acceptButton:hover, .declineButton:hover, .simulateButton:hover, .confirmSignOutButton:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-}
-.declineButton { background-color: var(--button-secondary-bg); color: var(--text-primary); }
-.acceptButton { background-color: var(--accent-blue); color: white; }
-.confirmSignOutButton { background-color: var(--accent-red); color: white; }
-
-/* --- MAP MARKERS & ROUTE --- */
-.liveWorkerMarker .pulsingDot {
-  width: 26px; height: 26px; border-radius: 50%;
-  background-color: var(--accent-blue); border: 3px solid white;
-  box-shadow: 0 0 0 rgba(49, 130, 206, 0.4);
-  animation: pulse 2s infinite;
-}
-@keyframes pulse {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); }
-}
-.userLocationMarker {
-  width: 24px; height: 24px; border-radius: 50%;
-  background-color: var(--accent-green); border: 3px solid white;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-.routePolyline {
-  stroke: var(--route-color);
+@media (max-width: 768px) {
+  .statsSidebar { flex-direction: column; }
+  .headerActions { gap: 0.5rem; }
+  .profileName { display: none; }
+  .modalContent { max-width: 90vw; }
 }

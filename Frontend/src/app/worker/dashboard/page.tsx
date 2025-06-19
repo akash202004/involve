@@ -1,278 +1,282 @@
+// src/app/worker/dashboard/page.tsx
 "use client";
 
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import styles from './dashboard.module.css';
 import { useUser, SignOutButton } from '@civic/auth/react';
-import GoLiveToggle from './GoLiveToggle';
-import WorkerMap from './WorkerMap';
-import JobRequestCard from './JobRequestCard';
+import 'leaflet/dist/leaflet.css';
+import { FiUser, FiLogOut, FiDollarSign, FiClock, FiCheckCircle, FiMapPin, FiBell, FiTrendingUp, FiList, FiTarget, FiNavigation, FiBriefcase, FiX, FiRadio, FiAlertTriangle } from 'react-icons/fi';
 import ThemeToggle from './ThemeToggle';
-import { FiUser, FiTrendingUp, FiLogOut, FiAlertTriangle, FiCamera, FiZap } from 'react-icons/fi';
 
-const defaultProfile = {
-  firstName: 'Worker', lastName: '', service: '', experience: '', email: '', phone: '',
+const WorkerMap = dynamic(() => import('./WorkerMap'), { 
+  ssr: false,
+  loading: () => <div className={styles.mapPlaceholder}>Loading Map...</div>
+});
+
+// Type Definitions
+type Profile = { firstName: string; };
+type JobStatus = 'idle' | 'incoming' | 'accepted';
+// ADDED: Type for LatLng coordinates
+type LatLngTuple = [number, number]; 
+type JobRequest = {
+  id: number;
+  distance: string; 
+  fare: number; 
+  title: string; 
+  // ADDED: clientLocation to store destination
+  clientLocation: LatLngTuple; 
 };
+type HistoryJob = JobRequest & { status: 'completed' | 'declined' };
 
-const formatNumber = (num: number) => new Intl.NumberFormat('en-IN').format(num);
+const defaultProfile: Profile = { firstName: 'Worker' };
 
 export default function WorkerDashboardPage() {
   const router = useRouter();
   const { user } = useUser();
   const civicSignOutButtonRef = useRef<HTMLButtonElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [theme, setTheme] = useState('light');
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [profile, setProfile] = useState(defaultProfile);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isLive, setIsLive] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
-  const [jobStatus, setJobStatus] = useState<'idle' | 'incoming' | 'accepted'>('idle');
-  const [jobRequest, setJobRequest] = useState<any>(null);
   
-  const [earnings, setEarnings] = useState({
-    today: 1250,
-    week: 8400,
-    bonus: 500,
-  });
+  const [jobStatus, setJobStatus] = useState<JobStatus>('idle');
+  const [jobRequest, setJobRequest] = useState<JobRequest | null>(null);
+  const [jobHistory, setJobHistory] = useState<HistoryJob[]>([]);
+  // ADDED: State to hold the blue navigation route
+  const [route, setRoute] = useState<LatLngTuple[] | null>(null); 
+
+  const [profile] = useState<Profile>(defaultProfile);
+  const [earnings, setEarnings] = useState({ week: 4875.5 });
+  const [hoursWorked] = useState(156);
+  const [jobsCompleted, setJobsCompleted] = useState(23);
+  const [performance] = useState({ rating: 4.8, successRate: 96 });
+  const [weeklyGoal] = useState({ current: 1250, target: 2000 });
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('worker-theme') || 'light';
     setTheme(savedTheme);
-    const savedImage = localStorage.getItem('worker-profile-image');
-    if (savedImage) setProfileImage(savedImage);
+    document.documentElement.className = savedTheme === 'dark' ? styles.darkTheme : '';
   }, []);
 
   useEffect(() => {
-    const isWorkerSession = localStorage.getItem('workerSessionActive');
-    if (isWorkerSession !== 'true') router.push('/worker');
-    if (user) {
-      const savedProfileJSON = localStorage.getItem(`workerProfile_${user.did}`);
-      if (savedProfileJSON) setProfile(JSON.parse(savedProfileJSON));
-    }
-  }, [router, user]);
-
-  useEffect(() => {
     if (isLive) {
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        (position) => setLocation({ lat: position.coords.latitude, lng: position.coords.longitude }),
+      setLocationError(null);
+      navigator.geolocation.getCurrentPosition(
+        (position) => { setLocation({ lat: position.coords.latitude, lng: position.coords.longitude }); },
         (error) => {
           console.error("Error getting location:", error);
+          setLocationError("Could not get location. Please enable location services.");
           setIsLive(false);
-        }, { enableHighAccuracy: true }
+        },
+        { enableHighAccuracy: true }
+      );
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (position) => { setLocation({ lat: position.coords.latitude, lng: position.coords.longitude }); }
       );
     } else {
       if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
       setLocation(null);
     }
-    return () => {
-      if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
-    };
+    return () => { if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current); };
   }, [isLive]);
-  
-  const handleAvatarClick = () => fileInputRef.current?.click();
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setProfileImage(base64String);
-        localStorage.setItem('worker-profile-image', base64String);
-      };
-      reader.readAsDataURL(file);
+
+  // ADDED: Function to fetch route data
+  const fetchRoute = async (start: {lat: number, lng: number}, end: LatLngTuple) => {
+    try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if(data.routes && data.routes.length > 0) {
+            const routeCoords = data.routes[0].geometry.coordinates.map((c: [number, number]) => [c[1], c[0]] as LatLngTuple);
+            setRoute(routeCoords);
+        }
+    } catch (e) {
+        console.error("Failed to fetch route:", e);
     }
   };
 
+  const handleSimulateJob = () => {
+    if (!isLive || !location) { alert("You must be 'Online' to receive jobs."); return; }
+    if (jobStatus !== 'idle') { alert("You already have an active job offer."); return; }
+    
+    // Simulate a client location near you
+    const clientLat = location.lat + (Math.random() - 0.5) * 0.1;
+    const clientLng = location.lng + (Math.random() - 0.5) * 0.1;
+    
+    setJobRequest({ 
+        id: Date.now(),
+        title: "New Delivery Request", 
+        distance: (Math.random() * 8 + 1).toFixed(1), 
+        fare: Math.floor(Math.random() * 25 + 15), 
+        clientLocation: [clientLat, clientLng] // Store client location
+    });
+    setJobStatus('incoming');
+  };
+  
+  const handleAcceptJob = () => {
+      setJobStatus('accepted');
+      // Fetch the route when the job is accepted
+      if (location && jobRequest) {
+          fetchRoute(location, jobRequest.clientLocation);
+      }
+  };
+  
+  // ADDED: Helper to reset job state
+  const resetJobState = () => {
+    setJobStatus('idle'); 
+    setJobRequest(null);
+    setRoute(null); // Clear the route from the map
+  }
+
+  const handleDeclineJob = () => {
+    if (jobRequest) { setJobHistory(prev => [{ ...jobRequest, status: 'declined' }, ...prev]); }
+    resetJobState();
+  };
+  
+  const handleCompleteJob = () => {
+    setJobsCompleted(prev => prev + 1);
+    if (jobRequest) { 
+        setEarnings(prev => ({ week: prev.week + jobRequest.fare }));
+        setJobHistory(prev => [{ ...jobRequest, status: 'completed' }, ...prev]);
+    }
+    resetJobState();
+  };
+  
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('worker-theme', newTheme);
-  };
-
-  const handleSimulateJob = async () => {
-    if (jobStatus !== 'idle') {
-        alert("Please complete the current job first.");
-        return;
-    }
-    if (!location) {
-        alert("Cannot simulate job, your location is not available.");
-        return;
-    }
-    const clientLocation = { lat: location.lat + 0.02, lng: location.lng + 0.02 };
-    const url = `https://router.project-osrm.org/route/v1/driving/${location.lng},${location.lat};${clientLocation.lng},${clientLocation.lat}?overview=full&geometries=geojson`;
-    try {
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.routes && data.routes.length > 0) {
-            const routeInfo = data.routes[0];
-            const dist = parseFloat((routeInfo.distance / 1000).toFixed(1));
-            const fare = Math.ceil(100 + (dist * 15));
-            const bonus = 50;
-            const routeCoords = routeInfo.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]);
-            setJobRequest({
-                distance: dist, fare: fare, bonus: bonus,
-                clientLocationName: "Kolkata City Center",
-                clientLocation: [clientLocation.lat, clientLocation.lng],
-                route: routeCoords,
-            });
-            setJobStatus('incoming');
-        }
-    } catch (e) { console.error("Failed to fetch route for job simulation:", e); }
-  };
-
-  const handleAcceptJob = () => {
-    setJobStatus('accepted');
-    alert("Job accepted! Navigating to client. Earnings will be updated upon completion.");
-    
-    setTimeout(() => {
-      if (jobRequest) {
-        setEarnings(prev => ({
-          ...prev,
-          today: prev.today + jobRequest.fare,
-          week: prev.week + jobRequest.fare,
-        }));
-         alert(`Job completed! ₹${jobRequest.fare} added to your earnings.`);
-      }
-      setJobStatus('idle');
-      setJobRequest(null);
-    }, 8000);
-  };
-
-  const handleDeclineJob = () => { setJobStatus('idle'); setJobRequest(null); };
-  
-  const handleLogoutConfirm = () => {
-    if (user) localStorage.removeItem(`workerProfile_${user.did}`);
-    localStorage.removeItem('workerSessionActive');
-    localStorage.removeItem('worker-profile-image');
-    if (civicSignOutButtonRef.current) civicSignOutButtonRef.current.click();
-    window.location.href = '/';
+    document.documentElement.className = newTheme === 'dark' ? styles.darkTheme : '';
   };
   
+  const handleLogout = () => { console.log("Logout initiated"); };
+  
+  const isJobIncoming = jobStatus === 'incoming' && jobRequest;
+  const isJobAccepted = jobStatus === 'accepted' && jobRequest;
+
   return (
-    <div className={`${styles.pageWrapper} ${theme === 'dark' ? styles.darkTheme : styles.lightTheme}`}>
-      
-      {showLogoutConfirm && (
-        <div className={styles.confirmationOverlay}>
-          <div className={styles.confirmationCard}>
-            <div className={styles.confirmationIcon}><FiAlertTriangle /></div>
-            <h3>Confirm Sign Out</h3>
-            <p>Are you sure you want to end your session?</p>
-            <div className={styles.jobActions}>
-              <button className={styles.declineButton} onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
-              <button className={styles.confirmSignOutButton} onClick={handleLogoutConfirm}>
-                Confirm Sign Out
-              </button>
+    <>
+      {isJobIncoming && (
+        <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+                <div className={styles.modalHeader}><h3>New Job Offer!</h3><button onClick={handleDeclineJob} className={styles.closeModalButton}><FiX /></button></div>
+                <div className={styles.modalBody}>
+                    <div className={styles.jobDetails}>
+                        <FiNavigation className={styles.jobIcon} />
+                        <div className={styles.jobInfoText}>
+                            <span className={styles.title}>{jobRequest.title}</span>
+                            <span className={styles.detail}><FiMapPin size={14}/> {jobRequest.distance} km away</span>
+                            <span className={styles.detail}><FiDollarSign size={14}/> Est. Fare: ${jobRequest.fare}</span>
+                        </div>
+                    </div>
+                </div>
+                <div className={styles.modalActions}>
+                    <button className={`${styles.jobButton} ${styles.declineButton}`} onClick={handleDeclineJob}>Decline</button>
+                    <button className={`${styles.jobButton} ${styles.acceptButton}`} onClick={handleAcceptJob}>Accept</button>
+                </div>
             </div>
-          </div>
         </div>
       )}
 
-      {jobStatus === 'incoming' && jobRequest && (
-        <JobRequestCard job={jobRequest} onAccept={handleAcceptJob} onDecline={handleDeclineJob} />
-      )}
-
-      <div className={styles.dashboardGrid}>
-        <header className={styles.header}>
-          <div className={styles.logo}>
-            <h1 className={styles.titleGradient}>WorkSphere</h1>
-          </div>
-          <div className={styles.headerActions}>
-            <ThemeToggle theme={theme} onToggle={toggleTheme} />
-            <GoLiveToggle isLive={isLive} onToggle={() => setIsLive(!isLive)} />
-            {isLive && location && jobStatus === 'idle' && (
-              <button title="Simulate Job Request" className={`${styles.iconButton} ${styles.simulateButton}`} onClick={handleSimulateJob}>
-                <FiZap />
+      <div className={styles.pageWrapper}>
+        <div className={styles.dashboardContainer}>
+          <header className={styles.header}>
+            <div className={styles.logo}><h1>WorkerPro</h1></div>
+            <div className={styles.headerActions}>
+              <button className={`${styles.iconButton} ${styles.goLiveButton} ${isLive ? styles.live : ''}`} onClick={() => setIsLive(!isLive)} title={isLive ? 'Go Offline' : 'Go Live'}>
+                  <FiRadio />
               </button>
-            )}
-            <button title="Edit Profile" className={styles.iconButton} onClick={() => router.push('/worker/onboarding')}><FiUser /></button>
-            <button title="Logout" className={`${styles.iconButton} ${styles.logoutButton}`} onClick={() => setShowLogoutConfirm(true)}>
-              <FiLogOut />
-            </button>
-          </div>
-        </header>
+              <ThemeToggle theme={theme} onToggle={toggleTheme} />
+              <button className={styles.iconButton} title="Check for new jobs" onClick={handleSimulateJob} disabled={!isLive || jobStatus !== 'idle'}>
+                  <FiBell />
+                  {isLive && jobStatus === 'idle' && <div className={styles.notificationIndicator}></div>}
+              </button>
+              <div className={styles.profileBlock}>
+                <button className={styles.iconButton}><FiUser /></button>
+                <span className={styles.profileName}>{profile.firstName}</span>
+              </div>
+              <button className={styles.iconButton} onClick={handleLogout} title="Logout"><FiLogOut /></button>
+            </div>
+          </header>
 
-        <main className={styles.mainContent}>
-          <div className={`${styles.card} ${styles.mapCard}`}>
-            <div className={styles.cardHeader}>
-              <h2>{jobStatus === 'accepted' ? 'On The Way to Client...' : 'Live Status'}</h2>
+          <main className={styles.contentGrid}>
+            <div className={`${styles.card} ${styles.mapCard}`}>
+              <h3 className={styles.cardHeader}><FiMapPin /> Live Map</h3>
+              <div className={styles.mapContainer}>
+                {isLive && location ? (
+                  // MODIFIED: Pass all necessary props to the map
+                  <WorkerMap 
+                    workerPosition={[location.lat, location.lng]} 
+                    clientPosition={jobRequest ? jobRequest.clientLocation : null}
+                    route={route}
+                  />
+                ) : (
+                  <div className={styles.mapPlaceholder}>
+                     {locationError ? (<><FiAlertTriangle size={48} color="var(--accent-red)" /><p style={{color: 'var(--accent-red)', maxWidth: '80%', textAlign: 'center'}}>{locationError}</p></>) : (<><FiNavigation size={48} /><p>Go Live to see your position on the map.</p></>)}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className={styles.mapContainer}>
-              {location ? (
-                <WorkerMap
-                  workerPosition={[location.lat, location.lng]}
-                  jobRequest={jobStatus === 'accepted' ? jobRequest : null}
-                  theme={theme}
-                />
-              ) : (
-                <div className={styles.mapPlaceholder}>
-                  <h2>{isLive ? "Acquiring Location..." : "You are Offline"}</h2>
-                  <p>Go live to see the map and receive job requests.</p>
+            
+            <div className={styles.statsSidebar}>
+                <div className={`${styles.card} ${styles.statCard}`}>
+                    <div className={styles.subtleHeader}>Total Earnings</div>
+                    <div className={styles.statValue}>${earnings.week.toLocaleString('en-US', {minimumFractionDigits: 2})}<FiDollarSign className={styles.statIcon} color={'var(--accent-green)'}/></div>
                 </div>
-              )}
+                <div className={`${styles.card} ${styles.statCard}`}>
+                    <div className={styles.subtleHeader}>Hours Worked</div>
+                    <div className={styles.statValue}>{hoursWorked}h <FiClock className={styles.statIcon} color={'var(--accent-blue)'}/></div>
+                </div>
+                <div className={`${styles.card} ${styles.statCard}`}>
+                    <div className={styles.subtleHeader}>Jobs Completed</div>
+                    <div className={styles.statValue}>{jobsCompleted}<FiCheckCircle className={styles.statIcon} color={'var(--accent-purple)'}/></div>
+                </div>
             </div>
-          </div>
-        </main>
+            
+            <div className={`${styles.card} ${styles.opportunitiesCard} ${isJobAccepted ? styles.highlight : ''}`}>
+               <h3 className={styles.cardHeader}><FiBriefcase /> Active Job</h3>
+               {isJobAccepted ? (
+                  <div className={styles.jobRequestItem}>
+                    <div className={styles.jobDetails}><div className={styles.jobInfoText}><span className={styles.title}>{jobRequest.title}</span><div className={styles.jobProgressDetails}><span className={`${styles.statusBadge} ${styles.statusInProgress}`}>In Progress</span><span className={styles.jobItemCompany}><FiMapPin size={12}/> {jobRequest.distance} km</span></div></div></div>
+                    <div className={styles.jobActions}><button className={`${styles.jobButton} ${styles.completeButton}`} onClick={handleCompleteJob}>Complete Job</button></div>
+                  </div>
+               ) : ( <p className={styles.secondaryText}>{isLive ? "Click the bell icon to check for jobs." : "Go live to receive jobs."}</p> )}
+            </div>
+            
+            <div className={`${styles.card} ${styles.recentJobsCard}`}>
+              <h3 className={styles.cardHeader}><FiList /> Job History</h3>
+              <div className={styles.jobList}>
+                {jobHistory.length > 0 ? (
+                  jobHistory.map(job => (
+                    <div className={styles.jobItem} key={job.id}>
+                      <div className={styles.jobItemInfo}><span className={styles.jobItemTitle}>{job.title}</span><span className={styles.jobItemCompany}>Est. ${job.fare}</span></div>
+                      <span className={`${styles.statusBadge} ${job.status === 'completed' ? styles.statusCompleted : styles.statusDeclined}`}>{job.status}</span>
+                    </div>
+                  ))
+                ) : ( <p className={styles.secondaryText}>Your completed or declined jobs will appear here.</p> )}
+              </div>
+            </div>
 
-        <aside className={styles.sidebar}>
-            <div className={`${styles.card} ${styles.profileCard}`}>
-                <div className={styles.profileBanner}></div>
-                <div className={styles.profileContent}>
-                    <div className={styles.profileAvatarContainer} onClick={handleAvatarClick} title="Click to upload a new profile picture">
-                        {profileImage ? (
-                            <img src={profileImage} alt="Profile" className={styles.profileImage} />
-                        ) : (
-                            <div className={styles.avatar}>
-                                <span>{profile.firstName?.charAt(0)}{profile.lastName?.charAt(0)}</span>
-                            </div>
-                        )}
-                        <div className={styles.editAvatarOverlay}>
-                            <FiCamera />
-                        </div>
-                    </div>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        style={{ display: 'none' }}
-                        accept="image/png, image/jpeg"
-                    />
-                    <div className={styles.profileInfo}>
-                        <h2 className={styles.profileName}>{profile.firstName} {profile.lastName}</h2>
-                        <p className={styles.profileService}>{profile.service || 'Service not set'}</p>
-                    </div>
-                </div>
+            <div className={`${styles.card} ${styles.performanceCard}`}>
+              <h3 className={styles.cardHeader}><FiTrendingUp/> Performance</h3>
+              <div className={styles.performanceContent}>
+                <div><div className={styles.circularProgress} style={{'--value': performance.rating / 5 * 100 } as React.CSSProperties}><span className={styles.progressValue}>{performance.rating}</span></div><p className={styles.performanceLabel}>Avg. Rating</p></div>
+                <div><div className={`${styles.circularProgress} ${styles.green}`} style={{'--value': performance.successRate } as React.CSSProperties}><span className={styles.progressValue}>{performance.successRate}%</span></div><p className={styles.performanceLabel}>Success Rate</p></div>
+              </div>
             </div>
 
-            <div className={`${styles.card} ${styles.earningsCard}`}>
-                <div className={styles.cardHeader}>
-                    <FiTrendingUp />
-                    <h3>Your Earnings</h3>
-                </div>
-                <div className={styles.earningsGrid}>
-                    <div className={styles.earningItem}>
-                        <span className={styles.earningLabel}>Today</span>
-                        <p className={styles.earningValue}>₹{formatNumber(earnings.today)}</p>
-                    </div>
-                    <div className={styles.earningItem}>
-                        <span className={styles.earningLabel}>This Week</span>
-                        <p className={styles.earningValue}>₹{formatNumber(earnings.week)}</p>
-                    </div>
-                    <div className={styles.earningItem}>
-                        <span className={styles.earningLabel}>Bonus</span>
-                        <p className={styles.earningValueBonus}>+ ₹{formatNumber(earnings.bonus)}</p>
-                    </div>
-                </div>
+            <div className={`${styles.card} ${styles.goalCard}`}>
+                <h3 className={styles.cardHeader}><FiTarget /> Weekly Goal</h3>
+                <div className={styles.goalStats}><span className={styles.goalCurrent}>${weeklyGoal.current.toLocaleString()}</span><span className={styles.goalTarget}>/ ${weeklyGoal.target.toLocaleString()}</span></div>
+                <div className={styles.goalProgress}><div className={styles.goalProgressBar} style={{width: `${(weeklyGoal.current / weeklyGoal.target) * 100}%`}}></div></div>
             </div>
-           
-        </aside>
+          </main>
+        </div>
       </div>
-
-      <div style={{ display: 'none' }}>
-        <SignOutButton ref={civicSignOutButtonRef} />
-      </div>
-    </div>
+    </>
   );
 }
