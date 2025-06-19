@@ -39,7 +39,6 @@ export function NavbarDemo() {
     {
       name: "Contact",
       link: "#contact",
-
     },
     {
       name: "Map",
@@ -48,6 +47,10 @@ export function NavbarDemo() {
     {
       name: "Worker",
       link: "/worker",
+    },
+    {
+      name: "Admin",
+      link: "/admin",
     },
   ];
 
