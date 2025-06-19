@@ -11,16 +11,21 @@
   },
   "dependencies": {
     "@civic/auth": "^0.7.0",
+    "@heroicons/react": "^2.2.0",
     "@tabler/icons-react": "^3.34.0",
+    "chart.js": "^4.5.0",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.17.0",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.18.1",
     "leaflet": "^1.9.4",
     "motion": "^12.17.0",
     "next": "15.3.3",
     "react": "^19.0.0",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "react-leaflet": "^5.0.0",
+    "react-table": "^7.8.0",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

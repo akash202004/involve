@@ -49,6 +49,10 @@ export function NavbarDemo() {
       name: "Worker",
       link: "/worker",
     },
+    {
+      name: "Admin",
+      link: "/admin",
+    }
   ];
 
   const navItems = baseNavItems; // Remove Profile from navItems, keep only the separate Profile link
