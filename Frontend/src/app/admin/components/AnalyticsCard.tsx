@@ -5,9 +5,10 @@ interface AnalyticsCardProps {
   value: string | number;
   change: number;
   icon: React.ReactNode;
+  isDemo?: boolean;
 }
 
-const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ title, value, change, icon }) => {
+const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ title, value, change, icon, isDemo }) => {
   const isPositive = change >= 0;
 
   return (

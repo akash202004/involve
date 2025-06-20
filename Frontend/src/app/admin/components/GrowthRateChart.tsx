@@ -25,9 +25,10 @@ interface GrowthRateChartProps {
   userGrowth: number[];
   workerGrowth: number[];
   labels: string[];
+  isDemo?: boolean;
 }
 
-const GrowthRateChart: React.FC<GrowthRateChartProps> = ({ userGrowth, workerGrowth, labels }) => {
+const GrowthRateChart: React.FC<GrowthRateChartProps> = ({ userGrowth, workerGrowth, labels, isDemo }) => {
   const data = {
     labels,
     datasets: [

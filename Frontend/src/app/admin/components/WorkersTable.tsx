@@ -1,11 +1,12 @@
 import React from 'react';
-import { Worker } from '../types/dashboard-types';
+import { Worker } from '../(dashboard)/types/dashboard-types';
 
 interface WorkersTableProps {
   workers: Worker[];
+  isDemo?: boolean;
 }
 
-export const WorkersTable: React.FC<WorkersTableProps> = ({ workers }) => {
+export const WorkersTable: React.FC<WorkersTableProps> = ({ workers, isDemo = false }) => {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -16,12 +17,18 @@ export const WorkersTable: React.FC<WorkersTableProps> = ({ workers }) => {
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jobs</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+            {isDemo && (
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            )}
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {workers.map((worker) => (
-            <tr key={worker.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{worker.name}</td>
+            <tr key={worker.id} className={isDemo ? 'bg-gray-50' : ''}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {worker.name}
+                {isDemo && <span className="ml-2 text-xs text-gray-500">(Demo)</span>}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{worker.serviceType}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <div className="flex items-center">
@@ -42,10 +49,23 @@ export const WorkersTable: React.FC<WorkersTableProps> = ({ workers }) => {
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {new Date(worker.joinDate).toLocaleDateString()}
               </td>
+              {isDemo && (
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    Demo
+                  </span>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
       </table>
+      {isDemo && (
+        <div className="p-4 bg-yellow-50 border-t border-yellow-100 text-sm text-yellow-700">
+          <p>This is demonstration data. Real worker data will appear when the API is properly connected.</p>
+          <p className="mt-1">Worker statistics, ratings, and job counts are randomly generated for demonstration purposes.</p>
+        </div>
+      )}
     </div>
   );
 };
