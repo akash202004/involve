@@ -23,7 +23,7 @@ export const createUser = async (req: Request, res: Response) => {
 
     const newUser = await db.insert(users).values(parsedData).returning();
     res.status(201).json({ message: "User created", data: newUser[0] });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof ZodError) {
       const formattedErrors = error.errors.map((err) => ({
         field: err.path.join("."),
@@ -34,7 +34,11 @@ export const createUser = async (req: Request, res: Response) => {
         .json({ message: "Validation failed", errors: formattedErrors });
       return;
     }
-    res.status(400).json({ error: "Failed to create user" });
+
+    console.error("Unhandled error in createUser:", error);
+    res.status(400).json({
+      error: error?.message || "Failed to create user",
+    });
     return;
   }
 };

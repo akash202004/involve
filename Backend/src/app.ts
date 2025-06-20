@@ -7,12 +7,12 @@ import jobRoutes from "./routes/job.routes";
 import transactionRoutes from "./routes/transaction.routes";
 import reviewRoutes from "./routes/review.routes";
 import notificationRoutes from "./routes/notification.routes";
-import { globalErrorHandler } from "./middlewares/globalErrorHandler";
-import dotnev from "dotenv";
+// import { globalErrorHandler } from "./middlewares/globalErrorHandler";
+import dotenv from "dotenv";
 import morgan from "morgan";
 import cors from "cors";
 
-dotnev.config();
+dotenv.config();
 
 const app = express();
 
@@ -33,7 +33,7 @@ app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 
 // Global Error Handler
-app.use(globalErrorHandler);
+// app.use(globalErrorHandler);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log(`Server is running on port ${process.env.PORT || 5000}`);

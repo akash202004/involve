@@ -48,7 +48,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
 // Users Table
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
-  firstName: varchar("fullName", { length: 50 }).notNull(),
+  firstName: varchar("firstName", { length: 50 }).notNull(),
   lastName: varchar("lastName", { length: 50 }).notNull(),
   email: varchar("email").notNull(),
   phoneNumber: varchar("phoneNumber", { length: 12 }).notNull(),
@@ -72,9 +72,9 @@ export const users = pgTable("users", {
 // Workers Table
 export const workers = pgTable("workers", {
   id: uuid("id").defaultRandom().primaryKey(),
-  firstName: text("first_name").notNull(),
-  middleName: text("middle_name"),
-  lastName: text("last_name").notNull(),
+  firstName: text("firstName").notNull(),
+  middleName: text("middleName"),
+  lastName: text("lastName").notNull(),
   email: varchar("email").notNull(),
   password: varchar("password", { length: 30 }),
   profilePicture: varchar("profile_picture", { length: 255 }),
