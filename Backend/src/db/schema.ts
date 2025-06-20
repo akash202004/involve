@@ -116,9 +116,7 @@ export const jobs = pgTable("jobs", {
   userId: uuid("user_id")
     .references(() => users.id)
     .notNull(),
-  workerId: uuid("worker_id")
-    .references(() => workers.id)
-    .notNull(),
+  workerId: uuid("worker_id").references(() => workers.id),
   description: text("description"),
   location: text("address"),
   lat: doublePrecision("lat").notNull(),

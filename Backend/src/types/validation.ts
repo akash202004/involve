@@ -60,7 +60,7 @@ export const userSchema = z.object({
 });
 
 export const workerSchema = z.object({
-  id: z.string({ message: "Worker ID is required" }),
+  id: z.string({ message: "Worker ID is required" }).optional(),
 
   firstName: z
     .string({ message: "First name is required" })
@@ -161,7 +161,7 @@ export const jobSchema = z.object({
   id: z.string({ message: "Job ID is required" }),
 
   userId: z.string({ message: "User ID is required" }),
-  workerId: z.string({ message: "Worker ID is required" }),
+  workerId: z.string({ message: "Worker ID is required" }).optional(),
 
   description: z
     .string()

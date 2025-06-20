@@ -7,12 +7,13 @@ import { jobSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 import { parse } from "dotenv";
 import { ZodError } from "zod";
+import { redisPub } from "@/config/redis";
 
 // ✅ Create Order
 export const createJob = async (req: Request, res: Response) => {
   try {
     const parsed = jobSchema
-      .omit({ id: true, createdAt: true })
+      .omit({ id: true, createdAt: true, workerId: true })
       .parse(req.body);
 
     const userExists = await db
@@ -24,16 +25,7 @@ export const createJob = async (req: Request, res: Response) => {
       return;
     }
 
-    const workerExists = await db
-      .select()
-      .from(workers)
-      .where(eq(workers.id, parsed.workerId));
-    if (!workerExists.length) {
-      res.status(404).json({ error: "Worker not found" });
-      return;
-    }
-
-    const newJob = await db
+    const [newJob] = await db
       .insert(jobs)
       .values({
         ...parsed,
@@ -41,7 +33,39 @@ export const createJob = async (req: Request, res: Response) => {
       })
       .returning();
 
-    res.status(201).json({ message: "Order created", data: newJob[0] });
+    await redisPub.publish(
+      "new-job",
+      JSON.stringify({
+        userId: parsed.userId,
+        lat: parsed.lat,
+        lng: parsed.lng,
+        location: parsed.location,
+        description: parsed.description,
+      })
+    );
+
+     res
+      .status(201)
+      .json({ message: "Job created and broadcasted", data: newJob });
+
+    // const workerExists = await db
+    //   .select()
+    //   .from(workers)
+    //   .where(eq(workers.id, parsed.workerId));
+    // if (!workerExists.length) {
+    //   res.status(404).json({ error: "Worker not found" });
+    //   return;
+    // }
+
+    // const newJob = await db
+    //   .insert(jobs)
+    //   .values({
+    //     ...parsed,
+    //     bookedFor: new Date(parsed.bookedFor),
+    //   })
+    //   .returning();
+
+    // res.status(201).json({ message: "Order created", data: newJob[0] });
   } catch (error) {
     if (error instanceof ZodError) {
       const formattedErrors = error.errors.map((err) => ({
