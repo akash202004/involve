@@ -3,84 +3,48 @@ import { db } from "@/config/drizzle";
 import { jobs } from "@/db/schema";
 import { workers } from "@/db/schema";
 import { users } from "@/db/schema";
-import { jobSchema } from "@/types/validation";
+import { jobSchema, userSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 import { parse } from "dotenv";
 import { ZodError } from "zod";
 import { redisPub } from "@/config/redis";
 
-// ✅ Create Order
-// export const createJob = async (req: Request, res: Response) => {
-//   try {
-//     const parsed = jobSchema
-//       .omit({ id: true, createdAt: true, workerId: true })
-//       .parse(req.body);
+export const createUser = async (req: Request, res: Response) => {
+  try {
+    const parsedData = userSchema
+      .omit({ id: true, createdAt: true })
+      .parse(req.body);
 
-//     const userExists = await db
-//       .select()
-//       .from(users)
-//       .where(eq(users.id, parsed.userId));
-//     if (!userExists.length) {
-//       res.status(404).json({ error: "User not found" });
-//       return;
-//     }
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, parsedData.email));
+    if (existingUser.length > 0) {
+      res.status(400).json({ error: "User with this email already exists" });
+      return;
+    }
 
-//     // const [newJob] = await db
-//     //   .insert(jobs)
-//     //   .values({
-//     //     ...parsed,
-//     //     bookedFor: new Date(parsed.bookedFor),
-//     //   })
-//     //   .returning();
+    const newUser = await db.insert(users).values(parsedData).returning();
+    res.status(201).json({ message: "User created", data: newUser[0] });
+  } catch (error: any) {
+    if (error instanceof ZodError) {
+      const formattedErrors = error.errors.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      }));
+      res
+        .status(400)
+        .json({ message: "Validation failed", errors: formattedErrors });
+      return;
+    }
 
-//     // await redisPub.publish(
-//     //   "new-job",
-//     //   JSON.stringify({
-//     //     userId: parsed.userId,
-//     //     lat: parsed.lat,
-//     //     lng: parsed.lng,
-//     //     location: parsed.location,
-//     //     description: parsed.description,
-//     //   })
-//     // );
-
-//      res
-//       .status(201)
-//       .json({ message: "Job created and broadcasted", data: newJob });
-
-//     // const workerExists = await db
-//     //   .select()
-//     //   .from(workers)
-//     //   .where(eq(workers.id, parsed.workerId));
-//     // if (!workerExists.length) {
-//     //   res.status(404).json({ error: "Worker not found" });
-//     //   return;
-//     // }
-
-//     // const newJob = await db
-//     //   .insert(jobs)
-//     //   .values({
-//     //     ...parsed,
-//     //     bookedFor: new Date(parsed.bookedFor),
-//     //   })
-//     //   .returning();
-
-//     // res.status(201).json({ message: "Order created", data: newJob[0] });
-//   } catch (error) {
-//     if (error instanceof ZodError) {
-//       const formattedErrors = error.errors.map((err) => ({
-//         field: err.path.join("."),
-//         message: err.message,
-//       }));
-//       res
-//         .status(400)
-//         .json({ message: "Validation failed", errors: formattedErrors });
-//       return;
-//     }
-//     res.status(400).json({ error: "Invalid data or failed to create job" });
-//     return;
-//   }
-// };
+    console.error("Unhandled error in createUser:", error);
+    res.status(400).json({
+      error: error?.message || "Failed to create user",
+    });
+    return;
+  }
+};
 
 // ✅ Get All Orders
 export const getAllJobs = async (_req: Request, res: Response) => {

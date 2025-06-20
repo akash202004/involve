@@ -1,13 +1,13 @@
 import express from "express";
-import userRoutes from "./routes/user.route";
-import workerRoutes from "./routes/worker.route";
-import specializationRoutes from "./routes/specialization.route";
+import userRoutes from "./routes/user.routes";
+import workerRoutes from "./routes/worker.routes";
+import specializationRoutes from "./routes/specialization.routes";
 import liveLocationRoutes from "./routes/liveLocation.routes";
 import jobRoutes from "./routes/job.routes";
 import transactionRoutes from "./routes/transaction.routes";
 import reviewRoutes from "./routes/review.routes";
 import notificationRoutes from "./routes/notification.routes";
-// import { globalErrorHandler } from "./middlewares/globalErrorHandler";
+import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import cors from "cors";
@@ -33,8 +33,6 @@ app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 
 // Global Error Handler
-// app.use(globalErrorHandler);
+app.use(globalErrorHandler);
 
-app.listen(process.env.PORT || 5000, () => {
-  console.log(`Server is running on port ${process.env.PORT || 5000}`);
-});
+export default app;

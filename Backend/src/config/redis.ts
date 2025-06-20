@@ -1,4 +1,3 @@
-// src/config/redis.ts
 import { createClient } from "redis";
 
 export const redisPub = createClient();
