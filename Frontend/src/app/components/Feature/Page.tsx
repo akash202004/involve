@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import ApplianceRepairPopup from '@/app/components/ui/PopUp/ApplianceRepairPopup/Page';
 import WomenSalonPopup from '@/app/components/ui/PopUp/WomenSaloon/Page';
 import MenSalonPopup from '@/app/components/ui/PopUp/MenSaloon/Page';
@@ -152,6 +153,9 @@ const ServiceSelection: React.FC = () => {
       </div>
       {/* Right: Image */}
       <FeatureImage />
+      
+      {/* Preload booking services page */}
+      <Link href="/booking/services" prefetch={true} className="hidden" />
     </div>
   );
 };

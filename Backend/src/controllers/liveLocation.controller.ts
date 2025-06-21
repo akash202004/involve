@@ -5,6 +5,10 @@ import { workers } from "@/db/schema";
 import { liveLocationSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 import { ZodError } from "zod";
+import {
+  getActiveTrackingSessions as getActiveSessions,
+  stopTrackingForJob as stopTracking,
+} from "@/sockets/job.handler";
 
 // Create a live location
 export const createLiveLocation = async (req: Request, res: Response) => {
@@ -100,7 +104,10 @@ export const deleteLiveLocation = async (req: Request, res: Response) => {
 };
 
 // Update a live location by Worker ID
-export const updateLiveLocationByWorkerId = async (req: Request, res: Response) => {
+export const updateLiveLocationByWorkerId = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { workerId } = req.params;
     const parsed = liveLocationSchema
@@ -148,10 +155,16 @@ export const updateLiveLocation = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     // Allow partial update, so use .partial()
-    const parsed = liveLocationSchema.partial().omit({ id: true, createdAt: true }).parse(req.body);
+    const parsed = liveLocationSchema
+      .partial()
+      .omit({ id: true, createdAt: true })
+      .parse(req.body);
 
     // Check if the location exists
-    const existing = await db.select().from(liveLocations).where(eq(liveLocations.id, id));
+    const existing = await db
+      .select()
+      .from(liveLocations)
+      .where(eq(liveLocations.id, id));
     if (!existing.length) {
       res.status(404).json({ error: "Location not found" });
       return;
@@ -171,11 +184,97 @@ export const updateLiveLocation = async (req: Request, res: Response) => {
         field: err.path.join("."),
         message: err.message,
       }));
-      res.status(400).json({ message: "Validation failed", errors: formattedErrors });
+      res
+        .status(400)
+        .json({ message: "Validation failed", errors: formattedErrors });
       return;
     }
     console.error(error);
     res.status(400).json({ error: "Invalid input or server error" });
     return;
+  }
+};
+
+// ✅ Get active tracking sessions
+export const getActiveTrackingSessions = async (
+  _req: Request,
+  res: Response
+) => {
+  try {
+    const sessions = getActiveSessions();
+
+    res.status(200).json({
+      message: "Active tracking sessions retrieved successfully",
+      data: {
+        sessions,
+        total: sessions.length,
+      },
+    });
+  } catch (error) {
+    console.error("Error getting active tracking sessions:", error);
+    res.status(500).json({ error: "Failed to get active tracking sessions" });
+  }
+};
+
+// ✅ Stop tracking for a specific job
+export const stopTrackingForJob = async (req: Request, res: Response) => {
+  try {
+    const { jobId } = req.params;
+
+    const session = stopTracking(jobId);
+
+    if (!session) {
+      res
+        .status(404)
+        .json({ error: "No active tracking session found for this job" });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Tracking stopped successfully",
+      data: {
+        jobId,
+        stoppedAt: new Date().toISOString(),
+        session,
+      },
+    });
+  } catch (error) {
+    console.error("Error stopping tracking:", error);
+    res.status(500).json({ error: "Failed to stop tracking" });
+  }
+};
+
+// ✅ Get tracking status for a specific job
+export const getTrackingStatus = async (req: Request, res: Response) => {
+  try {
+    const { jobId } = req.params;
+    const sessions = getActiveSessions();
+
+    const session = sessions.find((s) => s.jobId === jobId);
+
+    if (!session) {
+      res.status(200).json({
+        message: "No active tracking for this job",
+        data: {
+          jobId,
+          isTracking: false,
+          session: null,
+        },
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Tracking status retrieved successfully",
+      data: {
+        jobId,
+        isTracking: true,
+        session,
+        lastUpdate: session.lastUpdate.toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("Error getting tracking status:", error);
+    res.status(500).json({ error: "Failed to get tracking status" });
   }
 };

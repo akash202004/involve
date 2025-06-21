@@ -4,7 +4,8 @@ import "./globals.css";
 import NavbarDemo from "@/app/components/Navbar/Page";
 import FooterSecond from "@/app/components/Footer/Page";
 import { CivicAuthProvider } from "@civic/auth/nextjs";
-import { CartProvider } from './booking/cart/cartContext';
+import { CartProvider } from "./booking/cart/cartContext";
+import { JobTrackingProvider } from "@/lib/jobTracking";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,15 +32,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        <CartProvider>
-          <CivicAuthProvider>
-            <NavbarDemo/>
-            <main className="flex-1">
-              {children}
-            </main>
-            <FooterSecond/>
-          </CivicAuthProvider>
-        </CartProvider>
+        <JobTrackingProvider>
+          <CartProvider>
+            <CivicAuthProvider>
+              <NavbarDemo />
+              <main className="flex-1">{children}</main>
+              <FooterSecond />
+            </CivicAuthProvider>
+          </CartProvider>
+        </JobTrackingProvider>
       </body>
     </html>
   );

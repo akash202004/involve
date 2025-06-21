@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@civic/auth/react';
-import { CivicAuthButton } from '@/app/components/ui/CivicAuthButton';
+
 import styles from './worker.module.css';
 
 const WorkerIntroAnimation = () => (
@@ -14,7 +14,12 @@ const WorkerIntroAnimation = () => (
     </div>
 );
 
-const ThemedLoadingAnimation = ({ loadingText, onAnimationComplete }) => {
+interface ThemedLoadingAnimationProps {
+    loadingText: string;
+    onAnimationComplete: () => void;
+}
+
+const ThemedLoadingAnimation = ({ loadingText, onAnimationComplete }: ThemedLoadingAnimationProps) => {
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
@@ -65,7 +70,7 @@ const ThemedLoadingAnimation = ({ loadingText, onAnimationComplete }) => {
 
 export default function WorkerGatewayPage() {
     const router = useRouter();
-    const { user, isInitializing } = useUser();
+    const { user, isLoading } = useUser();
 
     const [hasIntroPlayed, setHasIntroPlayed] = useState(
         () => typeof window !== 'undefined' && sessionStorage.getItem('introPlayed') === 'true'
@@ -91,7 +96,7 @@ export default function WorkerGatewayPage() {
         if (!user) return;
         console.log("Animation complete. Redirecting now...");
         localStorage.setItem('workerSessionActive', 'true');
-        const workerProfile = localStorage.getItem(`workerProfile_${user.did}`);
+        const workerProfile = localStorage.getItem(`workerProfile_${user.id}`);
         
         if (workerProfile) {
             router.push('/worker/dashboard');
@@ -105,7 +110,7 @@ export default function WorkerGatewayPage() {
         return <WorkerIntroAnimation />;
     }
 
-    if (isInitializing || user) {
+    if (isLoading || user) {
         const text = user ? "Launching " : "";
         // Using the new ThemedLoadingAnimation component
         return <ThemedLoadingAnimation loadingText={text} onAnimationComplete={handleRedirect} />;
@@ -120,7 +125,12 @@ export default function WorkerGatewayPage() {
                     Sign in or create an account to manage your profile and jobs.
                 </p>
                 <div className={styles.buttonContainer}>
-                    <CivicAuthButton signInMethods={['google', 'apple']} />
+                    <button 
+                        onClick={() => window.location.href = '/'}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                        Sign In
+                    </button>
                 </div>
             </div>
         </div>

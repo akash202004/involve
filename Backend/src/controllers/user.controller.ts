@@ -72,6 +72,30 @@ export const getUserById = async (req: Request, res: Response) => {
   }
 };
 
+// Get User by Email
+export const getUserByEmail = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.params;
+
+    if (!email) {
+      res.status(400).json({ error: "Email parameter is required" });
+      return;
+    }
+
+    const user = await db.select().from(users).where(eq(users.email, email));
+
+    if (user.length === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.status(200).json(user[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to get user by email" });
+    return;
+  }
+};
+
 // Update User
 export const updateUser = async (req: Request, res: Response) => {
   try {

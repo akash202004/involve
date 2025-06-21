@@ -180,9 +180,11 @@ export const jobSchema = z.object({
     })
     .default("pending"),
 
-  bookedFor: z.string({
-    message: "Booking date (bookedFor) must be a valid date",
-  }),
+  bookedFor: z
+    .string({
+      message: "Booking date (bookedFor) must be a valid date",
+    })
+    .optional(),
 
   durationMinutes: z
     .number({

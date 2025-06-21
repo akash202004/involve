@@ -3,13 +3,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface WomenSalonPopupProps {
-  onClose: () => void;
-}
-
 interface SalonService {
   name: string;
   icon: string;
+}
+
+interface WomenSalonPopupProps {
+  onClose: () => void;
 }
 
 const WomenSalonPopup: React.FC<WomenSalonPopupProps> = ({ onClose }) => {

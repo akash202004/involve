@@ -9,11 +9,17 @@ import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 
 interface UserProfile {
+  id?: string;
   firstName: string;
   lastName: string;
   phoneNumber: string;
   email: string;
   autoLocation: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: number;
 }
 
 export default function ProfilePage() {
@@ -29,6 +35,8 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -42,31 +50,71 @@ export default function ProfilePage() {
     if (user) {
       const loadProfile = async () => {
         setIsLoading(true);
+        setError(null);
         try {
-          // Fetch profile from backend using email
           const email = user.email ?? '';
-          const response = await fetch(`http://localhost:5000/api/v1/users?email=${encodeURIComponent(email)}`);
-          if (response.ok) {
-            const data = await response.json();
-            // If backend returns an array of users, pick the first one
-            const userData = Array.isArray(data) ? data[0] : data;
-            setProfile({
-              firstName: userData.firstName || '',
-              lastName: userData.lastName || '',
-              phoneNumber: userData.phoneNumber || '',
-              email: user.email || '',
-              autoLocation: userData.autoLocation || '',
-            });
-          } else {
-            // Initialize with auth email if no profile exists
-            setProfile(prev => ({
-              ...prev,
-              email: user.email || '',
-              autoLocation: '',
-            }));
+          
+          // First try to get user by email from localStorage or generate new ID
+          let userId = localStorage.getItem('userId');
+          
+          if (userId) {
+            // Try to get user by ID first
+            const response = await fetch(`http://localhost:5000/api/v1/users/${userId}`);
+            if (response.ok) {
+              const userData = await response.json();
+              setProfile({
+                id: userData.id,
+                firstName: userData.firstName || '',
+                lastName: userData.lastName || '',
+                phoneNumber: userData.phoneNumber || '',
+                email: user.email || '',
+                autoLocation: userData.autoLocation || '',
+                address: userData.address || '',
+                city: userData.city || '',
+                state: userData.state || '',
+                country: userData.country || '',
+                zipCode: userData.zipCode || undefined,
+              });
+              return;
+            }
           }
+          
+          // If no user found by ID, try to find by email in all users
+          const allUsersResponse = await fetch('http://localhost:5000/api/v1/users');
+          if (allUsersResponse.ok) {
+            const allUsers = await allUsersResponse.json();
+            const existingUser = allUsers.find((u: any) => u.email === email);
+            
+            if (existingUser) {
+              // Store the existing user ID
+              localStorage.setItem('userId', existingUser.id);
+              setProfile({
+                id: existingUser.id,
+                firstName: existingUser.firstName || '',
+                lastName: existingUser.lastName || '',
+                phoneNumber: existingUser.phoneNumber || '',
+                email: user.email || '',
+                autoLocation: existingUser.autoLocation || '',
+                address: existingUser.address || '',
+                city: existingUser.city || '',
+                state: existingUser.state || '',
+                country: existingUser.country || '',
+                zipCode: existingUser.zipCode || undefined,
+              });
+              return;
+            }
+          }
+          
+          // If no existing user found, initialize with auth email
+          setProfile(prev => ({
+            ...prev,
+            email: user.email || '',
+            autoLocation: '',
+          }));
+          
         } catch (error) {
           console.error('Error loading profile:', error);
+          setError('Failed to load profile. Please try again.');
         } finally {
           setIsLoading(false);
         }
@@ -76,57 +124,143 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  const handleInputChange = (field: keyof UserProfile, value: string) => {
+  const handleInputChange = (field: keyof UserProfile, value: string | number) => {
     setProfile(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
+  const validatePhoneNumber = (phone: string): string => {
+    // Remove all non-digit characters
+    const digits = phone.replace(/\D/g, '');
+    
+    // If it's 10 digits, add country code
+    if (digits.length === 10) {
+      return '91' + digits;
+    }
+    
+    // If it's already 12 digits with country code, return as is
+    if (digits.length === 12) {
+      return digits;
+    }
+    
+    // If it's 11 digits and starts with 0, remove 0 and add 91
+    if (digits.length === 11 && digits.startsWith('0')) {
+      return '91' + digits.substring(1);
+    }
+    
+    return digits;
+  };
+
   const handleSave = async () => {
     setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
+    
     try {
-      // Ensure phoneNumber is 12 digits (e.g., '91' + 10 digit number)
-      let phoneNumber = profile.phoneNumber;
-      if (phoneNumber.length === 10) {
-        phoneNumber = '91' + phoneNumber;
-      }
-      if (phoneNumber.length !== 12) {
-        alert('Phone number must be 12 digits (including country code, e.g., 91XXXXXXXXXX)');
+      // Validate required fields
+      if (!profile.firstName.trim()) {
+        setError('First name is required');
         setIsSubmitting(false);
         return;
       }
-      // Generate or retrieve user id
-      let userId: string = localStorage.getItem('userId') || '';
-      if (!userId) {
-        userId = uuidv4();
-        localStorage.setItem('userId', userId);
+      
+      if (!profile.lastName.trim()) {
+        setError('Last name is required');
+        setIsSubmitting(false);
+        return;
       }
+      
+      if (!profile.phoneNumber.trim()) {
+        setError('Phone number is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate and format phone number
+      const formattedPhone = validatePhoneNumber(profile.phoneNumber);
+      if (formattedPhone.length !== 12) {
+        setError('Phone number must be 12 digits (including country code, e.g., 91XXXXXXXXXX)');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare request body
       const requestBody = {
-        id: userId,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
+        firstName: profile.firstName.trim(),
+        lastName: profile.lastName.trim(),
         email: profile.email,
-        phoneNumber: phoneNumber,
-        autoLocation: profile.autoLocation,
+        phoneNumber: formattedPhone,
+        autoLocation: profile.autoLocation.trim(),
+        address: profile.address?.trim() || undefined,
+        city: profile.city?.trim() || undefined,
+        state: profile.state?.trim() || undefined,
+        country: profile.country?.trim() || undefined,
+        zipCode: profile.zipCode || undefined,
       };
-      console.log("Request body:", requestBody);
-      const response = await fetch('http://localhost:5000/api/v1/users/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
+
+      let response;
+      
+      if (profile.id) {
+        // Update existing user
+        response = await fetch(`http://localhost:5000/api/v1/users/${profile.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+      } else {
+        // Create new user
+        const userId = uuidv4();
+        localStorage.setItem('userId', userId);
+        
+        response = await fetch('http://localhost:5000/api/v1/users/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: userId,
+            ...requestBody,
+          }),
+        });
+      }
 
       if (!response.ok) {
-        throw new Error('Failed to save profile');
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || 'Failed to save profile');
       }
 
+      const result = await response.json();
+      
+      // Update profile with the returned data
+      if (result.data) {
+        setProfile(prev => ({
+          ...prev,
+          id: result.data.id,
+          firstName: result.data.firstName,
+          lastName: result.data.lastName,
+          phoneNumber: result.data.phoneNumber,
+          autoLocation: result.data.autoLocation || '',
+          address: result.data.address || '',
+          city: result.data.city || '',
+          state: result.data.state || '',
+          country: result.data.country || '',
+          zipCode: result.data.zipCode || undefined,
+        }));
+      }
+      
+      setSuccess('Profile saved successfully!');
       setIsEditing(false);
-    } catch (error) {
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
+      
+    } catch (error: any) {
       console.error('Error saving profile:', error);
-      alert('Failed to save profile. Please try again.');
+      setError(error.message || 'Failed to save profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -168,13 +302,44 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Error/Success Messages */}
+          {error && (
+            <div className="px-6 py-4 bg-red-50 border-l-4 border-red-400">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {success && (
+            <div className="px-6 py-4 bg-green-50 border-l-4 border-green-400">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-green-700">{success}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Profile Content */}
           <div className="px-6 py-8">
             <div className="space-y-6">
               {/* First Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
+                  First Name *
                 </label>
                 <input
                   type="text"
@@ -186,14 +351,14 @@ export default function ProfilePage() {
                       ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
                       : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
                   }`}
-                    placeholder="Enter your first name"
+                  placeholder="Enter your first name"
                 />
               </div>
 
               {/* Last Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
+                  Last Name *
                 </label>
                 <input
                   type="text"
@@ -205,7 +370,7 @@ export default function ProfilePage() {
                       ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
                       : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
                   }`}
-                    placeholder="Enter your last name"
+                  placeholder="Enter your last name"
                 />
               </div>
 
@@ -225,7 +390,7 @@ export default function ProfilePage() {
               {/* Phone Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
+                  Phone Number *
                 </label>
                 <input
                   type="tel"
@@ -237,9 +402,14 @@ export default function ProfilePage() {
                       ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
                       : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
                   }`}
-                  placeholder="Enter your phone number (e.g., 91XXXXXXXXXX)"
+                  placeholder="Enter your phone number (e.g., 91XXXXXXXXXX or XXXXXXXXXX)"
                   maxLength={12}
                 />
+                {isEditing && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    Enter 10 digits (will auto-add 91) or 12 digits with country code
+                  </p>
+                )}
               </div>
 
               {/* Auto Location */}
@@ -258,6 +428,99 @@ export default function ProfilePage() {
                       : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
                   }`}
                   placeholder="Enter your location or allow location access"
+                />
+              </div>
+
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Address
+                </label>
+                <textarea
+                  value={profile.address || ''}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  disabled={!isEditing}
+                  rows={3}
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    isEditing 
+                      ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
+                      : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
+                  }`}
+                  placeholder="Enter your full address"
+                />
+              </div>
+
+              {/* City, State, Country Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={profile.city || ''}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    disabled={!isEditing}
+                    className={`w-full px-3 py-2 border rounded-md ${
+                      isEditing 
+                        ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
+                        : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
+                    }`}
+                    placeholder="City"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    value={profile.state || ''}
+                    onChange={(e) => handleInputChange('state', e.target.value)}
+                    disabled={!isEditing}
+                    className={`w-full px-3 py-2 border rounded-md ${
+                      isEditing 
+                        ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
+                        : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
+                    }`}
+                    placeholder="State"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Country
+                  </label>
+                  <input
+                    type="text"
+                    value={profile.country || ''}
+                    onChange={(e) => handleInputChange('country', e.target.value)}
+                    disabled={!isEditing}
+                    className={`w-full px-3 py-2 border rounded-md ${
+                      isEditing 
+                        ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
+                        : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
+                    }`}
+                    placeholder="Country"
+                  />
+                </div>
+              </div>
+
+              {/* Zip Code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Zip Code
+                </label>
+                <input
+                  type="number"
+                  value={profile.zipCode || ''}
+                  onChange={(e) => handleInputChange('zipCode', parseInt(e.target.value) || undefined)}
+                  disabled={!isEditing}
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    isEditing 
+                      ? 'border-gray-300 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 bg-white' 
+                      : 'border-gray-300 bg-white text-gray-500 cursor-not-allowed'
+                  }`}
+                  placeholder="Zip Code"
                 />
               </div>
 
@@ -290,7 +553,11 @@ export default function ProfilePage() {
                       {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </button>
                     <button
-                      onClick={() => setIsEditing(false)}
+                      onClick={() => {
+                        setIsEditing(false);
+                        setError(null);
+                        setSuccess(null);
+                      }}
                       className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md transition-colors duration-200"
                     >
                       Cancel
