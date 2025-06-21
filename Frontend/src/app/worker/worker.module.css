@@ -2,280 +2,317 @@
 /* ===== 1. EYE-CATCHING INTRO ANIMATION ===== */
 /* =================================== */
 .introContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #0f0c29;
-  background-image: linear-gradient(315deg, #0f0c29 0%, #302b63 74%, #24243e 100%);
-  overflow: hidden;
-  animation: bg-pulse 4s infinite alternate ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #0f0c29;
+    background-image: linear-gradient(315deg, #0f0c29 0%, #302b63 74%, #24243e 100%);
+    overflow: hidden;
+    animation: bg-pulse 4s infinite alternate ease-in-out;
 }
 
 @keyframes bg-pulse {
-  from { background-color: #0f0c29; }
-  to { background-color: #24243e; }
+    from {
+        background-color: #0f0c29;
+    }
+
+    to {
+        background-color: #24243e;
+    }
 }
 
 .introLogo {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.2), 
-              0 0 35px 15px rgba(118, 75, 162, 0.15);
-  animation: logo-fade-out 2.5s forwards;
-  opacity: 1;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.2),
+        0 0 35px 15px rgba(118, 75, 162, 0.15);
+    animation: logo-fade-out 2.5s forwards;
+    opacity: 1;
 }
 
 @keyframes logo-fade-out {
-  0%, 80% { opacity: 1; }
-  100% { opacity: 0; }
+
+    0%,
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }
 
 .introLogoLetter {
-  font-family: 'Poppins', sans-serif;
-  font-size: 4rem;
-  font-weight: 800;
-  color: #fff;
-  animation: letter-reveal 2.2s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    font-family: 'Poppins', sans-serif;
+    font-size: 4rem;
+    font-weight: 800;
+    color: #fff;
+    animation: letter-reveal 2.2s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
 @keyframes letter-reveal {
-  0% {
-    opacity: 0;
-    transform: scale(0.6) rotate(-20deg);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.1) rotate(5deg);
-  }
-  80% {
-    transform: scale(1) rotate(0deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+    0% {
+        opacity: 0;
+        transform: scale(0.6) rotate(-20deg);
+    }
+
+    60% {
+        opacity: 1;
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    80% {
+        transform: scale(1) rotate(0deg);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 
 .loadingContainer {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-  font-family: 'Inter', sans-serif;
-  padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    padding: 1rem;
 }
 
 .bikeLoadingWrapper {
-  width: 90%;
-  max-width: 450px;
+    width: 90%;
+    max-width: 450px;
 }
 
 .track {
-  position: relative;
-  height: 12px;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  margin-top: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    height: 12px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    margin-top: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .progressBar {
-  position: absolute;
-  height: 100%;
-  background: linear-gradient(90deg, #ffffff, #cce0ff);
-  border-radius: 6px;
-  transition: width 0.1s linear;
+    position: absolute;
+    height: 100%;
+    background: linear-gradient(90deg, #ffffff, #cce0ff);
+    border-radius: 6px;
+    transition: width 0.1s linear;
 }
 
 .bike {
-  position: absolute;
-  top: -10px;
-  font-size: 28px;
-  transition: left 0.1s linear;
-  transform: scaleX(-1);
+    position: absolute;
+    top: -10px;
+    font-size: 28px;
+    transition: left 0.1s linear;
+    transform: scaleX(-1);
 }
 
 .endpoints {
-  display: flex;
-  justify-content: space-between;
-  font-size: 28px;
-  padding: 0 5px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 28px;
+    padding: 0 5px;
 }
 
 .progressText {
-  text-align: center;
-  margin-top: 1.5rem;
-  font-size: 1.2rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  color: #ffffff;
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: #ffffff;
 }
 
 /* ================================= */
 /* ===== 3. MAIN PAGE STYLES ===== */
 /* ================================= */
 .pageWrapper {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 4rem 1rem;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: 'Inter', sans-serif;
-  color: #fff;
-  animation: fadeInPage 0.8s ease-in-out forwards;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 4rem 1rem;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+    color: #fff;
+    animation: fadeInPage 0.8s ease-in-out forwards;
 }
 
 @keyframes fadeInPage {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .container {
-  text-align: center;
-  max-width: 550px;
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 3rem;
-  border-radius: 20px;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    text-align: center;
+    max-width: 550px;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 3rem;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 }
 
 .logo {
-  width: 60px;
-  height: 60px;
-  background-color: #ffffff;
-  color: #667eea;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
+    width: 60px;
+    height: 60px;
+    background-color: #ffffff;
+    color: #667eea;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
 }
 
 .title {
-  font-size: 3rem;
-  font-weight: 800;
-  color: #ffffff;
-  margin: 0;
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
 }
 
 .subtitle {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 1rem 0 2.5rem;
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 1rem 0 2.5rem;
 }
 
 .buttonContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
 }
+
 /* =========================================== */
 /* ===== 2. NEW ROCKET LAUNCH ANIMATION ===== */
 /* =========================================== */
 .loadingContainer {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end; /* Align to the bottom for launch */
-  align-items: center;
-  min-height: 100vh;
-  background-color: #0f0c29;
-  background-image: linear-gradient(to top, #24243e 0%, #302b63 74%, #0f0c29 100%);
-  color: #fff;
-  font-family: 'Inter', sans-serif;
-  padding: 1rem;
-  overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    /* Align to the bottom for launch */
+    align-items: center;
+    min-height: 100vh;
+    background-color: #0f0c29;
+    background-image: linear-gradient(to top, #24243e 0%, #302b63 74%, #0f0c29 100%);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    padding: 1rem;
+    overflow: hidden;
 }
 
 .launchWrapper {
-  position: relative;
-  width: 100%;
-  height: 80vh; /* The area for the launch */
-  display: flex;
-  justify-content: center;
+    position: relative;
+    width: 100%;
+    height: 80vh;
+    /* The area for the launch */
+    display: flex;
+    justify-content: center;
 }
 
 .rocket {
-  position: absolute;
-  width: 60px;
-  height: 120px;
-  /* Start at the bottom, move up based on progress */
-  bottom: 0; 
-  transform: translateX(-50%);
-  left: 50%;
-  transition: bottom 0.1s linear;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  animation: rocketShake 0.4s infinite alternate;
+    position: absolute;
+    width: 60px;
+    height: 120px;
+    /* Start at the bottom, move up based on progress */
+    bottom: 0;
+    transform: translateX(-50%);
+    left: 50%;
+    transition: bottom 0.1s linear;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: rocketShake 0.4s infinite alternate;
 }
 
 @keyframes rocketShake {
-  0% { transform: translateX(-51%) rotate(-0.5deg); }
-  100% { transform: translateX(-49%) rotate(0.5deg); }
+    0% {
+        transform: translateX(-51%) rotate(-0.5deg);
+    }
+
+    100% {
+        transform: translateX(-49%) rotate(0.5deg);
+    }
 }
 
 .rocketSvg {
-  width: 100%;
-  stroke: #ffffff;
-  fill: #e0e0e0;
+    width: 100%;
+    stroke: #ffffff;
+    fill: #e0e0e0;
 }
 
 .rocketFlame {
-  width: 80%;
-  height: 60px;
-  background: linear-gradient(to top, #ffcc00, #ff6600, transparent);
-  border-radius: 50% 50% 60% 60%;
-  filter: blur(5px);
-  animation: flameWobble 0.1s infinite alternate;
+    width: 80%;
+    height: 60px;
+    background: linear-gradient(to top, #ffcc00, #ff6600, transparent);
+    border-radius: 50% 50% 60% 60%;
+    filter: blur(5px);
+    animation: flameWobble 0.1s infinite alternate;
 }
 
 @keyframes flameWobble {
-    from { transform: scale(1, 1); }
-    to { transform: scale(1.1, 0.95); }
+    from {
+        transform: scale(1, 1);
+    }
+
+    to {
+        transform: scale(1.1, 0.95);
+    }
 }
 
 .star {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: white;
-  border-radius: 50%;
-  animation: twinkle 4s infinite;
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 4s infinite;
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 .progressText {
-  position: relative; /* Ensure it's on top */
-  z-index: 10;
-  text-align: center;
-  font-size: 1.2rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  color: #ffffff;
-  padding-bottom: 5vh;
-  text-shadow: 0 0 10px rgba(0,0,0,0.5);
+    position: relative;
+    /* Ensure it's on top */
+    z-index: 10;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    padding-bottom: 5vh;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }

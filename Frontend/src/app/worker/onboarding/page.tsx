@@ -234,3 +234,68 @@ export default function WorkerOnboardingPage() {
     </div>
   );
 }
+
+
+ /*const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      alert("You must be logged in to submit a profile.");
+      return;
+    }
+
+    setSubmissionStatus('loading');
+
+    // 1. Create a FormData object to hold all the data
+    const apiFormData = new FormData();
+
+    // 2. Append all the fields from your state.
+    // The key (e.g., "firstName") MUST match what your backend API expects.
+    apiFormData.append("firstName", formData.firstName);
+    apiFormData.append("middleName", formData.middleName);
+    apiFormData.append("lastName", formData.lastName);
+    apiFormData.append("email", formData.email);
+    apiFormData.append("password", formData.password);
+    apiFormData.append("address", formData.address);
+    apiFormData.append("description", formData.description);
+    // Combine country code with the 10-digit number
+    apiFormData.append("phoneNumber", `+91${formData.phoneNumber}`);
+    apiFormData.append("dateOfBirth", formData.dateOfBirth);
+    apiFormData.append("gender", formData.gender);
+    apiFormData.append("experienceYears", formData.experienceYears);
+    apiFormData.append("panCard", formData.panCard);
+
+    // 3. Append the profile picture file, if it exists
+    if (formData.profilePicture) {
+      apiFormData.append("profilePicture", formData.profilePicture);
+    }
+
+    try {
+      // 4. Make the API call using fetch
+      const response = await fetch('/api/workers', { // <-- This is your backend API endpoint
+        method: 'POST',
+        body: apiFormData,
+        // IMPORTANT: DO NOT set the 'Content-Type' header yourself.
+        // The browser will automatically set it to 'multipart/form-data'
+        // with the correct boundary when you use FormData.
+      });
+
+      // 5. Handle the response
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Successfully created worker:', result);
+        setSubmissionStatus('success');
+        setTimeout(() => router.push('/worker/dashboard'), 1500);
+      } else {
+        // Handle server-side errors (e.g., validation failed)
+        const errorResult = await response.json();
+        console.error('Submission failed:', errorResult);
+        alert(`Error: ${errorResult.message || 'Failed to create profile.'}`);
+        setSubmissionStatus('idle'); // Reset the form to allow another attempt
+      }
+    } catch (error) {
+      // Handle network errors (e.g., server is down)
+      console.error('An error occurred during submission:', error);
+      alert('A network error occurred. Please try again.');
+      setSubmissionStatus('idle');
+    }
+  }; */

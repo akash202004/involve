@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@civic/auth/react';
+import { useCart } from '../cart/cartContext';
 
 interface ServiceDetails {
   name: string;
@@ -19,6 +20,7 @@ const ServiceBookingPage: React.FC = () => {
   const serviceName = searchParams.get('service') || 'Haircut';
   const category = searchParams.get('category') || 'Hair Services';
   const { user, signIn } = useUser();
+  const { cart, addToCart } = useCart();
 
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -166,6 +168,8 @@ const ServiceBookingPage: React.FC = () => {
     '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM'
   ];
 
+  const isInCart = cart.some(item => item.name === currentService.name && item.category === currentService.category);
+
   const handleBooking = async () => {
     if (!user) {
       try {
@@ -175,18 +179,13 @@ const ServiceBookingPage: React.FC = () => {
       }
       return;
     }
-    if (selectedDate && selectedTime && selectedPaymentMethod) {
+    if (selectedPaymentMethod) {
       setIsBookingConfirmed(true);
       // Here you would typically make an API call to book the service
       setTimeout(() => {
         router.push('/mapping');
       }, 2000);
     }
-  };
-
-  const getMinDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
   };
 
   const handleApplyCoupon = () => {
@@ -226,9 +225,9 @@ const ServiceBookingPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col gap-8">
           {/* Left Column - Service Details */}
-          <div className="flex-1 space-y-6">
+          <div className="space-y-6">
             {/* Service Information */}
             <div className="rounded-xl p-8">
               <h2 className="text-2xl font-bold mb-6 passion-one-black text-gray-800">Service Details</h2>
@@ -246,195 +245,158 @@ const ServiceBookingPage: React.FC = () => {
                   <p className="text-gray-800 leading-relaxed">{currentService.description}</p>
                 </div>
               </div>
-            </div>
-
-            {/* Date and Time Selection */}
-            <div className="rounded-xl p-8">
-              <h2 className="text-2xl font-bold mb-6 passion-one-black text-gray-800">Select Date & Time</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">Preferred Date</label>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    min={getMinDate()}
-                    className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 text-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">Preferred Time</label>
-                  <select
-                    value={selectedTime}
-                    onChange={(e) => setSelectedTime(e.target.value)}
-                    className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 text-gray-800"
-                  >
-                    <option value="">Select time</option>
-                    {timeSlots.map((time) => (
-                      <option key={time} value={time}>{time}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <button
+                className={`mt-6 w-full py-3 rounded-xl font-semibold text-lg transition-all duration-200 ${isInCart ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-xl'}`}
+                onClick={() => !isInCart && addToCart({ name: currentService.name, price: currentService.price, category: currentService.category })}
+                disabled={isInCart}
+              >
+                {isInCart ? 'Added to Cart' : 'Add to Cart'}
+              </button>
             </div>
           </div>
 
           {/* Right Column - Booking Summary */}
-          <div className="lg:w-96">
-            <div className="sticky top-8">
-              <div className="rounded-xl p-8 bg-gray-50">
-                <h2 className="text-2xl font-bold mb-6 passion-one-black text-gray-800">Booking Summary</h2>
-                {/* Coupon Input */}
-                <div className="mb-6">
-                  <label className="block text-gray-700 font-medium mb-2">Apply Coupon</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={coupon}
-                      onChange={e => setCoupon(e.target.value)}
-                      className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-gray-800"
-                      placeholder="Enter coupon code"
-                      disabled={couponApplied}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleApplyCoupon}
-                      disabled={couponApplied}
-                      className={`px-4 py-2 rounded-lg border-2 font-semibold transition-colors duration-200 ${couponApplied ? 'bg-green-200 border-green-400 text-green-800 cursor-not-allowed' : 'bg-white border-black text-black hover:bg-[#fdc700]'}`}
-                    >
-                      {couponApplied ? 'Applied' : 'Apply'}
-                    </button>
-                  </div>
-                  {couponApplied && (
-                    <p className="text-green-600 text-sm mt-2">Coupon applied! 25% discount</p>
-                  )}
+          <div>
+            <div className="rounded-xl p-8 bg-gray-50">
+              <h2 className="text-2xl font-bold mb-6 passion-one-black text-gray-800">Booking Summary</h2>
+              {/* Coupon Input */}
+              <div className="mb-6">
+                <label className="block text-gray-700 font-medium mb-2">Apply Coupon</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={coupon}
+                    onChange={e => setCoupon(e.target.value)}
+                    className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-gray-800"
+                    placeholder="Enter coupon code"
+                    disabled={couponApplied}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={couponApplied}
+                    className={`px-4 py-2 rounded-lg border-2 font-semibold transition-colors duration-200 ${couponApplied ? 'bg-green-200 border-green-400 text-green-800 cursor-not-allowed' : 'bg-white border-black text-black hover:bg-[#fdc700]'}`}
+                  >
+                    {couponApplied ? 'Applied' : 'Apply'}
+                  </button>
                 </div>
-                <div className="space-y-4 mb-6">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Service:</span>
-                    <span className="font-semibold text-gray-800">{currentService.name}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Category:</span>
-                    <span className="font-semibold text-gray-800">{currentService.category}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Duration:</span>
-                    <span className="font-semibold text-gray-800">{currentService.duration}</span>
-                  </div>
-                  {selectedDate && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Date:</span>
-                      <span className="font-semibold text-gray-800">{selectedDate}</span>
-                    </div>
-                  )}
-                  {selectedTime && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Time:</span>
-                      <span className="font-semibold text-gray-800">{selectedTime}</span>
-                    </div>
-                  )}
-                </div>
-                {/* Price Breakdown */}
-                <div className="border-t border-gray-200 pt-4 mb-6">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Original Price:</span>
-                    <span className="text-gray-800 line-through">₹{currentService.price}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Discount:</span>
-                    <span className="text-green-600">-₹{discount}</span>
-                  </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
-                    <span className="text-2xl font-bold text-yellow-600">₹{currentService.price - discount}</span>
-                  </div>
-                </div>
-                {/* Payment Method Selection */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Payment Method</h3>
-                  <div className="space-y-3">
-                    <div
-                      onClick={() => setSelectedPaymentMethod('cod')}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                        selectedPaymentMethod === 'cod'
-                          ? 'border-yellow-500 bg-yellow-50'
-                          : 'border-gray-200 hover:border-yellow-300 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPaymentMethod === 'cod' ? 'border-yellow-500 bg-yellow-500' : 'border-gray-300'
-                        }`}>
-                          {selectedPaymentMethod === 'cod' && (
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <span className="text-2xl">💵</span>
-                          <div>
-                            <div className="font-semibold text-gray-800">Cash on Delivery</div>
-                            <div className="text-sm text-gray-500">Pay after service completion</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div
-                      onClick={() => setSelectedPaymentMethod('upi')}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                        selectedPaymentMethod === 'upi'
-                          ? 'border-yellow-500 bg-yellow-50'
-                          : 'border-gray-200 hover:border-yellow-300 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPaymentMethod === 'upi' ? 'border-yellow-500 bg-yellow-500' : 'border-gray-300'
-                        }`}>
-                          {selectedPaymentMethod === 'upi' && (
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <span className="text-2xl">📱</span>
-                          <div>
-                            <div className="font-semibold text-gray-800">UPI Payment</div>
-                            <div className="text-sm text-gray-500">Pay online via UPI</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-200 pt-4 mb-6">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
-                    <span className="text-2xl font-bold text-yellow-600">₹{currentService.price - discount}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleBooking}
-                  disabled={!selectedDate || !selectedTime || !selectedPaymentMethod}
-                  className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
-                    selectedDate && selectedTime && selectedPaymentMethod
-                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-xl'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  {isBookingConfirmed ? 'Booking Confirmed!' : selectedPaymentMethod === 'cod' ? 'Book Now (Pay Later)' : 'Pay & Book Now'}
-                </button>
-
-                {isBookingConfirmed && (
-                  <div className="mt-4 p-4 bg-green-100 rounded-lg">
-                    <p className="text-green-800 text-center">
-                      Your booking has been confirmed! Redirecting to tracking...
-                    </p>
-                  </div>
+                {couponApplied && (
+                  <p className="text-green-600 text-sm mt-2">Coupon applied! 25% discount</p>
                 )}
               </div>
+              <div className="space-y-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Service:</span>
+                  <span className="font-semibold text-gray-800">{currentService.name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Category:</span>
+                  <span className="font-semibold text-gray-800">{currentService.category}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Duration:</span>
+                  <span className="font-semibold text-gray-800">{currentService.duration}</span>
+                </div>
+              </div>
+              {/* Price Breakdown */}
+              <div className="border-t border-gray-200 pt-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Original Price:</span>
+                  <span className="text-gray-800 line-through">₹{currentService.price}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Discount:</span>
+                  <span className="text-green-600">-₹{discount}</span>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
+                  <span className="text-2xl font-bold text-yellow-600">₹{currentService.price - discount}</span>
+                </div>
+              </div>
+              {/* Payment Method Selection */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Payment Method</h3>
+                <div className="space-y-3">
+                  <div
+                    onClick={() => setSelectedPaymentMethod('cod')}
+                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                      selectedPaymentMethod === 'cod'
+                        ? 'border-yellow-500 bg-yellow-50'
+                        : 'border-gray-200 hover:border-yellow-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedPaymentMethod === 'cod' ? 'border-yellow-500 bg-yellow-500' : 'border-gray-300'
+                      }`}>
+                        {selectedPaymentMethod === 'cod' && (
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl">💵</span>
+                        <div>
+                          <div className="font-semibold text-gray-800">Cash on Delivery</div>
+                          <div className="text-sm text-gray-500">Pay after service completion</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    onClick={() => setSelectedPaymentMethod('upi')}
+                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                      selectedPaymentMethod === 'upi'
+                        ? 'border-yellow-500 bg-yellow-50'
+                        : 'border-gray-200 hover:border-yellow-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedPaymentMethod === 'upi' ? 'border-yellow-500 bg-yellow-500' : 'border-gray-300'
+                      }`}>
+                        {selectedPaymentMethod === 'upi' && (
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl">📱</span>
+                        <div>
+                          <div className="font-semibold text-gray-800">UPI Payment</div>
+                          <div className="text-sm text-gray-500">Pay online via UPI</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-200 pt-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
+                  <span className="text-2xl font-bold text-yellow-600">₹{currentService.price - discount}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleBooking}
+                disabled={!selectedPaymentMethod}
+                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
+                  selectedPaymentMethod
+                    ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-xl'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {isBookingConfirmed ? 'Booking Confirmed!' : selectedPaymentMethod === 'cod' ? 'Book Now (Pay Later)' : 'Pay & Book Now'}
+              </button>
+
+              {isBookingConfirmed && (
+                <div className="mt-4 p-4 bg-green-100 rounded-lg">
+                  <p className="text-green-800 text-center">
+                    Your booking has been confirmed! Redirecting to tracking...
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

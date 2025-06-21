@@ -4,6 +4,7 @@ import { useUser } from '@civic/auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
+import Link from 'next/link';
 // @ts-ignore
 import { v4 as uuidv4 } from 'uuid';
 
@@ -43,7 +44,8 @@ export default function ProfilePage() {
         setIsLoading(true);
         try {
           // Fetch profile from backend using email
-          const response = await fetch(`http://localhost:5000/api/v1/users?email=${encodeURIComponent(user.email)}`);
+          const email = user.email ?? '';
+          const response = await fetch(`http://localhost:5000/api/v1/users?email=${encodeURIComponent(email)}`);
           if (response.ok) {
             const data = await response.json();
             // If backend returns an array of users, pick the first one
