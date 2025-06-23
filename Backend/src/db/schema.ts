@@ -45,6 +45,56 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "worker_location_update",
 ]);
 
+export const workerCategoryEnum = pgEnum("worker_category", [
+  "plumber",
+  "electrician",
+  "carpenter",
+  "mechanic",
+  "mens_grooming",
+  "women_grooming",
+]);
+
+export const workerSubCategoryEnum = pgEnum("worker_sub_category", [
+  "tape_repair",
+  "leak_fixing",
+  "pipe_installation",
+  "drain_cleaning",
+  "toilet_repair",
+  "water_repair",
+  "wood_work",
+  "furniture_assembly",
+  "road_repair",
+  "window_repair",
+  "cabinate_installation",
+  "custom_shelves",
+  "electrician",
+  "electrical_repair",
+  "wiring_installation",
+  "switch_and_socket_repair",
+  "fan_installation",
+  "light_installation",
+  "mcb_or_fuse_repair",
+  "haircut",
+  "saving",
+  "full_body_massage",
+  "facial",
+  "hair_color",
+  "body_massage",
+  "car_service",
+  "bike_service",
+  "emergency_service",
+  "tire_change",
+]);
+
+export const jobSpecializationsEnum = pgEnum("job_specializations", [
+  "plumber",
+  "electrician",
+  "carpenter",
+  "mechanic",
+  "mens_grooming",
+  "women_grooming",
+]);
+
 // Users Table
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -89,13 +139,13 @@ export const workers = pgTable("workers", {
 });
 
 // Specializations Table
-export const specializations = pgTable("specializations", {
+export const specializations = pgTable("worker_specializations", {
   id: uuid("id").defaultRandom().primaryKey(),
   workerId: uuid("worker_id")
     .references(() => workers.id)
     .notNull(),
-  category: varchar("name", { length: 100 }).notNull(),
-  subCategory: varchar("sub_category", { length: 100 }),
+  category: workerCategoryEnum("category").notNull(),
+  subCategory: workerSubCategoryEnum("sub_category").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -118,7 +168,8 @@ export const jobs = pgTable("jobs", {
     .notNull(),
   workerId: uuid("worker_id").references(() => workers.id),
   description: text("description"),
-  location: text("address"),
+  specializations: jobSpecializationsEnum("specializations").notNull(),
+  location: text("location"),
   lat: doublePrecision("lat").notNull(),
   lng: doublePrecision("lng").notNull(),
   status: jobStatusEnum("status").default("pending"),

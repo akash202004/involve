@@ -1,70 +1,60 @@
-import React from 'react';
-import { User, DollarSign, ShoppingCart } from 'lucide-react';
+'use client';
 
-interface Worker {
+import React from 'react';
+import Image from 'next/image';
+
+type Worker = {
   name: string;
   income: number;
   orders: number;
-}
+};
 
 interface WorkerListProps {
   workers: Worker[];
 }
 
-export default function WorkerList({ workers }: WorkerListProps) {
-  // Validate data
-  if (!workers || !Array.isArray(workers) || workers.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
-        <p>No worker data available</p>
-      </div>
-    );
+const WorkerList: React.FC<WorkerListProps> = ({ workers }) => {
+  if (!workers || workers.length === 0) {
+    return <p className="text-gray-500 text-center py-4">No workers available.</p>;
   }
 
   return (
-    <div className="space-y-4">
-      {workers.map((worker, index) => (
-        <div 
-          key={index}
-          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
-        >
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <User className="h-4 w-4 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">{worker.name}</h3>
-              <div className="flex items-center space-x-4 text-sm text-gray-600">
-                <div className="flex items-center space-x-1">
-                  <DollarSign className="h-3 w-3" />
-                  <span>${worker.income.toLocaleString()}</span>
+    <div className="overflow-x-auto">
+      <table className="min-w-full text-sm text-left text-gray-500">
+        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" className="px-6 py-3">Worker</th>
+            <th scope="col" className="px-6 py-3">Income</th>
+            <th scope="col" className="px-6 py-3">Orders</th>
+          </tr>
+        </thead>
+        <tbody>
+          {workers.map((worker, index) => (
+            <tr key={index} className="bg-white border-b hover:bg-gray-50">
+              <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-10 w-10">
+                    <Image
+                      className="h-10 w-10 rounded-full"
+                      src={`https://i.pravatar.cc/40?u=${worker.name}`}
+                      alt={worker.name}
+                      width={40}
+                      height={40}
+                    />
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-base font-semibold">{worker.name}</div>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <ShoppingCart className="h-3 w-3" />
-                  <span>{worker.orders} orders</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-sm font-medium text-gray-900">
-              Rank #{index + 1}
-            </div>
-            <div className="text-xs text-gray-500">
-              Top Performer
-            </div>
-          </div>
-        </div>
-      ))}
-      
-      <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="text-sm text-blue-800">
-          <strong>Total Workers:</strong> {workers.length} active workers
-        </div>
-        <div className="text-xs text-blue-600 mt-1">
-          Showing top performers by income
-        </div>
-      </div>
+              </td>
+              <td className="px-6 py-4">₹{worker.income.toLocaleString()}</td>
+              <td className="px-6 py-4">{worker.orders}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
-} 
+};
+
+export default WorkerList; 

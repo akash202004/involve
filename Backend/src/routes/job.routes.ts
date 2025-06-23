@@ -1,16 +1,17 @@
 import express from "express";
 import {
+  healthCheck,
   createJob,
   getAllJobs,
-  getJobById,
-  updateJobStatus,
-  deleteJob,
-  getNearbyWorkers,
   getJobStats,
+  getNearbyWorkers,
   getBroadcastMetrics,
   resetBroadcastMetrics,
-  healthCheck,
-} from "@/controllers/job.controller";
+  getJobById,
+  updateJobStatus,
+  deleteJob
+} from "../controllers/job.controller";
+
 
 const router = express.Router();
 

@@ -1,0 +1,317 @@
+/* --- Main Layout & Theme --- */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background-color: #f4f7f9;
+    padding: 4rem 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --primary-color: #4f46e5;
+    --primary-color-light: #e0e7ff;
+    --border-color: #d1d5db;
+    --text-dark: #1f2937;
+    --text-light: #6b7280;
+}
+
+.content {
+    width: 100%;
+    max-width: 700px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2.5rem 3rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.header h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.header p {
+    font-size: 1.125rem;
+    color: var(--text-light);
+    margin-top: 0.5rem;
+}
+
+/* --- Step Sections --- */
+.stepSection {
+    margin-bottom: 2.5rem;
+}
+
+.stepSection h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.stepNumber {
+    background-color: var(--primary-color);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* --- Profession Selection Cards --- */
+.categoryGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.categoryCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background-color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-align: center;
+}
+
+.categoryCard:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary-color-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.categoryCard.selected {
+    border-color: var(--primary-color);
+    background-color: var(--primary-color-light);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.2);
+}
+
+.cardIcon {
+    font-size: 2.5rem;
+}
+
+.cardName {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+/* --- Skill Selection Checkboxes --- */
+.fadeIn {
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.subCategoryGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.hiddenCheckbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    font-weight: 500;
+    color: #374151;
+    background-color: #fff;
+}
+
+.checkboxLabel:hover {
+    border-color: var(--primary-color-light);
+    background-color: #f9fafb;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.hiddenCheckbox:checked ~ span {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.checkboxText {
+    transition: color 0.2s ease-in-out, font-weight 0.2s ease-in-out;
+}
+
+.hiddenCheckbox:checked ~ .checkboxText {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.customCheckbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    position: relative;
+    background-color: #fff;
+}
+
+.hiddenCheckbox:checked+.customCheckbox {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.customCheckbox svg {
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+.hiddenCheckbox:checked+.customCheckbox svg {
+    opacity: 1;
+    color: white;
+    stroke: white;
+    stroke-width: 3;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* --- Footer and Button --- */
+.footer {
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.submitButton {
+    width: 100%;
+    max-width: 300px;
+    padding: 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: white;
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.submitButton:hover {
+    background-color: #4338ca;
+}
+
+.submitButton:active {
+    transform: scale(0.98);
+}
+
+.submitButton:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.errorMessage {
+    color: #ef4444;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+/* --- Success Overlay --- */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.successBox {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.successBox h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    color: var(--text-dark);
+}
+
+.successBox p {
+    color: var(--text-light);
+    margin: 0;
+}
+
+.successBox svg {
+    color: #22c55e;
+    width: 50px;
+    height: 50px;
+}
+
+/* Spinner for loading states */
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

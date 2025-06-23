@@ -442,3 +442,61 @@ async function testDatabaseConnection(): Promise<boolean> {
     return false;
   }
 }
+
+// Simple keyword-based profession detection
+function detectProfession(description: string): string {
+  const desc = description.toLowerCase();
+  if (desc.includes("women") && desc.includes("saloon")) return "women_saloon";
+  if (desc.includes("men") && desc.includes("saloon")) return "men_saloon";
+  if (desc.includes("ac") || desc.includes("appliance")) return "ac_appliance";
+  if (
+    desc.includes("electr") ||
+    desc.includes("wire") ||
+    desc.includes("switch")
+  )
+    return "electrician";
+  if (desc.includes("plumb") || desc.includes("pipe") || desc.includes("water"))
+    return "plumber";
+  if (
+    desc.includes("carpent") ||
+    desc.includes("wood") ||
+    desc.includes("furniture")
+  )
+    return "carpenter";
+  return "general";
+}
+
+export const createJobFromVoice = async (req: Request, res: Response) => {
+  try {
+    const { description, userId, lat, lng } = req.body;
+    if (!description || !userId || !lat || !lng) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const profession = detectProfession(description);
+
+    const [job] = await db
+      .insert(jobs)
+      .values({
+        userId,
+        description,
+        specializations: profession as
+          | "plumber"
+          | "electrician"
+          | "carpenter"
+          | "mechanic"
+          | "mens_grooming"
+          | "women_grooming",
+        lat,
+        lng,
+        status: "pending",
+        createdAt: new Date(),
+      })
+      .returning();
+
+    res.status(201).json({ message: "Job created", job });
+  } catch (error) {
+    console.error("Error creating job from voice:", error);
+    res.status(500).json({ error: "Failed to create job" });
+  }
+};

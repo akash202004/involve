@@ -70,6 +70,26 @@ export const getWorkerById = async (req: Request, res: Response) => {
   }
 };
 
+// Get Worker by Email
+export const getWorkerByEmail = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.params;
+
+    const worker = await db.select().from(workers).where(eq(workers.email, email));
+
+    if (worker.length === 0) {
+      res.status(404).json({ error: "Worker not found" });
+      return;
+    }
+
+    res.status(200).json({ data: worker[0] });
+  } catch (error) {
+    console.error("Error fetching worker by email:", error);
+    res.status(500).json({ error: "Failed to fetch worker" });
+    return;
+  }
+};
+
 //  Update Worker
 export const updateWorker = async (req: Request, res: Response) => {
   try {

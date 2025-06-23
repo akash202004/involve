@@ -1,0 +1,196 @@
+.headerActions {
+    display: flex;
+    gap: 1rem;
+}
+
+.addUserButton, .filterButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.addUserButton {
+    background-color: #2d3748;
+    color: #ffffff;
+}
+.addUserButton:hover {
+    background-color: #1a202c;
+}
+
+.filterButton {
+    background-color: #ffffff;
+    color: #2d3748;
+    border: 1px solid #e2e8f0;
+}
+.filterButton:hover {
+    background-color: #f7fafc;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.statCard {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+.statIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #edf2f7;
+    color: #4a5568;
+}
+.statIcon svg {
+    width: 24px;
+    height: 24px;
+}
+.statLabel {
+    font-size: 0.875rem;
+    color: #718096;
+    margin-bottom: 0.25rem;
+}
+.statValue {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.card {
+    padding: 0;
+}
+
+.cardHeader {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.searchContainer {
+    position: relative;
+    width: 300px;
+}
+.searchIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+}
+.searchInput {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background-color: #f7fafc;
+    font-size: 0.875rem;
+}
+.searchInput:focus {
+    outline: none;
+    border-color: #4299e1;
+    background-color: #ffffff;
+}
+
+.tableContainer {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.875rem;
+}
+
+.table th {
+    color: #718096;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: #f7fafc;
+}
+
+.table td {
+    color: #2d3748;
+    font-weight: 500;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background-color: #f7fafc;
+}
+
+.starIcon {
+    width: 16px;
+    height: 16px;
+    color: #f6ad55;
+    margin-right: 0.25rem;
+    fill: #f6ad55;
+}
+
+.statusBadge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+.statusActive {
+    background-color: #c6f6d5;
+    color: #2f855a;
+}
+.statusOnBreak {
+    background-color: #faf089;
+    color: #b7791f;
+}
+.statusInactive {
+    background-color: #fed7d7;
+    color: #c53030;
+}
+
+.actionButton {
+    background: none;
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #2d3748;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.actionButton:hover {
+    background-color: #edf2f7;
+    border-color: #cbd5e0;
+} 

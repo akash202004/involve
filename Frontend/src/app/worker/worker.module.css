@@ -86,6 +86,7 @@
     color: #fff;
     font-family: 'Inter', sans-serif;
     padding: 1rem;
+    overflow: hidden;
 }
 
 .bikeLoadingWrapper {
@@ -167,6 +168,7 @@
     background-color: rgba(255, 255, 255, 0.1);
     padding: 3rem;
     border-radius: 20px;
+    -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
@@ -207,112 +209,154 @@
 }
 
 /* =========================================== */
-/* ===== 2. NEW ROCKET LAUNCH ANIMATION ===== */
+/* ===== 3. COOL CIRCULAR LOADING ANIMATION ===== */
 /* =========================================== */
 .loadingContainer {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
-    /* Align to the bottom for launch */
+    justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #0f0c29;
-    background-image: linear-gradient(to top, #24243e 0%, #302b63 74%, #0f0c29 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff;
     font-family: 'Inter', sans-serif;
     padding: 1rem;
     overflow: hidden;
 }
 
-.launchWrapper {
+.circularLoaderWrapper {
     position: relative;
-    width: 100%;
-    height: 80vh;
-    /* The area for the launch */
     display: flex;
     justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
 }
 
-.rocket {
+.circularProgress {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.progressRing {
     position: absolute;
-    width: 60px;
-    height: 120px;
-    /* Start at the bottom, move up based on progress */
-    bottom: 0;
-    transform: translateX(-50%);
-    left: 50%;
-    transition: bottom 0.1s linear;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progressRingTrack {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-linecap: round;
+}
+
+.progressRingFill {
+    fill: none;
+    stroke: #ffffff;
+    stroke-linecap: round;
+    stroke-dasharray: 339.292;
+    stroke-dashoffset: 339.292;
+    transition: stroke-dashoffset 0.1s ease-in-out;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+.centerContent {
+    position: absolute;
     display: flex;
     flex-direction: column;
     align-items: center;
-    animation: rocketShake 0.4s infinite alternate;
+    justify-content: center;
+    z-index: 2;
 }
 
-@keyframes rocketShake {
-    0% {
-        transform: translateX(-51%) rotate(-0.5deg);
-    }
-
-    100% {
-        transform: translateX(-49%) rotate(0.5deg);
-    }
-}
-
-.rocketSvg {
-    width: 100%;
-    stroke: #ffffff;
-    fill: #e0e0e0;
-}
-
-.rocketFlame {
-    width: 80%;
+.loadingIcon {
+    width: 60px;
     height: 60px;
-    background: linear-gradient(to top, #ffcc00, #ff6600, transparent);
-    border-radius: 50% 50% 60% 60%;
-    filter: blur(5px);
-    animation: flameWobble 0.1s infinite alternate;
+    margin-bottom: 1rem;
+    position: relative;
 }
 
-@keyframes flameWobble {
-    from {
-        transform: scale(1, 1);
-    }
-
-    to {
-        transform: scale(1.1, 0.95);
-    }
-}
-
-.star {
-    position: absolute;
-    width: 3px;
-    height: 3px;
-    background: white;
+.rotatingCircle {
+    width: 100%;
+    height: 100%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #ffffff;
     border-radius: 50%;
-    animation: twinkle 4s infinite;
+    animation: spin 1s linear infinite;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 
-@keyframes twinkle {
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
-    0%,
-    100% {
-        opacity: 0.5;
+.progressNumber {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.orbitingDots {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    animation: orbit 3s linear infinite;
+}
+
+.orbitDot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.orbitDot:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); }
+.orbitDot:nth-child(2) { top: 50%; right: 0; transform: translateY(-50%); }
+.orbitDot:nth-child(3) { bottom: 0; left: 50%; transform: translateX(-50%); }
+.orbitDot:nth-child(4) { top: 50%; left: 0; transform: translateY(-50%); }
+
+@keyframes orbit {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 0.7;
     }
-
-    50% {
+    50% { 
+        transform: scale(1.2);
         opacity: 1;
     }
 }
 
 .progressText {
-    position: relative;
-    /* Ensure it's on top */
-    z-index: 10;
     text-align: center;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 500;
     letter-spacing: 0.5px;
     color: #ffffff;
-    padding-bottom: 5vh;
-    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

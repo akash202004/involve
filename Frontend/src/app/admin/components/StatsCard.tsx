@@ -1,32 +1,40 @@
+'use client'
+
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface StatsCardProps {
   title: string;
   value: string | number;
   icon: React.ReactNode;
-  color: 'blue' | 'green' | 'yellow' | 'purple' | 'red';
+  className?: string;
 }
 
-const colorClasses = {
-  blue: 'bg-blue-50 text-blue-600 border-blue-200',
-  green: 'bg-green-50 text-green-600 border-green-200',
-  yellow: 'bg-yellow-50 text-yellow-600 border-yellow-200',
-  purple: 'bg-purple-50 text-purple-600 border-purple-200',
-  red: 'bg-red-50 text-red-600 border-red-200'
+const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 100,
+      },
+    },
+  };
+
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, className }) => {
+  return (
+    <motion.div 
+      className={`card statsCard ${className || ''}`}
+      variants={itemVariants}
+    >
+      <div className="statsIcon">{icon}</div>
+      <div>
+        <p className="statsTitle">{title}</p>
+        <p className="statsValue">{value}</p>
+      </div>
+    </motion.div>
+  );
 };
 
-export default function StatsCard({ title, value, icon, color }: StatsCardProps) {
-  return (
-    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-        </div>
-        <div className={`p-3 rounded-full border ${colorClasses[color]}`}>
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-} 
+export default StatsCard; 

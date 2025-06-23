@@ -6,6 +6,8 @@ import FooterSecond from "@/app/components/Footer/Page";
 import { CivicAuthProvider } from "@civic/auth/nextjs";
 import { CartProvider } from "./booking/cart/cartContext";
 import { JobTrackingProvider } from "@/lib/jobTracking";
+import 'leaflet/dist/leaflet.css';
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

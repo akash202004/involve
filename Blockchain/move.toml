@@ -1,0 +1,10 @@
+[package]
+name = "booking"
+version = "0.0.1"
+authors = ["your_name"]
+
+[addresses]
+booking = "0xb01e472899a673be1355f0ee470c79b4935e62de59aacf64e8d866aafaba41c4"  # Replace with your Petra wallet address
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", rev = "b2307b8ec449ea29db42c717492f96fa3d6dde93", subdir = "aptos-move/framework/aptos-framework" }

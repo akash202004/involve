@@ -3,12 +3,12 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import ApplianceRepairPopup from '@/app/components/ui/PopUp/ApplianceRepairPopup/Page';
 import WomenSalonPopup from '@/app/components/ui/PopUp/WomenSaloon/Page';
 import MenSalonPopup from '@/app/components/ui/PopUp/MenSaloon/Page';
 import ElectricianPopup from '@/app/components/ui/PopUp/Electrician/Page';
 import PlumberPopup from '@/app/components/ui/PopUp/Plumber/Page';
 import CarpenterPopup from '@/app/components/ui/PopUp/Carpenter/Page';
+import MechanicsPopup from '@/app/components/ui/PopUp/Mechanics/Page';
 import Image from 'next/image';
 import FeatureImage from './FeatureImage';
 
@@ -22,12 +22,7 @@ interface ServiceItem {
 
 const ServiceSelection: React.FC = () => {
   const router = useRouter();
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [isWomenSalonPopupOpen, setIsWomenSalonPopupOpen] = useState(false);
-  const [isMenSalonPopupOpen, setIsMenSalonPopupOpen] = useState(false);
-  const [isElectricianPopupOpen, setIsElectricianPopupOpen] = useState(false);
-  const [isPlumberPopupOpen, setIsPlumberPopupOpen] = useState(false);
-  const [isCarpenterPopupOpen, setIsCarpenterPopupOpen] = useState(false);
+  const [activePopup, setActivePopup] = useState<string | null>(null);
 
   const services: ServiceItem[] = [
     {
@@ -43,9 +38,9 @@ const ServiceSelection: React.FC = () => {
       route: '',
     },
     {
-      id: 'appliance-repair',
-      title: 'AC & Appliance Repair',
-      icon: '/Assets/air-conditioner-air-conditioning-svgrepo-com.svg',
+      id: 'mechanics',
+      title: 'Mechanics',
+      icon: '/Assets/spraying-svgrepo-com.svg',
       isNew: true,
       route: '',
     },
@@ -70,52 +65,11 @@ const ServiceSelection: React.FC = () => {
   ];
 
   const handleServiceClick = (serviceId: string) => {
-    switch (serviceId) {
-      case 'appliance-repair':
-        setIsPopupOpen(true);
-        break;
-      case 'womens-salon':
-        setIsWomenSalonPopupOpen(true);
-        break;
-      case 'mens-salon':
-        setIsMenSalonPopupOpen(true);
-        break;
-      case 'electrician':
-        setIsElectricianPopupOpen(true);
-        break;
-      case 'plumber':
-        setIsPlumberPopupOpen(true);
-        break;
-      case 'carpenter':
-        setIsCarpenterPopupOpen(true);
-        break;
-      default:
-        break;
-    }
+    setActivePopup(serviceId);
   };
 
   const closePopup = () => {
-    setIsPopupOpen(false);
-  };
-
-  const closeWomenSalonPopup = () => {
-    setIsWomenSalonPopupOpen(false);
-  };
-
-  const closeMenSalonPopup = () => {
-    setIsMenSalonPopupOpen(false);
-  };
-
-  const closeElectricianPopup = () => {
-    setIsElectricianPopupOpen(false);
-  };
-
-  const closePlumberPopup = () => {
-    setIsPlumberPopupOpen(false);
-  };
-
-  const closeCarpenterPopup = () => {
-    setIsCarpenterPopupOpen(false);
+    setActivePopup(null);
   };
 
   return (
@@ -144,12 +98,12 @@ const ServiceSelection: React.FC = () => {
             ))}
           </div>
         </div>
-        {isPopupOpen && <ApplianceRepairPopup onClose={closePopup} />}
-        {isWomenSalonPopupOpen && <WomenSalonPopup onClose={closeWomenSalonPopup} />}
-        {isMenSalonPopupOpen && <MenSalonPopup onClose={closeMenSalonPopup} />}
-        {isElectricianPopupOpen && <ElectricianPopup onClose={closeElectricianPopup} />}
-        {isPlumberPopupOpen && <PlumberPopup onClose={closePlumberPopup} />}
-        {isCarpenterPopupOpen && <CarpenterPopup onClose={closeCarpenterPopup} />}
+        {activePopup === 'mechanics' && <MechanicsPopup onClose={closePopup} />}
+        {activePopup === 'womens-salon' && <WomenSalonPopup onClose={closePopup} />}
+        {activePopup === 'mens-salon' && <MenSalonPopup onClose={closePopup} />}
+        {activePopup === 'electrician' && <ElectricianPopup onClose={closePopup} />}
+        {activePopup === 'plumber' && <PlumberPopup onClose={closePopup} />}
+        {activePopup === 'carpenter' && <CarpenterPopup onClose={closePopup} />}
       </div>
       {/* Right: Image */}
       <FeatureImage />

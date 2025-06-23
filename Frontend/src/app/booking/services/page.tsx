@@ -1,10 +1,22 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@civic/auth/react";
 import { useCart } from "../cart/cartContext";
-import { useJobTracking } from "@/lib/jobTracking";
+import { getOrCreateUserByEmail } from "@/lib/userService";
+import {
+  BookingProgress,
+  ButtonLoader,
+  PageLoadAnimation,
+  PulsingDots,
+} from "@/components/LoadingAnimations";
+import {
+  getCurrentLocationWithAddress,
+  formatAddress,
+} from "@/lib/addressService";
+import { ModernInput, ModernButton } from "@/components/ModernUI";
+import mockWorkers from './mockWorkers';
 
 interface ServiceDetails {
   name: string;
@@ -198,7 +210,7 @@ const SERVICE_DETAILS: Record<string, ServiceDetails> = {
   },
   "Kitchen Cleaning": {
     name: "Kitchen Cleaning",
-    description: "Deep kitchen cleaning",
+    description: "Kitchen deep cleaning",
     price: 399,
     duration: "1-2 hours",
     icon: "🍳",
@@ -206,39 +218,23 @@ const SERVICE_DETAILS: Record<string, ServiceDetails> = {
   },
   "Bathroom Cleaning": {
     name: "Bathroom Cleaning",
-    description: "Thorough bathroom cleaning",
+    description: "Bathroom sanitization",
     price: 299,
-    duration: "1 hour",
+    duration: "45-60 min",
     icon: "🚿",
     category: "Cleaning Services",
   },
-  "Living Room Cleaning": {
-    name: "Living Room Cleaning",
-    description: "Living room cleaning",
-    price: 399,
-    duration: "1-2 hours",
-    icon: "🛋",
-    category: "Cleaning Services",
-  },
-  "Bedroom Cleaning": {
-    name: "Bedroom Cleaning",
-    description: "Bedroom cleaning",
-    price: 399,
-    duration: "1-2 hours",
-    icon: "🛏",
-    category: "Cleaning Services",
-  },
-  "Balcony Cleaning": {
-    name: "Balcony Cleaning",
-    description: "Balcony cleaning",
-    price: 299,
-    duration: "1 hour",
-    icon: "🌿",
+  "Window Cleaning": {
+    name: "Window Cleaning",
+    description: "Window and glass cleaning",
+    price: 199,
+    duration: "30-45 min",
+    icon: "🪟",
     category: "Cleaning Services",
   },
   "Carpet Cleaning": {
     name: "Carpet Cleaning",
-    description: "Carpet cleaning",
+    description: "Deep carpet cleaning",
     price: 499,
     duration: "1-2 hours",
     icon: "🟫",
@@ -246,667 +242,397 @@ const SERVICE_DETAILS: Record<string, ServiceDetails> = {
   },
   "Sofa Cleaning": {
     name: "Sofa Cleaning",
-    description: "Sofa cleaning",
-    price: 499,
+    description: "Upholstery cleaning",
+    price: 399,
     duration: "1-2 hours",
-    icon: "🛋",
-    category: "Cleaning Services",
-  },
-  "Curtain Cleaning": {
-    name: "Curtain Cleaning",
-    description: "Curtain cleaning",
-    price: 299,
-    duration: "1 hour",
-    icon: "🪟",
-    category: "Cleaning Services",
-  },
-  "Window Cleaning": {
-    name: "Window Cleaning",
-    description: "Window cleaning",
-    price: 299,
-    duration: "1 hour",
-    icon: "🪟",
-    category: "Cleaning Services",
-  },
-  "Deep Cleaning": {
-    name: "Deep Cleaning",
-    description: "Deep cleaning service",
-    price: 999,
-    duration: "3-4 hours",
-    icon: "🧹",
-    category: "Cleaning Services",
-  },
-  "Move-in/Move-out Cleaning": {
-    name: "Move-in/Move-out Cleaning",
-    description: "Move-in/out cleaning",
-    price: 1299,
-    duration: "4-5 hours",
-    icon: "📦",
-    category: "Cleaning Services",
-  },
-  "Office Cleaning": {
-    name: "Office Cleaning",
-    description: "Office cleaning",
-    price: 999,
-    duration: "2-3 hours",
-    icon: "🏢",
-    category: "Cleaning Services",
-  },
-  "Shop Cleaning": {
-    name: "Shop Cleaning",
-    description: "Shop cleaning",
-    price: 799,
-    duration: "2 hours",
-    icon: "🏪",
-    category: "Cleaning Services",
-  },
-  "Restaurant Cleaning": {
-    name: "Restaurant Cleaning",
-    description: "Restaurant cleaning",
-    price: 999,
-    duration: "2-3 hours",
-    icon: "🍽",
-    category: "Cleaning Services",
-  },
-  "Warehouse Cleaning": {
-    name: "Warehouse Cleaning",
-    description: "Warehouse cleaning",
-    price: 1499,
-    duration: "4 hours",
-    icon: "🏭",
-    category: "Cleaning Services",
-  },
-  "Event Venue Cleaning": {
-    name: "Event Venue Cleaning",
-    description: "Event venue cleaning",
-    price: 1999,
-    duration: "5 hours",
-    icon: "🎉",
-    category: "Cleaning Services",
-  },
-  "Post-Construction Cleaning": {
-    name: "Post-Construction Cleaning",
-    description: "Post-construction cleaning",
-    price: 2499,
-    duration: "6 hours",
-    icon: "🏗",
+    icon: "🛋️",
     category: "Cleaning Services",
   },
   // Appliance Repair
   "AC Repair": {
     name: "AC Repair",
-    description: "AC repair and maintenance",
-    price: 399,
-    duration: "1-2 hours",
-    icon: "❄",
-    category: "Appliance Repair",
-  },
-  "Washing Machine Repair": {
-    name: "Washing Machine Repair",
-    description: "Washing machine repair",
-    price: 399,
-    duration: "1-2 hours",
-    icon: "🧺",
-    category: "Appliance Repair",
-  },
-  "Television Repair": {
-    name: "Television Repair",
-    description: "Television repair",
-    price: 499,
-    duration: "1-2 hours",
-    icon: "📺",
-    category: "Appliance Repair",
-  },
-  "Laptop Repair": {
-    name: "Laptop Repair",
-    description: "Laptop repair",
-    price: 499,
-    duration: "1-2 hours",
-    icon: "💻",
-    category: "Appliance Repair",
-  },
-  "Air Purifier Repair": {
-    name: "Air Purifier Repair",
-    description: "Air purifier repair",
-    price: 299,
-    duration: "1 hour",
-    icon: "🌬",
-    category: "Appliance Repair",
-  },
-  "Air Cooler Repair": {
-    name: "Air Cooler Repair",
-    description: "Air cooler repair",
-    price: 299,
-    duration: "1 hour",
-    icon: "🌪",
-    category: "Appliance Repair",
-  },
-  "Geyser Repair": {
-    name: "Geyser Repair",
-    description: "Geyser repair",
-    price: 399,
-    duration: "1-2 hours",
-    icon: "🔥",
-    category: "Appliance Repair",
-  },
-  "Water Purifier Installation": {
-    name: "Water Purifier Installation",
-    description: "Water purifier installation",
+    description: "Air conditioner repair",
     price: 599,
     duration: "1-2 hours",
-    icon: "💧",
-    category: "Water Purifier Services",
+    icon: "❄️",
+    category: "Appliance Repair",
   },
   "Refrigerator Repair": {
     name: "Refrigerator Repair",
-    description: "Refrigerator repair",
+    description: "Refrigerator maintenance",
     price: 499,
     duration: "1-2 hours",
     icon: "🧊",
     category: "Appliance Repair",
   },
+  "Washing Machine Repair": {
+    name: "Washing Machine Repair",
+    description: "Washing machine service",
+    price: 399,
+    duration: "1-2 hours",
+    icon: "🧺",
+    category: "Appliance Repair",
+  },
   "Microwave Repair": {
     name: "Microwave Repair",
-    description: "Microwave repair",
+    description: "Microwave oven repair",
     price: 299,
     duration: "30-60 min",
-    icon: "🍽",
+    icon: "📟",
     category: "Appliance Repair",
   },
-  "Chimney Repair": {
-    name: "Chimney Repair",
-    description: "Chimney repair",
+  "TV Repair": {
+    name: "TV Repair",
+    description: "Television repair service",
     price: 399,
     duration: "1-2 hours",
-    icon: "🏠",
+    icon: "📺",
     category: "Appliance Repair",
   },
-  // Electrician & Plumber
-  "Electrical Repair": {
-    name: "Electrical Repair",
-    description: "Electrical repair",
-    price: 399,
-    duration: "1-2 hours",
-    icon: "⚡",
-    category: "Electrician Services",
-  },
-  "Wiring Installation": {
-    name: "Wiring Installation",
-    description: "Wiring installation",
-    price: 499,
-    duration: "1-2 hours",
-    icon: "🔌",
-    category: "Electrician Services",
-  },
-  "Switch & Socket Repair": {
-    name: "Switch & Socket Repair",
-    description: "Switch & socket repair",
-    price: 199,
-    duration: "30-60 min",
-    icon: "🔌",
-    category: "Electrician Services",
-  },
-  "Fan Installation": {
-    name: "Fan Installation",
-    description: "Fan installation",
-    price: 299,
-    duration: "1 hour",
-    icon: "💨",
-    category: "Electrician Services",
-  },
-  "Light Installation": {
-    name: "Light Installation",
-    description: "Light installation",
-    price: 199,
-    duration: "30 min",
-    icon: "💡",
-    category: "Electrician Services",
-  },
-  "MCB/Fuse Repair": {
-    name: "MCB/Fuse Repair",
-    description: "MCB/fuse repair",
-    price: 299,
-    duration: "1 hour",
-    icon: "🔋",
-    category: "Electrician Services",
-  },
-  "Plumbing Repair": {
-    name: "Plumbing Repair",
-    description: "Plumbing repair",
+  // Plumbing
+  "Pipe Repair": {
+    name: "Pipe Repair",
+    description: "Pipe and fitting repair",
     price: 399,
     duration: "1-2 hours",
     icon: "🔧",
-    category: "Plumber Services",
-  },
-  "Pipe Installation": {
-    name: "Pipe Installation",
-    description: "Pipe installation",
-    price: 299,
-    duration: "1 hour",
-    icon: "🚰",
-    category: "Plumber Services",
+    category: "Plumbing Services",
   },
   "Tap Repair": {
     name: "Tap Repair",
-    description: "Tap repair",
-    price: 199,
-    duration: "30 min",
+    description: "Faucet and tap repair",
+    price: 299,
+    duration: "30-60 min",
     icon: "🚰",
-    category: "Plumber Services",
+    category: "Plumbing Services",
   },
   "Toilet Repair": {
     name: "Toilet Repair",
-    description: "Toilet repair",
-    price: 299,
-    duration: "1 hour",
+    description: "Toilet and commode repair",
+    price: 399,
+    duration: "1-2 hours",
     icon: "🚽",
-    category: "Plumber Services",
+    category: "Plumbing Services",
   },
   "Drain Cleaning": {
     name: "Drain Cleaning",
-    description: "Drain cleaning",
-    price: 299,
-    duration: "1 hour",
-    icon: "🕳",
-    category: "Plumber Services",
-  },
-  "Water Heater Repair": {
-    name: "Water Heater Repair",
-    description: "Water heater repair",
-    price: 399,
-    duration: "1-2 hours",
-    icon: "🔥",
-    category: "Plumber Services",
-  },
-  Installation: {
-    name: "Installation",
-    description: "General installation service",
-    price: 299,
-    duration: "1-2 hours",
-    icon: "🔨",
-    category: "Installation Services",
-  },
-  "AC Installation": {
-    name: "AC Installation",
-    description: "AC installation",
-    price: 799,
-    duration: "1-2 hours",
-    icon: "❄",
-    category: "Installation Services",
-  },
-  "Geyser Installation": {
-    name: "Geyser Installation",
-    description: "Geyser installation",
-    price: 599,
-    duration: "1-2 hours",
-    icon: "🔥",
-    category: "Installation Services",
-  },
-  "Exhaust Fan Installation": {
-    name: "Exhaust Fan Installation",
-    description: "Exhaust fan installation",
-    price: 299,
-    duration: "1 hour",
-    icon: "💨",
-    category: "Installation Services",
-  },
-  "Security Camera Installation": {
-    name: "Security Camera Installation",
-    description: "Security camera installation",
-    price: 999,
-    duration: "2 hours",
-    icon: "📹",
-    category: "Installation Services",
-  },
-  // Smart Lock
-  "Smart Lock Installation": {
-    name: "Smart Lock Installation",
-    description: "Smart lock installation",
-    price: 799,
-    duration: "1-2 hours",
-    icon: "🔐",
-    category: "Smart Lock Services",
-  },
-  "Smart Lock Repair": {
-    name: "Smart Lock Repair",
-    description: "Smart lock repair",
+    description: "Drain and sewer cleaning",
     price: 499,
-    duration: "1 hour",
-    icon: "🔧",
-    category: "Smart Lock Services",
+    duration: "1-2 hours",
+    icon: "🕳️",
+    category: "Plumbing Services",
   },
-  "Smart Lock Setup": {
-    name: "Smart Lock Setup",
-    description: "Smart lock setup",
-    price: 299,
-    duration: "30 min",
-    icon: "📱",
-    category: "Smart Lock Services",
-  },
-  "Smart Lock Maintenance": {
-    name: "Smart Lock Maintenance",
-    description: "Smart lock maintenance",
-    price: 399,
-    duration: "1 hour",
-    icon: "🔧",
-    category: "Smart Lock Services",
-  },
-  "Smart Lock Upgrade": {
-    name: "Smart Lock Upgrade",
-    description: "Smart lock upgrade",
+  "Water Heater": {
+    name: "Water Heater",
+    description: "Water heater installation/repair",
     price: 599,
-    duration: "1 hour",
-    icon: "⬆",
-    category: "Smart Lock Services",
+    duration: "2-3 hours",
+    icon: "🔥",
+    category: "Plumbing Services",
   },
-  "Smart Lock Consultation": {
-    name: "Smart Lock Consultation",
-    description: "Smart lock consultation",
+  // Electrical
+  Wiring: {
+    name: "Wiring",
+    description: "Electrical wiring service",
+    price: 499,
+    duration: "2-3 hours",
+    icon: "⚡",
+    category: "Electrical Services",
+  },
+  "Switch Repair": {
+    name: "Switch Repair",
+    description: "Switch and socket repair",
     price: 199,
-    duration: "30 min",
+    duration: "30-60 min",
+    icon: "🔌",
+    category: "Electrical Services",
+  },
+  "Fan Installation": {
+    name: "Fan Installation",
+    description: "Ceiling fan installation",
+    price: 299,
+    duration: "1-2 hours",
+    icon: "💨",
+    category: "Electrical Services",
+  },
+  "Light Installation": {
+    name: "Light Installation",
+    description: "Light fixture installation",
+    price: 199,
+    duration: "30-60 min",
     icon: "💡",
-    category: "Smart Lock Services",
+    category: "Electrical Services",
   },
-  "Security System Installation": {
-    name: "Security System Installation",
-    description: "Security system installation",
-    price: 999,
-    duration: "2 hours",
-    icon: "🏠",
-    category: "Security Services",
+  "MCB Repair": {
+    name: "MCB Repair",
+    description: "Circuit breaker repair",
+    price: 399,
+    duration: "1-2 hours",
+    icon: "🔋",
+    category: "Electrical Services",
   },
-  "CCTV Installation": {
-    name: "CCTV Installation",
-    description: "CCTV installation",
-    price: 999,
-    duration: "2 hours",
-    icon: "📹",
-    category: "Security Services",
+  // Carpenter
+  "Furniture Repair": {
+    name: "Furniture Repair",
+    description: "Wooden furniture repair",
+    price: 399,
+    duration: "1-2 hours",
+    icon: "🪑",
+    category: "Carpenter Services",
   },
-  "Access Control System": {
-    name: "Access Control System",
-    description: "Access control system",
-    price: 799,
+  "Door Repair": {
+    name: "Door Repair",
+    description: "Door and lock repair",
+    price: 299,
     duration: "1-2 hours",
     icon: "🚪",
-    category: "Security Services",
+    category: "Carpenter Services",
   },
-  "Biometric Lock Installation": {
-    name: "Biometric Lock Installation",
-    description: "Biometric lock installation",
-    price: 899,
-    duration: "1-2 hours",
-    icon: "👆",
-    category: "Security Services",
-  },
-  "Digital Lock Installation": {
-    name: "Digital Lock Installation",
-    description: "Digital lock installation",
-    price: 799,
-    duration: "1-2 hours",
-    icon: "🔢",
-    category: "Security Services",
-  },
-  "Security Audit": {
-    name: "Security Audit",
-    description: "Security audit",
-    price: 499,
-    duration: "1 hour",
-    icon: "🔍",
-    category: "Security Services",
-  },
-  "Battery Replacement": {
-    name: "Battery Replacement",
-    description: "Battery replacement",
-    price: 199,
-    duration: "30 min",
-    icon: "🔋",
-    category: "Maintenance Services",
-  },
-  "Software Update": {
-    name: "Software Update",
-    description: "Software update",
-    price: 199,
-    duration: "30 min",
-    icon: "💻",
-    category: "Maintenance Services",
-  },
-  "Key Programming": {
-    name: "Key Programming",
-    description: "Key programming",
-    price: 299,
-    duration: "30 min",
-    icon: "🔑",
-    category: "Maintenance Services",
-  },
-  "Emergency Unlock": {
-    name: "Emergency Unlock",
-    description: "Emergency unlock",
+  "Window Repair": {
+    name: "Window Repair",
+    description: "Window frame repair",
     price: 399,
-    duration: "1 hour",
-    icon: "🚨",
-    category: "Maintenance Services",
-  },
-  "Warranty Service": {
-    name: "Warranty Service",
-    description: "Warranty service",
-    price: 0,
-    duration: "Varies",
-    icon: "📋",
-    category: "Maintenance Services",
-  },
-  "Remote Support": {
-    name: "Remote Support",
-    description: "Remote support",
-    price: 99,
-    duration: "30 min",
-    icon: "🌐",
-    category: "Maintenance Services",
-  },
-  // Water Purifier
-  "RO Installation": {
-    name: "RO Installation",
-    description: "RO purifier installation",
-    price: 699,
     duration: "1-2 hours",
-    icon: "🔧",
-    category: "Water Purifier Services",
+    icon: "🪟",
+    category: "Carpenter Services",
   },
-  "UV Installation": {
-    name: "UV Installation",
-    description: "UV purifier installation",
-    price: 699,
-    duration: "1-2 hours",
-    icon: "☀",
-    category: "Water Purifier Services",
-  },
-  "UF Installation": {
-    name: "UF Installation",
-    description: "UF purifier installation",
-    price: 699,
-    duration: "1-2 hours",
-    icon: "🌊",
-    category: "Water Purifier Services",
-  },
-  "Alkaline Installation": {
-    name: "Alkaline Installation",
-    description: "Alkaline purifier installation",
-    price: 799,
-    duration: "1-2 hours",
-    icon: "⚗",
-    category: "Water Purifier Services",
-  },
-  "Commercial Installation": {
-    name: "Commercial Installation",
-    description: "Commercial purifier installation",
-    price: 1499,
-    duration: "2-3 hours",
-    icon: "🏢",
-    category: "Water Purifier Services",
-  },
-  "Water Purifier Repair": {
-    name: "Water Purifier Repair",
-    description: "Water purifier repair",
-    price: 399,
-    duration: "1 hour",
-    icon: "🔧",
-    category: "Water Purifier Services",
-  },
-  "RO Repair": {
-    name: "RO Repair",
-    description: "RO purifier repair",
-    price: 499,
-    duration: "1 hour",
-    icon: "🔧",
-    category: "Water Purifier Services",
-  },
-  "UV Repair": {
-    name: "UV Repair",
-    description: "UV purifier repair",
-    price: 499,
-    duration: "1 hour",
-    icon: "🔧",
-    category: "Water Purifier Services",
-  },
-  "UF Repair": {
-    name: "UF Repair",
-    description: "UF purifier repair",
-    price: 499,
-    duration: "1 hour",
-    icon: "🔧",
-    category: "Water Purifier Services",
-  },
-  "Alkaline Repair": {
-    name: "Alkaline Repair",
-    description: "Alkaline purifier repair",
+  "Cabinet Installation": {
+    name: "Cabinet Installation",
+    description: "Kitchen cabinet installation",
     price: 599,
-    duration: "1 hour",
-    icon: "🔧",
-    category: "Water Purifier Services",
+    duration: "2-3 hours",
+    icon: "🗄️",
+    category: "Carpenter Services",
   },
-  "Commercial Repair": {
-    name: "Commercial Repair",
-    description: "Commercial purifier repair",
+  "Shelf Installation": {
+    name: "Shelf Installation",
+    description: "Wall shelf installation",
+    price: 199,
+    duration: "30-60 min",
+    icon: "📚",
+    category: "Carpenter Services",
+  },
+  // Painting
+  "Interior Painting": {
+    name: "Interior Painting",
+    description: "Interior wall painting",
+    price: 799,
+    duration: "4-6 hours",
+    icon: "🎨",
+    category: "Painting Services",
+  },
+  "Exterior Painting": {
+    name: "Exterior Painting",
+    description: "Exterior wall painting",
     price: 999,
-    duration: "2 hours",
-    icon: "🔧",
-    category: "Water Purifier Services",
+    duration: "6-8 hours",
+    icon: "🏠",
+    category: "Painting Services",
   },
-  "Filter Replacement": {
-    name: "Filter Replacement",
-    description: "Filter replacement",
+  "Door Painting": {
+    name: "Door Painting",
+    description: "Door and gate painting",
     price: 299,
-    duration: "30-45 min",
-    icon: "🔄",
-    category: "Water Purifier Services",
+    duration: "1-2 hours",
+    icon: "🚪",
+    category: "Painting Services",
   },
-  "Membrane Replacement": {
-    name: "Membrane Replacement",
-    description: "Membrane replacement",
+  "Furniture Painting": {
+    name: "Furniture Painting",
+    description: "Furniture refinishing",
+    price: 499,
+    duration: "2-3 hours",
+    icon: "🪑",
+    category: "Painting Services",
+  },
+  "Wall Texture": {
+    name: "Wall Texture",
+    description: "Wall texture application",
+    price: 699,
+    duration: "3-4 hours",
+    icon: "🧱",
+    category: "Painting Services",
+  },
+  // Pest Control
+  "General Pest Control": {
+    name: "General Pest Control",
+    description: "General pest control service",
+    price: 599,
+    duration: "2-3 hours",
+    icon: "🕷️",
+    category: "Pest Control",
+  },
+  "Cockroach Control": {
+    name: "Cockroach Control",
+    description: "Cockroach elimination",
     price: 399,
-    duration: "30-45 min",
-    icon: "🔄",
-    category: "Water Purifier Services",
+    duration: "1-2 hours",
+    icon: "🪳",
+    category: "Pest Control",
   },
-  "UV Bulb Replacement": {
-    name: "UV Bulb Replacement",
-    description: "UV bulb replacement",
-    price: 199,
-    duration: "30 min",
-    icon: "💡",
-    category: "Water Purifier Services",
+  "Termite Control": {
+    name: "Termite Control",
+    description: "Termite treatment",
+    price: 799,
+    duration: "3-4 hours",
+    icon: "🐜",
+    category: "Pest Control",
   },
-  "Tank Cleaning": {
-    name: "Tank Cleaning",
-    description: "Tank cleaning",
-    price: 299,
-    duration: "1 hour",
-    icon: "🧽",
-    category: "Water Purifier Services",
+  "Rodent Control": {
+    name: "Rodent Control",
+    description: "Rat and mouse control",
+    price: 499,
+    duration: "2-3 hours",
+    icon: "🐀",
+    category: "Pest Control",
   },
-  "Annual Maintenance": {
-    name: "Annual Maintenance",
-    description: "Annual maintenance",
+  "Bed Bug Control": {
+    name: "Bed Bug Control",
+    description: "Bed bug treatment",
+    price: 699,
+    duration: "2-3 hours",
+    icon: "🛏️",
+    category: "Pest Control",
+  },
+  // Mechanic
+  "Car Service": {
+    name: "Car Service",
+    description: "Car maintenance service",
     price: 999,
-    duration: "Varies",
-    icon: "📋",
-    category: "Water Purifier Services",
+    duration: "2-3 hours",
+    icon: "🚗",
+    category: "Mechanic Services",
   },
-  "Water Quality Test": {
-    name: "Water Quality Test",
-    description: "Water quality test",
-    price: 199,
-    duration: "30 min",
-    icon: "🧪",
-    category: "Water Purifier Services",
+  "Bike Service": {
+    name: "Bike Service",
+    description: "Bike maintenance service",
+    price: 499,
+    duration: "1-2 hours",
+    icon: "🏍️",
+    category: "Mechanic Services",
+  },
+  "AC Service": {
+    name: "AC Service",
+    description: "Car AC service",
+    price: 599,
+    duration: "1-2 hours",
+    icon: "❄️",
+    category: "Mechanic Services",
+  },
+  "Oil Change": {
+    name: "Oil Change",
+    description: "Engine oil change",
+    price: 299,
+    duration: "30-60 min",
+    icon: "🛢️",
+    category: "Mechanic Services",
+  },
+  "Tire Service": {
+    name: "Tire Service",
+    description: "Tire repair and replacement",
+    price: 399,
+    duration: "1-2 hours",
+    icon: "🛞",
+    category: "Mechanic Services",
   },
 };
 
+// Memoized function to parse duration to minutes
 const parseDurationToMinutes = (duration: string): number => {
-  const durationLower = duration.toLowerCase();
-  const parts = durationLower.split(" ");
+  const timeMatch = duration.match(/(\d+)-(\d+)\s*(min|hour|h)/);
+  if (!timeMatch) return 60; // Default to 60 minutes
 
-  if (parts.length < 2) {
-    return 60; // Default if format is unexpected
+  const [, minStr, maxStr, unit] = timeMatch;
+  const min = parseInt(minStr);
+  const max = parseInt(maxStr);
+
+  if (unit === "hour" || unit === "h") {
+    return Math.round(((min + max) / 2) * 60);
+  } else {
+    return Math.round((min + max) / 2);
   }
-
-  try {
-    const valuePart = parts[0];
-    const unitPart = parts[1];
-    const value = parseInt(valuePart.split("-")[0], 10);
-
-    if (isNaN(value)) {
-      return 60;
-    }
-
-    if (unitPart.startsWith("hour")) {
-      return value * 60;
-    }
-    if (unitPart.startsWith("min")) {
-      return value;
-    }
-  } catch (e) {
-    console.error("Could not parse duration:", duration);
-  }
-
-  return 60; // Default to 60 minutes
 };
 
 const ServiceBookingPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, signIn } = useUser();
-  const { cart, addToCart } = useCart();
-  const { createJob, connectSocket } = useJobTracking();
+  const { addToCart, cart } = useCart();
 
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const [selectedWorker, setSelectedWorker] = useState<string>("");
+  // State management
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<string>("cod");
-  const [isBookingConfirmed, setIsBookingConfirmed] = useState(false);
-  const [coupon, setCoupon] = useState("");
-  const [couponApplied, setCouponApplied] = useState(false);
-  const [discount, setDiscount] = useState(0);
+    useState<string>("");
+  const [coupon, setCoupon] = useState<string>("");
+  const [couponApplied, setCouponApplied] = useState<boolean>(false);
+  const [discount, setDiscount] = useState<number>(0);
+  const [isBookingConfirmed, setIsBookingConfirmed] = useState<boolean>(false);
+  const [nearbyWorkerCount, setNearbyWorkerCount] = useState<number | null>(
+    null
+  );
+  const [assignedWorker, setAssignedWorker] = useState<any>(null);
+  const [showWorkerModal, setShowWorkerModal] = useState(false);
 
-  // Memoize service lookup for better performance
+  // Loading states for cool animations
+  const [bookingStage, setBookingStage] = useState<
+    | "idle"
+    | "initiating"
+    | "getting-location"
+    | "creating-user"
+    | "creating-job"
+    | "redirecting"
+  >("idle");
+  const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
+
+  // Address state
+  const [address, setAddress] = useState<string>("");
+  const [addressLoading, setAddressLoading] = useState<boolean>(true);
+  const [addressError, setAddressError] = useState<string>("");
+
+  // Get service name from URL params
+  const serviceName = searchParams.get("service");
+
+  // Page load animation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 1500); // Show loading animation for 1.5 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Fetch address on mount
+  useEffect(() => {
+    let isMounted = true;
+    setAddressLoading(true);
+    getCurrentLocationWithAddress()
+      .then((loc) => {
+        if (isMounted) {
+          setAddress(formatAddress(loc.address));
+          setAddressLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setAddressError(
+            "Could not fetch address automatically. Please enter manually."
+          );
+          setAddressLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Memoize current service to prevent unnecessary re-renders
   const currentService = useMemo(() => {
-    const serviceName = searchParams.get("service") || "Haircut";
-    const category = searchParams.get("category") || "Hair Services";
+    if (!serviceName || !SERVICE_DETAILS[serviceName]) {
+      return SERVICE_DETAILS["Haircut"]; // Default service
+    }
+    return SERVICE_DETAILS[serviceName];
+  }, [serviceName]);
 
-    return (
-      SERVICE_DETAILS[serviceName] || {
-        name: serviceName,
-        description: "Service details coming soon.",
-        price: 500,
-        duration: "1 hour",
-        icon: "🔧",
-        category: category,
-      }
-    );
-  }, [searchParams]);
-
-  // Memoize cart check
+  // Memoize cart check to prevent unnecessary re-renders
   const isInCart = useMemo(() => {
     return cart.some(
       (item) =>
@@ -915,116 +641,84 @@ const ServiceBookingPage: React.FC = () => {
     );
   }, [cart, currentService.name, currentService.category]);
 
-  useEffect(() => {
-    // Connect to socket when component mounts
-    connectSocket();
-  }, [connectSocket]);
+  // Memoize final price calculation
+  const finalPrice = useMemo(() => {
+    return currentService.price - discount;
+  }, [currentService.price, discount]);
 
-  const handleBooking = async () => {
+  // New state for job data
+  const [jobDataForBooking, setJobDataForBooking] = useState<any>(null);
+  const [userDataForBooking, setUserDataForBooking] = useState<any>(null);
+
+  // Optimized booking handler with useCallback and cool animations
+  const handleBooking = useCallback(async () => {
+    console.log("🚀 [BOOKING] Starting booking process...");
+    console.log("👤 [BOOKING] User:", user);
+    console.log("💳 [BOOKING] Payment method:", selectedPaymentMethod);
+    console.log("📍 [BOOKING] Address:", address);
+
     if (!user) {
+      console.log("❌ [BOOKING] No user, attempting sign in...");
       try {
         await signIn();
       } catch (err) {
+        console.error("❌ [BOOKING] Sign-in failed:", err);
         alert("Sign-in failed. Please try again.");
       }
       return;
     }
 
+    if (!user.email) {
+      console.error("❌ [BOOKING] No user email");
+      alert("User email is required. Please sign in again.");
+      return;
+    }
+
     if (!("geolocation" in navigator)) {
+      console.error("❌ [BOOKING] Geolocation not supported");
       alert("Geolocation is not supported by your browser.");
       return;
     }
 
-    // Get user's location
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
+    if (selectedPaymentMethod) {
+      console.log("✅ [BOOKING] All checks passed, starting booking...");
+      setIsBookingConfirmed(true);
+      setBookingStage("initiating");
 
-        try {
-          // First, get the userId from backend using email
-          const userEmail = user.email;
-          if (!userEmail) {
-            alert("User email not found. Please try signing in again.");
-            return;
-          }
-
-          let userId: string;
-
-          // First, try to get existing user by email
-          const userResponse = await fetch(
-            `http://localhost:5000/api/v1/users/email/${encodeURIComponent(
-              userEmail
-            )}`
-          );
-          console.log(userResponse);
-
-          if (userResponse.ok) {
-            // User exists, get the userId
-            const userData = await userResponse.json();
-            userId = userData.id;
-          } else if (userResponse.status === 404) {
-            // User doesn't exist, create new user first
-            const createUserResponse = await fetch(
-              "http://localhost:5000/api/v1/users",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  email: userEmail,
-                  firstName: user.name?.split(" ")[0] || "User",
-                  lastName: user.name?.split(" ").slice(1).join(" ") || "Name",
-                  phoneNumber: "000000000000",
-                }),
-              }
-            );
-
-            if (!createUserResponse.ok) {
-              throw new Error("Failed to create user");
-            }
-
-            const newUser = await createUserResponse.json();
-            userId = newUser.data.id;
-          } else {
-            throw new Error("Failed to get user information");
-          }
-
-          // Now we have the userId, create the job
-          const jobData = {
-            userId: userId,
-            description: `${currentService.name}: ${currentService.description}`,
-            location: "User's location", // You can improve this with reverse geocoding
-            lat: latitude,
-            lng: longitude,
-            status: "pending",
-            bookedFor:
-              selectedDate && selectedTime
-                ? new Date(`${selectedDate}T${selectedTime}`).toISOString()
-                : undefined,
-            durationMinutes: parseDurationToMinutes(currentService.duration),
-          };
-
-          const newJob = await createJob(jobData);
-          console.log("Job created successfully:", newJob);
-
-          // Redirect to job tracking page
-          router.push(`/job-tracking?jobId=${newJob.id}`);
-        } catch (error) {
-          console.error("Error creating job:", error);
-          alert("Failed to create job. Please try again.");
-        }
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-        alert(
-          "Unable to retrieve your location. Please enable location services and try again."
-        );
+      try {
+        // Simulate booking and assign a random worker
+        const randomWorker = mockWorkers[Math.floor(Math.random() * mockWorkers.length)];
+        setTimeout(() => {
+          setIsBookingConfirmed(false);
+          setBookingStage("idle");
+          setAddress("");
+          router.push(`/booking/worker-assigned?id=${randomWorker.id}`);
+        }, 1500);
+      } catch (error) {
+        setIsBookingConfirmed(false);
+        setBookingStage("idle");
       }
-    );
+    }
+  }, [
+    user,
+    signIn,
+    selectedPaymentMethod,
+    currentService,
+    router,
+    address,
+    finalPrice,
+    discount,
+    couponApplied,
+    coupon,
+  ]);
+
+  // Handler for when workers are found
+  const handleWorkerFound = (count: number) => {
+    setNearbyWorkerCount(count);
   };
 
-  const handleApplyCoupon = () => {
+  // Optimized coupon handler with useCallback
+  const handleApplyCoupon = useCallback(() => {
     if (coupon.trim().toUpperCase() === "USER25") {
       setDiscount(Math.round(currentService.price * 0.25));
       setCouponApplied(true);
@@ -1033,7 +727,27 @@ const ServiceBookingPage: React.FC = () => {
       setCouponApplied(false);
       alert("Invalid coupon code");
     }
-  };
+  }, [coupon, currentService.price]);
+
+  // Optimized cart handler with useCallback
+  const handleAddToCart = useCallback(() => {
+    if (!isInCart) {
+      addToCart({
+        name: currentService.name,
+        price: currentService.price,
+        category: currentService.category,
+      });
+    }
+  }, [isInCart, addToCart, currentService]);
+
+  // Show page loading animation
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen bg-white mt-28 flex items-center justify-center">
+        <PageLoadAnimation />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white mt-28">
@@ -1075,7 +789,7 @@ const ServiceBookingPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-8 md:flex-row">
           {/* Left Column - Service Details */}
           <div className="space-y-6">
             {/* Service Information */}
@@ -1111,27 +825,52 @@ const ServiceBookingPage: React.FC = () => {
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-xl"
                 }`}
-                onClick={() =>
-                  !isInCart &&
-                  addToCart({
-                    name: currentService.name,
-                    price: currentService.price,
-                    category: currentService.category,
-                  })
-                }
+                onClick={handleAddToCart}
                 disabled={isInCart}
               >
-                {isInCart ? "Added to Cart" : "Add to Cart"}
+                {isInCart ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <span>Added to Cart</span>
+                    <PulsingDots />
+                  </div>
+                ) : (
+                  "Add to Cart"
+                )}
               </button>
             </div>
           </div>
 
           {/* Right Column - Booking Summary */}
-          <div>
+          <div className="flex-1 min-w-[320px]">
             <div className="rounded-xl p-8 bg-gray-50">
               <h2 className="text-2xl font-bold mb-6 passion-one-black text-gray-800">
                 Booking Summary
               </h2>
+              {/* Address Input */}
+              <div className="mb-6">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Your Address
+                </label>
+                <ModernInput
+                  value={address}
+                  onChange={setAddress}
+                  placeholder="Enter your address"
+                  icon={null}
+                  disabled={addressLoading}
+                  error={addressError}
+                  className="mb-2"
+                />
+                {addressLoading && (
+                  <div className="text-yellow-600 text-sm flex items-center gap-2 animate-pulse">
+                    <span>Fetching your address...</span>
+                  </div>
+                )}
+                {addressError && (
+                  <div className="text-red-500 text-sm mt-1">
+                    {addressError}
+                  </div>
+                )}
+              </div>
               {/* Coupon Input */}
               <div className="mb-6">
                 <label className="block text-gray-700 font-medium mb-2">
@@ -1165,157 +904,139 @@ const ServiceBookingPage: React.FC = () => {
                   </p>
                 )}
               </div>
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Service:</span>
-                  <span className="font-semibold text-gray-800">
-                    {currentService.name}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Category:</span>
-                  <span className="font-semibold text-gray-800">
-                    {currentService.category}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Duration:</span>
-                  <span className="font-semibold text-gray-800">
-                    {currentService.duration}
-                  </span>
-                </div>
-              </div>
-              {/* Price Breakdown */}
-              <div className="border-t border-gray-200 pt-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Original Price:</span>
-                  <span className="text-gray-800 line-through">
-                    ₹{currentService.price}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Discount:</span>
-                  <span className="text-green-600">-₹{discount}</span>
-                </div>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-lg font-semibold text-gray-800">
-                    Total Amount:
-                  </span>
-                  <span className="text-2xl font-bold text-yellow-600">
-                    ₹{currentService.price - discount}
-                  </span>
-                </div>
-              </div>
-              {/* Payment Method Selection */}
+
+              {/* Payment Method */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                <label className="block text-gray-700 font-medium mb-2">
                   Payment Method
-                </h3>
+                </label>
                 <div className="space-y-3">
-                  <div
-                    onClick={() => setSelectedPaymentMethod("cod")}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                      selectedPaymentMethod === "cod"
-                        ? "border-yellow-500 bg-yellow-50"
-                        : "border-gray-200 hover:border-yellow-300 bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPaymentMethod === "cod"
-                            ? "border-yellow-500 bg-yellow-500"
-                            : "border-gray-300"
-                        }`}
-                      >
-                        {selectedPaymentMethod === "cod" && (
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        )}
+                  <label className="flex items-center space-x-3 cursor-pointer p-3 border-2 border-gray-200 rounded-lg hover:border-yellow-500 transition-colors duration-200">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cash"
+                      checked={selectedPaymentMethod === "cash"}
+                      onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                      className="text-yellow-500 focus:ring-yellow-500"
+                    />
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-5 h-5 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                          ></path>
+                        </svg>
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl">💵</span>
-                        <div>
-                          <div className="font-semibold text-gray-800">
-                            Cash on Delivery
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Pay after service completion
+                      <div>
+                        <span className="font-medium text-gray-800">
+                          Cash on Delivery
+                        </span>
+                        <p className="text-xs text-gray-500">
+                          Pay when service is completed
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+                  <label className="flex items-center space-x-3 cursor-pointer p-3 border-2 border-gray-200 rounded-lg hover:border-yellow-500 transition-colors duration-200">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="online"
+                      checked={selectedPaymentMethod === "online"}
+                      onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                      className="text-yellow-500 focus:ring-yellow-500"
+                    />
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-5 h-5 text-blue-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-800">
+                          Online Payment
+                        </span>
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-xs text-gray-500">
+                            Pay securely with
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <div className="w-6 h-4 bg-orange-500 rounded text-white text-xs flex items-center justify-center font-bold">
+                              G
+                            </div>
+                            <div className="w-6 h-4 bg-purple-500 rounded text-white text-xs flex items-center justify-center font-bold">
+                              P
+                            </div>
+                            <div className="w-6 h-4 bg-blue-500 rounded text-white text-xs flex items-center justify-center font-bold">
+                              P
+                            </div>
+                            <div className="w-6 h-4 bg-green-500 rounded text-white text-xs flex items-center justify-center font-bold">
+                              U
+                            </div>
+                            <div className="w-6 h-4 bg-gray-600 rounded text-white text-xs flex items-center justify-center font-bold">
+                              C
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </label>
+                </div>
+              </div>
 
-                  <div
-                    onClick={() => setSelectedPaymentMethod("upi")}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                      selectedPaymentMethod === "upi"
-                        ? "border-yellow-500 bg-yellow-50"
-                        : "border-gray-200 hover:border-yellow-300 bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPaymentMethod === "upi"
-                            ? "border-yellow-500 bg-yellow-500"
-                            : "border-gray-300"
-                        }`}
-                      >
-                        {selectedPaymentMethod === "upi" && (
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl">📱</span>
-                        <div>
-                          <div className="font-semibold text-gray-800">
-                            UPI Payment
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Pay online via UPI
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+              {/* Price Breakdown */}
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Service Price:</span>
+                  <span className="font-semibold">₹{currentService.price}</span>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount:</span>
+                    <span>-₹{discount}</span>
+                  </div>
+                )}
+                <div className="border-t pt-3">
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total:</span>
+                    <span className="text-yellow-600">₹{finalPrice}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-gray-200 pt-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-800">
-                    Total Amount:
-                  </span>
-                  <span className="text-2xl font-bold text-yellow-600">
-                    ₹{currentService.price - discount}
-                  </span>
-                </div>
-              </div>
-
-              <button
+              {/* Book Now Button */}
+              <ModernButton
                 onClick={handleBooking}
-                disabled={!selectedPaymentMethod}
-                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
-                  selectedPaymentMethod
-                    ? "bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-xl"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
+                disabled={
+                  !selectedPaymentMethod ||
+                  isBookingConfirmed ||
+                  addressLoading ||
+                  !address
+                }
+                loading={isBookingConfirmed}
+                className="w-full py-4 mt-2"
               >
-                {isBookingConfirmed
-                  ? "Booking Confirmed!"
-                  : selectedPaymentMethod === "cod"
-                  ? "Book Now (Pay Later)"
-                  : "Pay & Book Now"}
-              </button>
-
-              {isBookingConfirmed && (
-                <div className="mt-4 p-4 bg-green-100 rounded-lg">
-                  <p className="text-green-800 text-center">
-                    Your booking has been confirmed! Redirecting to tracking...
-                  </p>
-                </div>
-              )}
+                {isBookingConfirmed ? "Looking for worker near you..." : "Book Now"}
+              </ModernButton>
             </div>
           </div>
         </div>

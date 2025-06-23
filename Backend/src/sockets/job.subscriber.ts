@@ -62,7 +62,7 @@ const getNearbyWorkers = async (
         ) as distance
       FROM workers w
       INNER JOIN live_locations ll ON w.id = ll.worker_id
-      INNER JOIN specializations s ON w.id = s.worker_id
+      INNER JOIN worker_specializations s ON w.id = s.worker_id
       WHERE (
         6371 * acos(
           cos(radians(${lat})) *
@@ -71,7 +71,7 @@ const getNearbyWorkers = async (
           sin(radians(${lat})) * sin(radians(ll.lat))
         )
       ) < ${radius}
-      AND (s.name ILIKE ${`%${jobCategory}%`} OR s.sub_category ILIKE ${`%${jobCategory}%`})
+      AND (s.category::text ILIKE ${`%${jobCategory}%`} OR s.sub_category::text ILIKE ${`%${jobCategory}%`})
     `;
   }
 

@@ -2,7 +2,9 @@ import { createCivicAuthPlugin } from "@civic/auth/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    domains: ['i.pravatar.cc', 'via.placeholder.com'],
+  },
 };
 
 const withCivicAuth = createCivicAuthPlugin({

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, ChangeEvent, FormEvent, useRef, useEffect } from "react";
-import styles from "./onboarding.module.css"; // This path is correct if both files are in the same folder.
+import styles from "./onboarding.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useUser } from "@civic/auth/react";
-import { CLOUDINARY_CONFIG } from "../../config/cloudinary";
+import { CLOUDINARY_CONFIG } from "@/app/config/cloudinary";
 
 // --- Icon Components ---
 const CameraIcon = () => (
@@ -60,18 +60,15 @@ const formatPhoneNumber = (phoneNumber: string): string => {
   if (cleanNumber.length !== 10) {
     throw new Error("Phone number must be exactly 10 digits");
   }
-
-  // Add +91 country code
-  return `+91${cleanNumber}`;
+  // Add 091 country code to make it exactly 13 digits
+  return `091${cleanNumber}`;
 };
 
-// Function to validate phone number format
 const validatePhoneNumber = (phoneNumber: string): boolean => {
   const cleanNumber = phoneNumber.replace(/^\+91/, "").replace(/\D/g, "");
   return cleanNumber.length === 10 && /^\d{10}$/.test(cleanNumber);
 };
 
-// Function to upload image to Cloudinary
 const uploadImageToCloudinary = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append("file", file);
@@ -127,7 +124,6 @@ const uploadImageToCloudinary = async (file: File): Promise<string> => {
           console.error("Fallback upload failed:", fallbackErrorText);
         }
       }
-
       throw new Error(
         `Cloudinary upload failed: ${response.status} - ${errorText}`
       );
@@ -184,13 +180,42 @@ export default function WorkerOnboardingPage() {
     "idle" | "loading" | "success" | "error"
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isCheckingWorker, setIsCheckingWorker] = useState(true);
 
-  // Effect to auto-fill email from user profile
   useEffect(() => {
     if (user?.email) {
       setFormData((prev) => ({ ...prev, email: user.email || "" }));
+      // Check if worker already exists
+      checkWorkerExists(user.email);
+    } else {
+      setIsCheckingWorker(false);
     }
   }, [user]);
+
+  const checkWorkerExists = async (email: string) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/v1/workers/email/${encodeURIComponent(email)}`);
+      
+      if (response.ok) {
+        // Worker exists, redirect to dashboard
+        const workerData = await response.json();
+        console.log("Worker already exists:", workerData);
+        router.push("/worker/dashboard");
+        return;
+      } else if (response.status === 404) {
+        // Worker doesn't exist, show onboarding form
+        console.log("Worker not found, showing onboarding form");
+        setIsCheckingWorker(false);
+      } else {
+        // Some other error
+        console.error("Error checking worker existence:", response.status);
+        setIsCheckingWorker(false);
+      }
+    } catch (error) {
+      console.error("Error checking worker existence:", error);
+      setIsCheckingWorker(false);
+    }
+  };
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -238,7 +263,6 @@ export default function WorkerOnboardingPage() {
     }, 1500);
   };
 
-  // Function to get current location
   const handleFetchLocation = () => {
     if (!navigator.geolocation) {
       setLocationState({
@@ -327,19 +351,20 @@ export default function WorkerOnboardingPage() {
       // Create JSON data for API submission (no FormData needed since we have the URL)
       const apiData = {
         firstName: formData.firstName,
-        middleName: formData.middleName,
+        middleName: formData.middleName || undefined,
         lastName: formData.lastName,
         email: formData.email,
-        password: formData.password,
+        password: formData.password || undefined,
+        profilePicture: profilePictureUrl || undefined,
         address: formData.address,
-        description: formData.description,
-        phoneNumber: formattedPhoneNumber, // Use the formatted phone number
+        description: formData.description || undefined,
+        phoneNumber: formattedPhoneNumber,
         dateOfBirth: formData.dateOfBirth,
         gender: formData.gender,
-        experienceYears: formData.experienceYears,
-        panCard: formData.panCard,
-        profilePictureUrl: profilePictureUrl, // Send the URL instead of file
+        experienceYears: parseInt(formData.experienceYears || "0", 10),
+        panCard: formData.panCard || undefined,
       };
+      
 
       console.log("API data being sent:", apiData);
 
@@ -367,7 +392,9 @@ export default function WorkerOnboardingPage() {
           })
         );
 
-        setTimeout(() => router.push("/worker/dashboard"), 1500);
+        // Redirect to specialization page with worker ID
+        const workerId = result.data.id;
+        setTimeout(() => router.push(`/worker/onboarding/specialize?workerId=${workerId}`), 1500);
       } else {
         const errorResult = await response.json();
         console.error("Submission failed:", errorResult);
@@ -382,6 +409,21 @@ export default function WorkerOnboardingPage() {
   };
 
   const RequiredStar = () => <span className={styles.requiredStar}>*</span>;
+
+  // Show loading screen while checking if worker exists
+  if (isCheckingWorker) {
+    return (
+      <div className={styles.pageWrapper}>
+        <div className={styles.formContainer}>
+          <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+            <div className={styles.spinner} style={{ margin: '0 auto 1rem auto' }}></div>
+            <h2>Checking your profile...</h2>
+            <p>Please wait while we verify your account.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.pageWrapper}>
@@ -416,6 +458,15 @@ export default function WorkerOnboardingPage() {
           >
             <div className={styles.stepNumber}>3</div>
             <div className={styles.stepLabel}>Profile Photo</div>
+          </div>
+          <div className={styles.stepConnector}></div>
+          <div
+            className={`${styles.step} ${
+              currentStep >= 4 ? styles.active : ""
+            }`}
+          >
+            <div className={styles.stepNumber}>4</div>
+            <div className={styles.stepLabel}>Specializations</div>
           </div>
         </div>
         <form onSubmit={handleSubmit}>
@@ -487,7 +538,6 @@ export default function WorkerOnboardingPage() {
                     <option value="not_specified">Do not specify</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
-                    <option value="other">Other</option>
                   </select>
                 </div>
               </div>
@@ -542,6 +592,7 @@ export default function WorkerOnboardingPage() {
                       disabled={
                         verification.phoneLoading || !formData.phoneNumber
                       }
+                      aria-label={verification.phoneOtpSent ? "Resend OTP" : "Send OTP"}
                     >
                       {verification.phoneOtpSent ? "Resend OTP" : "Send OTP"}
                     </button>
@@ -565,6 +616,7 @@ export default function WorkerOnboardingPage() {
                       className={styles.verifyButton}
                       onClick={handleVerifyOtp}
                       disabled={verification.phoneLoading}
+                      aria-label="Verify OTP"
                     >
                       {verification.phoneLoading ? (
                         <div className={styles.spinner}></div>
@@ -693,6 +745,7 @@ export default function WorkerOnboardingPage() {
                       type="button"
                       onClick={handleRemoveImage}
                       className={styles.removePicButton}
+                      aria-label="Remove profile picture"
                     >
                       <CrossIcon />
                     </button>
@@ -738,7 +791,7 @@ export default function WorkerOnboardingPage() {
                 className={styles.submitButton}
                 disabled={submissionStatus === "loading"}
               >
-                Submit Profile
+                {submissionStatus === "loading" ? "Submitting..." : "Submit & Continue to Specializations"}
               </button>
             )}
           </div>
@@ -775,6 +828,9 @@ export default function WorkerOnboardingPage() {
                   />
                 </svg>
                 <p>Profile Created Successfully!</p>
+                <p style={{ fontSize: '0.9rem', marginTop: '0.5rem', color: '#666' }}>
+                  Redirecting to specializations...
+                </p>
               </div>
             )}
             {submissionStatus === "error" && (
@@ -806,3 +862,4 @@ export default function WorkerOnboardingPage() {
     </div>
   );
 }
+

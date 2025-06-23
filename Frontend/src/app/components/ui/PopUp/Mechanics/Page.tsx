@@ -1,74 +1,49 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 
-interface MechanicsPopupProps {
+interface PopupProps {
   onClose: () => void;
 }
 
-interface MechanicService {
-  name: string;
-  icon: string;
-}
+const services = [
+  { name: 'Car Service', icon: '🚗' },
+  { name: 'Bike Service', icon: '🏍️' },
+  { name: 'Emergency Service', icon: '🚨' },
+  { name: 'Tire Leak', icon: '🛞' },
+  { name: 'AC Service', icon: '❄️' },
+  { name: 'Oil Change', icon: '🛢️' },
+];
 
-const MechanicsPopup: React.FC<MechanicsPopupProps> = ({ onClose }) => {
+const MechanicsPopup: React.FC<PopupProps> = ({ onClose }) => {
   const router = useRouter();
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-
-  const mechanicServices: MechanicService[] = [
-    { name: 'Car Repair', icon: '🚗' },
-    { name: 'Bike Repair', icon: '🏍️' },
-    { name: 'Engine Diagnostics', icon: '🔧' },
-    { name: 'Battery Replacement', icon: '🔋' },
-    { name: 'Oil Change', icon: '🛢️' },
-    { name: 'Tire Service', icon: '🛞' },
-  ];
 
   const handleServiceClick = (serviceName: string) => {
-    setSelectedService(serviceName);
-    router.push(`/booking/services?service=${encodeURIComponent(serviceName)}&category=Mechanics`);
-    onClose();
-  };
-
-  const handleClose = () => {
-    setSelectedService(null);
+    router.push(`/booking/services?service=${encodeURIComponent(serviceName)}`);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-md bg-white/20 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl relative max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Close Button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 bg-gray-200 rounded-full p-2 hover:bg-gray-300 transition-colors z-10"
-          aria-label="Close"
-        >
-          <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-
-        <div className="p-6">
-          <h3 className="text-xl font-semibold mb-4">Mechanic Services</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4">
-            {mechanicServices.map((item, index) => (
-              <div
-                key={index}
-                onClick={() => handleServiceClick(item.name)}
-                className="flex flex-col items-center p-4 border-2 border-gray-200 rounded-lg text-center cursor-pointer hover:bg-yellow-100 hover:border-yellow-400 transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-3xl mb-2">{item.icon}</div>
-                <span className="text-sm font-medium text-gray-800">{item.name}</span>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <p className="text-sm text-gray-500 mt-3">
-              Professional mechanics available
-            </p>
-          </div>
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-sm mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Mechanic Services</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+            &times;
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {services.map((service) => (
+            <div
+              key={service.name}
+              onClick={() => handleServiceClick(service.name)}
+              className="flex flex-col items-center p-4 bg-gray-100 rounded-lg cursor-pointer hover:bg-yellow-200 transition-colors"
+            >
+              <div className="text-3xl mb-2">{service.icon}</div>
+              <span className="text-sm text-center">{service.name}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

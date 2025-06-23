@@ -2,10 +2,18 @@
 
 import React, { useEffect, useState } from "react";
 import { useJobTracking } from "@/lib/jobTracking";
-import { useUser } from "@civic/auth/react";
+import LiveTrackingMap from "../components/LiveTrackingMap";
+import EnhancedTrackingDisplay from "../components/EnhancedTrackingDisplay";
+import {
+  FiPlay,
+  FiSquare,
+  FiRefreshCw,
+  FiMap,
+  FiList,
+  FiMaximize2,
+} from "react-icons/fi";
 
 const TestTrackingPage: React.FC = () => {
-  const { user } = useUser();
   const {
     currentJob,
     assignedWorker,
@@ -15,6 +23,7 @@ const TestTrackingPage: React.FC = () => {
     lastLocationUpdate,
     isSocketConnected,
     connectSocket,
+    disconnectSocket,
     createJob,
     acceptJob,
     updateLocation,
@@ -23,92 +32,113 @@ const TestTrackingPage: React.FC = () => {
     clearError,
   } = useJobTracking();
 
-  const [testMode, setTestMode] = useState<"user" | "worker">("user");
-  const [locationInterval, setLocationInterval] =
+  const [testMode, setTestMode] = useState<"simulate" | "manual">("simulate");
+  const [viewMode, setViewMode] = useState<"split" | "map" | "details">(
+    "split"
+  );
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationInterval, setSimulationInterval] =
     useState<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    connectSocket();
-  }, [connectSocket]);
-
-  // Test job creation (for user mode)
-  const handleCreateTestJob = async () => {
-    if (!user) {
-      alert("Please sign in first");
-      return;
-    }
-
-    try {
-      const jobData = {
-        userId: "test-user-id",
-        description: "Test job for tracking functionality",
-        location: "Test Location, Kolkata",
-        lat: 22.5726,
-        lng: 88.3639,
-        status: "pending",
-        durationMinutes: 60,
-      };
-
-      const newJob = await createJob(jobData);
-      console.log("Test job created:", newJob);
-      alert("Test job created successfully!");
-    } catch (error) {
-      console.error("Failed to create test job:", error);
-      alert("Failed to create test job");
-    }
+  // Test job data
+  const testJobData = {
+    userId: "test-user-123",
+    description: "Test Service - Plumbing Repair",
+    location: "123 Test Street, Test City",
+    lat: 22.5726,
+    lng: 88.3639,
+    bookedFor: new Date(Date.now() + 3600000).toISOString(), // 1 hour from now
+    durationMinutes: 120,
   };
 
-  // Test job acceptance (for worker mode)
-  const handleAcceptTestJob = () => {
-    if (!currentJob || !user) {
-      alert("No job available or user not signed in");
-      return;
-    }
+  // Simulate location updates
+  const simulateLocationUpdates = () => {
+    if (!currentJob) return;
 
-    acceptJob(currentJob.id, user.id);
-    alert("Job accepted!");
-  };
+    const startLat = 22.5726;
+    const startLng = 88.3639;
+    const endLat = currentJob.lat;
+    const endLng = currentJob.lng;
 
-  // Test location updates (for worker mode)
-  const handleStartLocationUpdates = () => {
-    if (!currentJob || !user) {
-      alert("No active job or user not signed in");
-      return;
-    }
-
-    if (locationInterval) {
-      clearInterval(locationInterval);
-      setLocationInterval(null);
-      alert("Location updates stopped");
-      return;
-    }
-
+    let progress = 0;
     const interval = setInterval(() => {
-      const lat = 22.5726 + (Math.random() - 0.5) * 0.001;
-      const lng = 88.3639 + (Math.random() - 0.5) * 0.001;
+      progress += 0.02; // Move 2% closer each update
 
-      updateLocation(currentJob.id, user.id, lat, lng);
-      console.log("Location updated:", { lat, lng });
-    }, 3000);
+      if (progress >= 1) {
+        clearInterval(interval);
+        setIsSimulating(false);
+        setSimulationInterval(null);
+        return;
+      }
 
-    setLocationInterval(interval);
-    alert("Location updates started (every 3 seconds)");
+      const currentLat = startLat + (endLat - startLat) * progress;
+      const currentLng = startLng + (endLng - startLng) * progress;
+
+      // Use a real worker ID if available, otherwise use a test ID
+      const workerId = assignedWorker?.id || "test-worker-456";
+      updateLocation(currentJob.id, workerId, currentLat, currentLng);
+    }, 2000); // Update every 2 seconds
+
+    setSimulationInterval(interval);
   };
 
-  // Test job completion
-  const handleCompleteTestJob = () => {
-    if (!currentJob || !user) {
-      alert("No active job or user not signed in");
-      return;
+  // Start simulation
+  const startSimulation = async () => {
+    try {
+      // Create a test job
+      const job = await createJob(testJobData);
+      console.log("Test job created:", job);
+
+      // Accept the job with a test worker ID
+      const testWorkerId = "test-worker-456";
+      acceptJob(job.id, testWorkerId);
+      console.log("Job accepted by test worker");
+
+      // Start location simulation
+      setIsSimulating(true);
+      simulateLocationUpdates();
+    } catch (err) {
+      console.error("Simulation failed:", err);
     }
-
-    completeJob(currentJob.id, user.id);
-    alert("Job completed!");
   };
+
+  // Stop simulation
+  const stopSimulation = () => {
+    if (simulationInterval) {
+      clearInterval(simulationInterval);
+      setSimulationInterval(null);
+    }
+    setIsSimulating(false);
+
+    if (currentJob) {
+      const workerId = assignedWorker?.id || "test-worker-456";
+      completeJob(currentJob.id, workerId);
+    }
+  };
+
+  // Manual location update
+  const updateManualLocation = () => {
+    if (!currentJob) return;
+
+    const lat = 22.5726 + (Math.random() - 0.5) * 0.01;
+    const lng = 88.3639 + (Math.random() - 0.5) * 0.01;
+
+    const workerId = assignedWorker?.id || "test-worker-456";
+    updateLocation(currentJob.id, workerId, lat, lng);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (simulationInterval) {
+        clearInterval(simulationInterval);
+      }
+    };
+  }, [simulationInterval]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Live Tracking Test</h1>
 
         {/* Connection Status */}
@@ -119,15 +149,23 @@ const TestTrackingPage: React.FC = () => {
               className={`w-3 h-3 rounded-full ${
                 isSocketConnected ? "bg-green-500" : "bg-red-500"
               }`}
-            ></div>
+            />
             <span>{isSocketConnected ? "Connected" : "Disconnected"}</span>
           </div>
-          <button
-            onClick={connectSocket}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Reconnect
-          </button>
+          <div className="flex space-x-2">
+            <button
+              onClick={connectSocket}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Connect
+            </button>
+            <button
+              onClick={disconnectSocket}
+              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+            >
+              Disconnect
+            </button>
+          </div>
         </div>
 
         {/* Error Display */}
@@ -145,124 +183,174 @@ const TestTrackingPage: React.FC = () => {
           </div>
         )}
 
-        {/* Test Mode Selection */}
+        {/* Test Controls */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Test Mode</h2>
-          <div className="flex space-x-4">
-            <button
-              onClick={() => setTestMode("user")}
-              className={`px-4 py-2 rounded ${
-                testMode === "user" ? "bg-blue-600 text-white" : "bg-gray-200"
-              }`}
-            >
-              User Mode
-            </button>
-            <button
-              onClick={() => setTestMode("worker")}
-              className={`px-4 py-2 rounded ${
-                testMode === "worker" ? "bg-blue-600 text-white" : "bg-gray-200"
-              }`}
-            >
-              Worker Mode
-            </button>
+          <h2 className="text-xl font-semibold mb-4">Test Controls</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Simulation Mode */}
+            <div>
+              <h3 className="font-medium mb-3">Simulation Mode</h3>
+              <div className="space-y-2">
+                <button
+                  onClick={startSimulation}
+                  disabled={isSimulating}
+                  className={`w-full px-4 py-2 rounded flex items-center justify-center space-x-2 ${
+                    isSimulating
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-green-600 text-white hover:bg-green-700"
+                  }`}
+                >
+                  <FiPlay className="w-4 h-4" />
+                  <span>
+                    {isSimulating ? "Simulating..." : "Start Simulation"}
+                  </span>
+                </button>
+                <button
+                  onClick={stopSimulation}
+                  disabled={!isSimulating}
+                  className={`w-full px-4 py-2 rounded flex items-center justify-center space-x-2 ${
+                    !isSimulating
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-red-600 text-white hover:bg-red-700"
+                  }`}
+                >
+                  <FiSquare className="w-4 h-4" />
+                  <span>Stop Simulation</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Manual Mode */}
+            <div>
+              <h3 className="font-medium mb-3">Manual Mode</h3>
+              <div className="space-y-2">
+                <button
+                  onClick={updateManualLocation}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Update Location
+                </button>
+                <button
+                  onClick={() => {
+                    if (currentJob) {
+                      acceptJob(currentJob.id, "test-worker-456");
+                    }
+                  }}
+                  className="w-full px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                >
+                  Accept Job
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* User Mode Tests */}
-        {testMode === "user" && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">User Mode Tests</h2>
-            <div className="space-y-4">
+        {/* View Mode Toggle */}
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">View Mode</h2>
+            <div className="flex items-center bg-gray-100 rounded-lg p-1">
               <button
-                onClick={handleCreateTestJob}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                onClick={() => setViewMode("split")}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === "split"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
               >
-                Create Test Job
+                Split
               </button>
+              <button
+                onClick={() => setViewMode("map")}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === "map"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <FiMap className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode("details")}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === "details"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <FiList className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        {viewMode === "split" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Map Section */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900">Live Map</h2>
+              <LiveTrackingMap
+                jobId={currentJob?.id || "test-job"}
+                className="h-96"
+              />
+            </div>
+
+            {/* Enhanced Tracking Display */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Tracking Details
+              </h2>
+              <div className="max-h-96 overflow-y-auto">
+                <EnhancedTrackingDisplay />
+              </div>
             </div>
           </div>
         )}
 
-        {/* Worker Mode Tests */}
-        {testMode === "worker" && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Worker Mode Tests</h2>
-            <div className="space-y-4">
-              <button
-                onClick={handleAcceptTestJob}
-                disabled={!currentJob || isJobAccepted}
-                className={`px-4 py-2 rounded ${
-                  !currentJob || isJobAccepted
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
-              >
-                Accept Job
-              </button>
-              <button
-                onClick={handleStartLocationUpdates}
-                disabled={!isJobAccepted}
-                className={`px-4 py-2 rounded ${
-                  !isJobAccepted
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : locationInterval
-                    ? "bg-red-600 text-white hover:bg-red-700"
-                    : "bg-green-600 text-white hover:bg-green-700"
-                }`}
-              >
-                {locationInterval
-                  ? "Stop Location Updates"
-                  : "Start Location Updates"}
-              </button>
-              <button
-                onClick={handleCompleteTestJob}
-                disabled={!isJobAccepted}
-                className={`px-4 py-2 rounded ${
-                  !isJobAccepted
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-purple-600 text-white hover:bg-purple-700"
-                }`}
-              >
-                Complete Job
-              </button>
-            </div>
+        {viewMode === "map" && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-900">Live Map</h2>
+            <LiveTrackingMap
+              jobId={currentJob?.id || "test-job"}
+              className="h-[calc(100vh-400px)]"
+            />
           </div>
         )}
 
-        {/* Current State Display */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Current State</h2>
-          <div className="space-y-2 text-sm">
+        {viewMode === "details" && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Tracking Details
+            </h2>
+            <EnhancedTrackingDisplay />
+          </div>
+        )}
+
+        {/* Status Information */}
+        <div className="bg-white rounded-lg shadow p-6 mt-6">
+          <h2 className="text-xl font-semibold mb-4">Status Information</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <strong>Current Job:</strong>{" "}
-              {currentJob ? currentJob.description : "None"}
+              <span className="text-gray-600">Job Status:</span>
+              <p className="font-medium">{currentJob?.status || "No job"}</p>
             </div>
             <div>
-              <strong>Job Status:</strong> {currentJob?.status || "None"}
+              <span className="text-gray-600">Tracking Active:</span>
+              <p className="font-medium">{isTrackingActive ? "Yes" : "No"}</p>
             </div>
             <div>
-              <strong>Job Accepted:</strong> {isJobAccepted ? "Yes" : "No"}
+              <span className="text-gray-600">Worker Assigned:</span>
+              <p className="font-medium">{assignedWorker ? "Yes" : "No"}</p>
             </div>
             <div>
-              <strong>Tracking Active:</strong>{" "}
-              {isTrackingActive ? "Yes" : "No"}
-            </div>
-            <div>
-              <strong>Assigned Worker:</strong>{" "}
-              {assignedWorker
-                ? `${assignedWorker.firstName} ${assignedWorker.lastName}`
-                : "None"}
-            </div>
-            <div>
-              <strong>Worker Location:</strong>{" "}
-              {workerLocation
-                ? `${workerLocation.lat.toFixed(
-                    6
-                  )}, ${workerLocation.lng.toFixed(6)}`
-                : "None"}
-            </div>
-            <div>
-              <strong>Last Update:</strong> {lastLocationUpdate || "None"}
+              <span className="text-gray-600">Last Update:</span>
+              <p className="font-medium">
+                {lastLocationUpdate
+                  ? new Date(lastLocationUpdate).toLocaleTimeString()
+                  : "Never"}
+              </p>
             </div>
           </div>
         </div>

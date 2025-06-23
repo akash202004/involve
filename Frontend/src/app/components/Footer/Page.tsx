@@ -61,13 +61,19 @@ const FooterSecond = () => {
         { text: 'GDPR', url: '/gdpr' },
       ],
     },
+    {
+      title: 'Admin',
+      links: [
+        { text: 'Admin', url: '/admin' },
+      ],
+    },
   ];
 
   
   return (
     <footer className="bg-white text-gray-800 py-8 px-6 shadow-lg">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 mb-8">
           <div className="col-span-1 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center mb-4">
               {brandDetails.brandIcon}
@@ -89,7 +95,7 @@ const FooterSecond = () => {
               ))}
             </div>
           </div>
-          <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-2 sm:grid-cols-4 gap-8 ">
+          <div className="sm:col-span-2 lg:col-span-5 grid grid-cols-2 sm:grid-cols-5 gap-8 ">
             {footerSections.map((section, index) => (
               <div key={index} className="space-y-4">
                 <h3 className="font-semibold mb-2 text-sm uppercase tracking-wider">{section.title}</h3>

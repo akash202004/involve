@@ -144,7 +144,7 @@ const [minuteRotation, setMinuteRotation] = useState(0);
 </defs>
 
  {/* --- Clock Layers --- */}
-<circle ref={borderCircleRef} cx={CLOCK_SIZE / 2} cy={CLOCK_SIZE / 2} r={CLOCK_SIZE / 2 - 8} fill="url(#faceGlow)" stroke="#000" strokeWidth="3" strokeDasharray="20 10" />
+{/* <circle ref={borderCircleRef} cx={CLOCK_SIZE / 2} cy={CLOCK_SIZE / 2} r={CLOCK_SIZE / 2 - 8} fill="url(#faceGlow)" stroke="#000" strokeWidth="3" strokeDasharray="20 10" /> */}
 <circle cx={CLOCK_SIZE / 2} cy={CLOCK_SIZE / 2} r={CLOCK_SIZE / 2 - 16} fill="url(#dots)" opacity="0.25" />
  
  <path ref={blueArcRef} d={blueArcPath} stroke="url(#blueArcGradient)" strokeWidth={ARC_STROKE} strokeLinecap="round" fill="none" />

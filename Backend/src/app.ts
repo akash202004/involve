@@ -7,6 +7,7 @@ import jobRoutes from "./routes/job.routes";
 import transactionRoutes from "./routes/transaction.routes";
 import reviewRoutes from "./routes/review.routes";
 import notificationRoutes from "./routes/notification.routes";
+import dashboardRoutes from "./routes/dashboard.routes";
 import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 import dotenv from "dotenv";
 import morgan from "morgan";
@@ -31,6 +32,7 @@ app.use("/api/v1/jobs", jobRoutes);
 app.use("/api/v1/transactions", transactionRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 
 // Global Error Handler
 app.use(globalErrorHandler);

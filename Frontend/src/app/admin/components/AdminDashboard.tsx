@@ -1,213 +1,531 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  TrendingUp, 
-  DollarSign, 
-  ShoppingCart, 
-  Award, 
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
+import {
+  Users,
+  TrendingUp,
+  DollarSign,
+  ShoppingCart,
+  Award,
   AlertTriangle,
   Calendar,
-  BarChart3
-} from 'lucide-react';
-import StatsCard from './StatsCard';
-import WorkerList from './WorkerList';
-import RevenueChart from './RevenueChart';
-import MonthlyOrdersChart from './MonthlyOrdersChart';
-import TopWorkersChart from './TopWorkersChart';
-import ComplaintsList from './ComplaintsList';
-import DiscountStats from './DiscountStats';
+  BarChart3,
+  LayoutDashboard,
+  FileText,
+  Settings,
+  MessageSquare,
+  Shield,
+  Briefcase,
+  Smile,
+  CheckCircle,
+} from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-// Mock data - replace with actual API calls
+import styles from "./AdminDashboard.module.css";
+
+import StatsCard from "./StatsCard";
+import WorkerList from "./WorkerList";
+import RevenueChart from "./RevenueChart";
+import MonthlyOrdersChart from "./MonthlyOrdersChart";
+import TopWorkersChart from "./TopWorkersChart";
+import ComplaintsList from "./ComplaintsList";
+import DiscountStats from "./DiscountStats";
+
+const GlobeSkeleton = () => (
+  <div className={styles.globeSkeleton}>
+    <div className={styles.scanner}></div>
+    <p>Loading Planetary Grid...</p>
+  </div>
+);
+
+const UserMap = dynamic(() => import("./UserMap"), {
+  ssr: false,
+  loading: () => <GlobeSkeleton />,
+});
+
 const mockData = {
-  totalWorkers: 45,
-  avgIncome: 8500,
-  highestIncome: 15000,
-  monthlyOrders: 234,
   totalRevenue: 125000,
-  totalDiscounts: 8500,
+  platformRevenue: 12500,
+  avgJobValue: 534,
+  activeJobs: 18,
+  userGrowth: 15,
+  workerGrowth: 8,
+  customerSatisfaction: 92,
+  jobCompletionRate: 98,
+  totalWorkers: 45,
   topWorkers: [
-    { name: 'John Doe', income: 15000, orders: 45 },
-    { name: 'Jane Smith', income: 14200, orders: 42 },
-    { name: 'Mike Johnson', income: 13800, orders: 38 },
-    { name: 'Sarah Wilson', income: 13200, orders: 35 },
-    { name: 'David Brown', income: 12800, orders: 32 }
+    {
+      name: "John Doe",
+      income: 15000,
+      orders: 45,
+      rating: 4.9,
+      completionRate: 99,
+    },
+    {
+      name: "Jane Smith",
+      income: 14200,
+      orders: 42,
+      rating: 4.8,
+      completionRate: 97,
+    },
+    {
+      name: "Mike Johnson",
+      income: 13800,
+      orders: 38,
+      rating: 4.8,
+      completionRate: 96,
+    },
+    {
+      name: "Sarah Wilson",
+      income: 13200,
+      orders: 35,
+      rating: 4.7,
+      completionRate: 98,
+    },
+    {
+      name: "David Brown",
+      income: 12800,
+      orders: 32,
+      rating: 4.9,
+      completionRate: 100,
+    },
   ],
   complaints: [
-    { id: 1, workerName: 'John Doe', issue: 'Late arrival', status: 'Resolved' as const, date: '2024-01-15' },
-    { id: 2, workerName: 'Mike Johnson', issue: 'Poor service quality', status: 'Pending' as const, date: '2024-01-14' },
-    { id: 3, workerName: 'Sarah Wilson', issue: 'Equipment damage', status: 'Under Review' as const, date: '2024-01-13' }
+    {
+      id: 1,
+      workerName: "Mike Johnson",
+      issue: "Late arrival",
+      status: "Resolved" as const,
+      date: "2024-07-15",
+      priority: "Low",
+    },
+    {
+      id: 2,
+      workerName: "Chris Green",
+      issue: "Poor service quality",
+      status: "Pending" as const,
+      date: "2024-07-14",
+      priority: "High",
+    },
+    {
+      id: 3,
+      workerName: "Patricia White",
+      issue: "Equipment damage",
+      status: "Under Review" as const,
+      date: "2024-07-13",
+      priority: "Medium",
+    },
   ],
   monthlyRevenue: [
-    { month: 'Jan', revenue: 120000 },
-    { month: 'Feb', revenue: 135000 },
-    { month: 'Mar', revenue: 142000 },
-    { month: 'Apr', revenue: 138000 },
-    { month: 'May', revenue: 145000 },
-    { month: 'Jun', revenue: 152000 }
+    { month: "Jan", revenue: 85000 },
+    { month: "Feb", revenue: 95000 },
+    { month: "Mar", revenue: 110000 },
+    { month: "Apr", revenue: 105000 },
+    { month: "May", revenue: 120000 },
+    { month: "Jun", revenue: 125000 },
   ],
-  monthlyOrdersData: [
-    { month: 'Jan', orders: 210 },
-    { month: 'Feb', orders: 225 },
-    { month: 'Mar', orders: 240 },
-    { month: 'Apr', orders: 235 },
-    { month: 'May', orders: 250 },
-    { month: 'Jun', orders: 265 }
-  ]
+};
+
+const mockLoginData = {
+  monthly: [
+    { label: "Week 1", logins: 120 },
+    { label: "Week 2", logins: 180 },
+    { label: "Week 3", logins: 150 },
+    { label: "Week 4", logins: 210 },
+  ],
+  yearly: [
+    { label: "Jan", logins: 400 },
+    { label: "Feb", logins: 420 },
+    { label: "Mar", logins: 480 },
+    { label: "Apr", logins: 500 },
+    { label: "May", logins: 530 },
+    { label: "Jun", logins: 600 },
+    { label: "Jul", logins: 650 },
+    { label: "Aug", logins: 700 },
+    { label: "Sep", logins: 670 },
+    { label: "Oct", logins: 720 },
+    { label: "Nov", logins: 750 },
+    { label: "Dec", logins: 800 },
+  ],
+};
+
+function UserLoginChart({
+  data,
+}: {
+  data: { label: string; logins: number }[];
+}) {
+  return (
+    <div style={{ width: "100%", height: 90, marginBottom: 12 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={data}
+          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+        >
+          <XAxis
+            dataKey="label"
+            stroke="#a1a1aa"
+            fontSize={11}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis hide domain={[0, "dataMax + 50"]} />
+          <Tooltip
+            content={({ active, payload }) =>
+              active && payload && payload.length ? (
+                <div
+                  style={{
+                    background: "#18181b",
+                    color: "#fff",
+                    borderRadius: 8,
+                    padding: 6,
+                    fontSize: 12,
+                  }}
+                >
+                  Logins: <b>{payload[0].value}</b>
+                </div>
+              ) : null
+            }
+          />
+          <Line
+            type="monotone"
+            dataKey="logins"
+            stroke="#3b82f6"
+            strokeWidth={2.5}
+            dot={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 100,
+    },
+  },
+};
+
+const Sidebar = () => (
+  <motion.aside className={styles.sidebar} variants={itemVariants}>
+    <h2>
+      <Shield />
+      Admin Panel
+    </h2>
+    <nav className={styles.nav}>
+      <a href="#" className={styles.active}>
+        <LayoutDashboard />
+        Dashboard
+      </a>
+      <a href="#">
+        <Users />
+        Workers
+      </a>
+      <a href="#">
+        <FileText />
+        Reports
+      </a>
+      <a href="#">
+        <MessageSquare />
+        Complaints
+      </a>
+      <a href="#">
+        <Settings />
+        Settings
+      </a>
+    </nav>
+  </motion.aside>
+);
+
+const MainContent = ({
+  data,
+  isLoading,
+  loginView,
+  setLoginView,
+}: {
+  data: any;
+  isLoading: boolean;
+  loginView: "monthly" | "yearly";
+  setLoginView: (v: "monthly" | "yearly") => void;
+}) => {
+  const Metric = ({
+    title,
+    value,
+    change,
+  }: {
+    title: string;
+    value: string;
+    change?: string;
+  }) => (
+    <div className={styles.metric}>
+      <h3 className={styles.metricTitle}>{title}</h3>
+      <p className={styles.metricValue}>{value}</p>
+      {change && (
+        <p
+          className={`${styles.metricChange} ${
+            change.startsWith("+") ? styles.positive : styles.negative
+          }`}
+        >
+          {change}
+        </p>
+      )}
+    </div>
+  );
+
+  const cardContent = (
+    <>
+      <motion.div className={styles.header} variants={itemVariants}>
+        <h1 className={styles.headerTitle}>Overview</h1>
+        <div className={styles.timePeriodSelector}>
+          <button className={styles.timeButtonActive}>1M</button>
+          <button className={styles.timeButton}>6M</button>
+          <button className={styles.timeButton}>1Y</button>
+          <button className={styles.timeButton}>All</button>
+        </div>
+      </motion.div>
+
+      <motion.div className={styles.metricsGrid} variants={containerVariants}>
+        <Metric
+          title="Total Revenue"
+          value={`₹${data.totalRevenue.toLocaleString()}`}
+          change="+12.5%"
+        />
+        <Metric
+          title="Platform Revenue"
+          value={`₹${data.platformRevenue.toLocaleString()}`}
+          change="+10.2%"
+        />
+        <Metric
+          title="Avg. Job Value"
+          value={`₹${data.avgJobValue.toLocaleString()}`}
+          change="-1.8%"
+        />
+        <Metric title="Active Jobs" value={data.activeJobs} />
+      </motion.div>
+
+      <motion.div className={styles.mainGrid} variants={containerVariants}>
+        <motion.div
+          className={`${styles.card} ${styles.revenueCard}`}
+          variants={itemVariants}
+        >
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Revenue Growth</h2>
+          </div>
+          <div className={styles.chartWrapper}>
+            <RevenueChart data={data.monthlyRevenue} />
+          </div>
+        </motion.div>
+
+        <motion.div
+          className={`${styles.card} ${styles.topWorkersCard}`}
+          variants={itemVariants}
+        >
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Top Performers</h2>
+            <a href="#" className={styles.viewAllLink}>
+              View all
+            </a>
+          </div>
+          <TopWorkersChart data={data.topWorkers} />
+        </motion.div>
+
+        <motion.div
+          className={`${styles.card} ${styles.growthCard}`}
+          variants={itemVariants}
+        >
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Platform Growth</h2>
+          </div>
+          <div className={styles.growthMetrics}>
+            <div className={styles.growthItem}>
+              <div className={styles.growthIcon}>
+                <Users />
+              </div>
+              <div>
+                <div className={styles.growthMetricLabel}>New Users</div>
+                <div className={styles.growthMetricValue}>
+                  {data.userGrowth}%
+                </div>
+              </div>
+            </div>
+            <div className={styles.growthItem}>
+              <div className={styles.growthIcon}>
+                <Briefcase />
+              </div>
+              <div>
+                <div className={styles.growthMetricLabel}>New Workers</div>
+                <div className={styles.growthMetricValue}>
+                  {data.workerGrowth}%
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className={`${styles.card} ${styles.satisfactionCard}`}
+          variants={itemVariants}
+        >
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Satisfaction & Completion</h2>
+          </div>
+          <div className={styles.growthMetrics}>
+            <div className={styles.growthItem}>
+              <div className={styles.growthIcon}>
+                <Smile />
+              </div>
+              <div>
+                <p className={styles.growthLabel}>Customer Satisfaction</p>
+                <p className={styles.growthValue}>
+                  {data.customerSatisfaction}%
+                </p>
+              </div>
+            </div>
+            <div className={styles.growthItem}>
+              <div className={styles.growthIcon}>
+                <CheckCircle />
+              </div>
+              <div>
+                <p className={styles.growthLabel}>Job Completion</p>
+                <p className={styles.growthValue}>{data.jobCompletionRate}%</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className={`${styles.card} ${styles.complaintsCard}`}
+          variants={itemVariants}
+        >
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Recent Complaints</h2>
+            <a href="#" className={styles.viewAllLink}>
+              View all
+            </a>
+          </div>
+          <ComplaintsList complaints={data.complaints} />
+        </motion.div>
+
+        <motion.div
+          className={`${styles.card} ${styles.quickInsightsCard}`}
+          variants={itemVariants}
+        >
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Quick Insights</h2>
+          </div>
+          <div className={styles.loginChartToggleRow}>
+            <div className={styles.loginChartToggleGroup}>
+              <button
+                className={
+                  loginView === "monthly" ? styles.toggleActive : styles.toggle
+                }
+                onClick={() => setLoginView("monthly")}
+              >
+                Monthly
+              </button>
+              <button
+                className={
+                  loginView === "yearly" ? styles.toggleActive : styles.toggle
+                }
+                onClick={() => setLoginView("yearly")}
+              >
+                Yearly
+              </button>
+            </div>
+          </div>
+          <UserLoginChart
+            data={mockLoginData[loginView as "monthly" | "yearly"]}
+          />
+          <ul className={styles.insightsList}>
+            <li>
+              <strong>Best Month:</strong>{" "}
+              {
+                data.monthlyRevenue.reduce(
+                  (
+                    best: { month: string; revenue: number },
+                    curr: { month: string; revenue: number }
+                  ) => (curr.revenue > best.revenue ? curr : best),
+                  data.monthlyRevenue[0]
+                ).month
+              }
+            </li>
+            <li>
+              <strong>Most Active Worker:</strong> {data.topWorkers[0].name}
+            </li>
+            <li>
+              <strong>Highest Job Value:</strong> ₹{data.avgJobValue * 2}
+            </li>
+            <li>
+              <strong>Open Complaints:</strong> {data.complaints.length}
+            </li>
+          </ul>
+        </motion.div>
+      </motion.div>
+    </>
+  );
+
+  const skeletonLoader = (
+    <div className={styles.loadingState}>
+      <p>Loading Dashboard...</p>
+    </div>
+  );
+
+  return (
+    <motion.main
+      className={styles.mainContent}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {isLoading ? skeletonLoader : cardContent}
+    </motion.main>
+  );
 };
 
 export default function AdminDashboard() {
   const [data, setData] = useState(mockData);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loginView, setLoginView] = useState<"monthly" | "yearly">("monthly");
 
   useEffect(() => {
-    // TODO: Replace with actual API calls
-    setLoading(true);
-    setError(null);
-    
-    try {
-      setTimeout(() => {
-        setData(mockData);
-        setLoading(false);
-      }, 1000);
-    } catch (err) {
-      setError('Failed to load dashboard data');
-      setLoading(false);
-    }
+    const timer = setTimeout(() => {
+      setData(mockData);
+      setIsLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-500" />
-          <p className="text-red-600">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Validate that data exists
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-gray-600">No data available</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-        <p className="text-gray-600">Monitor your workforce, revenue, and business metrics</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          title="Total Workers"
-          value={data.totalWorkers}
-          icon={<Users className="h-6 w-6" />}
-          color="blue"
-        />
-        <StatsCard
-          title="Avg Income"
-          value={`$${data.avgIncome.toLocaleString()}`}
-          icon={<TrendingUp className="h-6 w-6" />}
-          color="green"
-        />
-        <StatsCard
-          title="Highest Income"
-          value={`$${data.highestIncome.toLocaleString()}`}
-          icon={<DollarSign className="h-6 w-6" />}
-          color="yellow"
-        />
-        <StatsCard
-          title="Monthly Orders"
-          value={data.monthlyOrders}
-          icon={<ShoppingCart className="h-6 w-6" />}
-          color="purple"
-        />
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Revenue Overview</h2>
-            <div className="text-2xl font-bold text-green-600">
-              ${data.totalRevenue.toLocaleString()}
-            </div>
-          </div>
-          <RevenueChart data={data.monthlyRevenue} />
-        </div>
-
-        {/* Top Workers */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Top Workers</h2>
-            <Award className="h-5 w-5 text-yellow-500" />
-          </div>
-          <TopWorkersChart data={data.topWorkers} />
-        </div>
-      </div>
-
-      {/* Second Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Monthly Orders Chart */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Monthly Orders</h2>
-            <Calendar className="h-5 w-5 text-blue-500" />
-          </div>
-          <MonthlyOrdersChart data={data.monthlyOrdersData} />
-        </div>
-
-        {/* Discount Stats */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Discounts Given</h2>
-            <BarChart3 className="h-5 w-5 text-red-500" />
-          </div>
-          <DiscountStats totalDiscounts={data.totalDiscounts} />
-        </div>
-      </div>
-
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Worker List */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Worker Details</h2>
-            <Users className="h-5 w-5 text-blue-500" />
-          </div>
-          <WorkerList workers={data.topWorkers} />
-        </div>
-
-        {/* Complaints */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Complaints</h2>
-            <AlertTriangle className="h-5 w-5 text-red-500" />
-          </div>
-          <ComplaintsList complaints={data.complaints} />
-        </div>
-      </div>
-    </div>
+    <MainContent
+      data={data}
+      isLoading={isLoading}
+      loginView={loginView}
+      setLoginView={setLoginView}
+    />
   );
-} 
+}

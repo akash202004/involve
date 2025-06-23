@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { UserButton, useUser } from "@civic/auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useCart } from '../../booking/cart/cartContext';
+import { useCart } from "../../booking/cart/cartContext";
+import Image from "next/image";
 
 // --- SVG Icon Components (Replaces @tabler/icons-react) ---
 const IconMapPin = ({ size = 24, className = "" }) => (
@@ -114,11 +115,14 @@ const IconX = ({ size = 24, className = "" }) => (
   </svg>
 );
 
-
 // Main Navbar Component
 export default function App() {
-  // Removed usePathname as it's a Next.js specific hook.
-  // The logic to hide the navbar is removed for this standalone component.
+  const pathname = usePathname();
+
+  // Hide navbar on /worker route and all worker sub-routes (onboarding, dashboard, etc.)
+  if (pathname === "/worker" || pathname.startsWith("/worker/")) {
+    return null;
+  }
 
   // --- STATE MANAGEMENT ---
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -142,10 +146,16 @@ export default function App() {
   // --- EVENT HANDLERS & EFFECTS ---
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
         setIsProfileMenuOpen(false);
       }
-      if (locationRef.current && !locationRef.current.contains(event.target as Node)) {
+      if (
+        locationRef.current &&
+        !locationRef.current.contains(event.target as Node)
+      ) {
         setIsLocationOpen(false);
       }
     }
@@ -161,7 +171,9 @@ export default function App() {
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
             const data = await res.json();
             if (data.display_name) {
               setAutoLocation(data.display_name);
@@ -181,12 +193,18 @@ export default function App() {
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white font-sans border-b border-gray-200">
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center h-20">
-
+        <div className="flex items-center justify-between h-20">
           {/* ====== Left Section: Logo and Main Navigation ====== */}
-          <div className="flex items-center space-x-8">
-            <Link href="/" className="flex-shrink-0 font-bold text-2xl text-gray-800">
-              Go-Fix-O
+          <div className="flex items-center space-x-2 px-18">
+            <Link href="/" className="flex-shrink-0 flex items-center">
+              <div className="relative w-[150px] h-[80px]">
+                <Image
+                  src="/Assets/a.jpg"
+                  alt="Go-Fix-O Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
             </Link>
             <div className="hidden md:flex items-center space-x-6">
               {navItems.map((item) => (
@@ -212,7 +230,11 @@ export default function App() {
               >
                 <IconMapPin size={20} className="text-gray-500" />
                 <span className="truncate text-gray-700 text-sm font-medium">
-                  {location ? location : autoLocation ? autoLocation : "Select Location"}
+                  {location
+                    ? location
+                    : autoLocation
+                    ? autoLocation
+                    : "Select Location"}
                 </span>
                 <IconChevronDown size={18} className="text-gray-400" />
               </button>
@@ -240,11 +262,17 @@ export default function App() {
                     >
                       &times;
                     </button>
-                    <h2 className="text-xl font-bold mb-4 text-center text-gray-800">Your Current Location</h2>
+                    <h2 className="text-xl font-bold mb-4 text-center text-gray-800">
+                      Your Current Location
+                    </h2>
                     {autoLocation ? (
-                      <div className="text-gray-700 text-center break-words text-base font-medium whitespace-pre-line">{autoLocation}</div>
+                      <div className="text-gray-700 text-center break-words text-base font-medium whitespace-pre-line">
+                        {autoLocation}
+                      </div>
                     ) : (
-                      <div className="text-gray-400 text-center">Location not available</div>
+                      <div className="text-gray-400 text-center">
+                        Location not available
+                      </div>
                     )}
                   </div>
                 </div>
@@ -261,7 +289,11 @@ export default function App() {
               </div>
             </div>
             <div className="relative">
-              <button className="p-2 rounded-full hover:bg-transparent transition-colors" onClick={() => router.push('/booking/cart')}>
+              <button
+                className="p-2 rounded-full hover:bg-transparent transition-colors"
+                onClick={() => router.push("/booking/cart")}
+                aria-label="Shopping Cart"
+              >
                 <IconShoppingCart size={24} className="text-gray-700" />
               </button>
               {cart.length > 0 && (
@@ -282,7 +314,9 @@ export default function App() {
                 <div className="absolute right-0 mt-3 min-w-[12rem] bg-white rounded-md shadow-xl border border-gray-200 z-50 py-2 px-3 ring-1 ring-black ring-opacity-5 transition-all duration-150">
                   <div className="px-4 py-2">
                     {user ? (
-                      <p className="text-sm text-gray-700">Hello, {user.name || 'User'}!</p>
+                      <p className="text-sm text-gray-700">
+                        Hello, {user.name || "User"}!
+                      </p>
                     ) : (
                       <p className="text-sm text-gray-700">Welcome, Guest!</p>
                     )}
@@ -294,7 +328,7 @@ export default function App() {
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => {
                           setIsProfileMenuOpen(false);
-                          router.push('/profile');
+                          router.push("/profile");
                         }}
                       >
                         Profile
@@ -327,8 +361,19 @@ export default function App() {
                 {isMobileMenuOpen ? (
                   <IconX size={24} />
                 ) : (
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16m-7 6h7"
+                    />
                   </svg>
                 )}
               </button>
@@ -343,7 +388,10 @@ export default function App() {
           <div className="px-4 pt-4 pb-3 space-y-3">
             {/* Mobile Location Selector (input) */}
             <div className="flex items-center w-full border border-transparent rounded-lg px-3 py-2.5">
-              <IconMapPin size={20} className="text-gray-500 mr-3 flex-shrink-0" />
+              <IconMapPin
+                size={20}
+                className="text-gray-500 mr-3 flex-shrink-0"
+              />
               <input
                 type="text"
                 className="w-full outline-none bg-transparent text-gray-700 text-sm"
@@ -351,18 +399,28 @@ export default function App() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
-              <IconChevronDown size={18} className="text-gray-400 ml-2 flex-shrink-0" />
+              <IconChevronDown
+                size={18}
+                className="text-gray-400 ml-2 flex-shrink-0"
+              />
             </div>
 
             {/* Mobile Search Bar */}
             <div className="flex items-center rounded-lg px-3 py-2.5 w-full">
-              <IconSearch size={20} className="text-gray-400 mr-3 flex-shrink-0" />
-              <input type="text" placeholder="Search for services..." className="w-full outline-none bg-transparent text-gray-700 text-sm" />
+              <IconSearch
+                size={20}
+                className="text-gray-400 mr-3 flex-shrink-0"
+              />
+              <input
+                type="text"
+                placeholder="Search for services..."
+                className="w-full outline-none bg-transparent text-gray-700 text-sm"
+              />
             </div>
 
             {/* Divider */}
             <div className="border-t border-gray-200 !my-3"></div>
-            
+
             {/* Mobile Nav Links */}
             <div className="space-y-1">
               {navItems.map((item) => (
