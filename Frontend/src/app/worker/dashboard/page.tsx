@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import styles from "./dashboard.module.css";
-import { useUser } from "@civic/auth/react";
 import { useJobTracking } from "@/lib/jobTracking";
 import { PageLoadAnimation, PulsingDots } from "@/components/LoadingAnimations";
 import "leaflet/dist/leaflet.css";
@@ -135,7 +134,6 @@ type HistoryJob = JobRequest & { status: "completed" | "declined" };
 
 export default function WorkerDashboardPage() {
   const router = useRouter();
-  const { user } = useUser();
   const {
     currentJob,
     assignedWorker,
@@ -323,7 +321,7 @@ export default function WorkerDashboardPage() {
       location: "New Delivery Request",
       lat: clientLat,
       lng: clientLng,
-      userId: user?.id || "",
+      userId: "",
     });
     setJobStatus("incoming");
   };
@@ -397,11 +395,11 @@ export default function WorkerDashboardPage() {
 
   // Start location tracking for accepted job
   const startLocationTracking = () => {
-    if (!currentJob || !user?.id || !isLive) return;
+    if (!currentJob || !isLive) return;
 
     const locationInterval = setInterval(() => {
       if (location && isTrackingActive) {
-        updateLocation(currentJob.id, user.id, location.lat, location.lng);
+        updateLocation(currentJob.id, "", location.lat, location.lng);
       }
     }, 5000); // Update every 5 seconds
 

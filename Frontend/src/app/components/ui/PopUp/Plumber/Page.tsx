@@ -10,19 +10,29 @@ interface PlumberPopupProps {
 interface PlumberService {
   name: string;
   icon: string;
+  price: number;
 }
+
+const SERVICE_PRICES: Record<string, number> = {
+  'Tap Repair': 299,
+  'Leak Fixing': 349, // Not in SERVICE_DETAILS, set a reasonable price
+  'Pipe Installation': 399, // Maps to Pipe Repair
+  'Drain Cleaning': 499,
+  'Toilet Repair': 399,
+  'Water Heater': 599,
+};
 
 const PlumberPopup: React.FC<PlumberPopupProps> = ({ onClose }) => {
   const router = useRouter();
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
   const plumberServices: PlumberService[] = [
-    { name: 'Tap Repair', icon: '🚰' },
-    { name: 'Leak Fixing', icon: '💧' },
-    { name: 'Pipe Installation', icon: '🛠️' },
-    { name: 'Drain Cleaning', icon: '🧹' },
-    { name: 'Toilet Repair', icon: '🚽' },
-    { name: 'Water Heater', icon: '🔥' },
+    { name: 'Tap Repair', icon: '🚰', price: SERVICE_PRICES['Tap Repair'] },
+    { name: 'Leak Fixing', icon: '💧', price: SERVICE_PRICES['Leak Fixing'] },
+    { name: 'Pipe Installation', icon: '🛠️', price: SERVICE_PRICES['Pipe Installation'] },
+    { name: 'Drain Cleaning', icon: '🛁', price: SERVICE_PRICES['Drain Cleaning'] },
+    { name: 'Toilet Repair', icon: '🚽', price: SERVICE_PRICES['Toilet Repair'] },
+    { name: 'Water Heater', icon: '🔥', price: SERVICE_PRICES['Water Heater'] },
   ];
 
   const handleServiceClick = (serviceName: string) => {
@@ -61,6 +71,7 @@ const PlumberPopup: React.FC<PlumberPopupProps> = ({ onClose }) => {
               >
                 <div className="text-3xl mb-2">{item.icon}</div>
                 <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                <span className="text-xs text-yellow-700 font-semibold mt-1">₹{item.price}</span>
               </div>
             ))}
           </div>

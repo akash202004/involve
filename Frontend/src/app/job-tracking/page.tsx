@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useUser } from "@civic/auth/react";
 import { useJobTracking } from "@/lib/jobTracking";
 import LiveTrackingMap from "../components/LiveTrackingMap";
 import EnhancedTrackingDisplay from "../components/EnhancedTrackingDisplay";
@@ -16,11 +15,12 @@ import {
   FiRefreshCw,
   FiMaximize2,
 } from "react-icons/fi";
+import Image from "next/image";
+import mockWorkers from "../booking/services/mockWorkers";
 
 const JobTrackingPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useUser();
   const {
     currentJob,
     assignedWorker,
@@ -37,21 +37,13 @@ const JobTrackingPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<"map" | "details" | "both">("both");
 
   const jobId = searchParams.get("jobId");
+  const workerId = searchParams.get("workerId");
 
   useEffect(() => {
-    if (!user) {
-      router.push("/");
-      return;
-    }
-
     // Connect to socket for real-time updates
     connectSocket();
-
-    // Join user room for job updates
-    if (user.id) {
-      // This will be handled by the socket manager
-    }
-  }, [user, router, connectSocket]);
+    // Join user room for job updates (if needed)
+  }, [connectSocket]);
 
   // Format time
   const formatTime = (timestamp: string) => {
@@ -72,216 +64,160 @@ const JobTrackingPage: React.FC = () => {
     return etaMinutes;
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <FiAlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">
-            Authentication Required
-          </h2>
-          <p className="text-gray-600">Please sign in to view job tracking.</p>
-        </div>
-      </div>
-    );
-  }
+  // --- MOCK DATA for UI DEMO (replace with real data as needed) ---
+  const mockService = {
+    name: "Plumbing Repair",
+    provider: "Alex Johnson",
+    bookingTime: "Today, 2:00 PM",
+    status: "In Progress",
+    eta: 15,
+    orderId: "#65123456789",
+  };
 
-  if (!currentJob) {
+  if (!currentJob && workerId) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <FiAlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">No Active Job</h2>
-          <p className="text-gray-600 mb-4">
-            No active job found for tracking.
-          </p>
-          <button
-            onClick={() => router.push("/booking/services")}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Book a Service
-          </button>
+      <div className="min-h-screen bg-white pt-24">
+        {/* Main Content: Map left, Details right */}
+        <div className="max-w-6xl mx-auto px-2 sm:px-4 mt-8 mb-16 flex flex-col md:flex-row gap-8 min-h-[60vh]">
+          {/* Map Section */}
+          <div className="flex-1 bg-white rounded-xl shadow overflow-hidden flex items-stretch min-h-[300px] md:min-h-[400px]">
+            <Image src="/Assets/mocks/map-mock.png" alt="Map" width={900} height={600} className="w-full h-60 md:h-full object-cover" />
+          </div>
+
+          {/* Details Section */}
+          <div className="flex-1 flex flex-col gap-6 min-w-0">
+            {/* Status Card */}
+            <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-lg">Service in Progress</span>
+                <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">En Route</span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: "70%" }} />
+              </div>
+              <span className="text-gray-600 text-sm">Estimated arrival <span className="text-blue-600 font-semibold">{mockService.eta} minutes</span></span>
+            </div>
+            {/* Service Details */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <span>Service Details</span>
+              </h2>
+              <div className="text-sm text-gray-700 space-y-2">
+                <div className="flex justify-between"><span>Order ID</span><span className="font-mono font-semibold">{mockService.orderId}</span></div>
+                <div className="flex justify-between"><span>Service</span><span className="font-semibold">{mockService.name}</span></div>
+                <div className="flex justify-between"><span>Provider</span><span className="font-semibold">{mockService.provider}</span></div>
+                <div className="flex justify-between"><span>Booking Time</span><span className="font-semibold">{mockService.bookingTime}</span></div>
+                <div className="flex justify-between"><span>Status</span><span className="font-semibold">{mockService.status}</span></div>
+              </div>
+            </div>
+            {/* Real-Time Tracking Benefits */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <span>Real-Time Tracking Benefits</span>
+              </h2>
+              <div className="flex flex-col gap-4 text-sm text-gray-700">
+                <div className="flex items-start gap-3">
+                  <span className="inline-block bg-yellow-100 text-yellow-700 rounded-full p-2"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#fbbf24" strokeWidth="2" /><path d="M12 6v6l4 2" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
+                  <div>
+                    <span className="font-semibold">Stay Informed</span>
+                    <p>Know exactly when your provider will arrive. No more guessing games.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="inline-block bg-blue-100 text-blue-700 rounded-full p-2"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="#3b82f6" strokeWidth="2"/><path d="M8 12h8M8 16h5" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"/></svg></span>
+                  <div>
+                    <span className="font-semibold">Plan Your Day</span>
+                    <p>Accurate ETAs allow you to manage your time effectively.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Payment Details */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <span>Payment Details</span>
+              </h2>
+              <div className="text-sm text-gray-700 space-y-2">
+                <div className="flex justify-between"><span>Amount</span><span className="font-semibold">₹499</span></div>
+                <div className="flex justify-between"><span>Payment Method</span><span className="font-semibold">Online (UPI)</span></div>
+                <div className="flex justify-between"><span>Status</span><span className="font-semibold text-green-600">Paid</span></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.back()}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <FiAlertCircle className="w-5 h-5 text-gray-600" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Job Tracking
-                </h1>
-                <p className="text-gray-600">Monitor your service request</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              {/* Connection Status */}
-              <div className="flex items-center space-x-2">
-                <div
-                  className={`w-3 h-3 rounded-full ${
-                    isSocketConnected ? "bg-green-500" : "bg-red-500"
-                  }`}
-                />
-                <span className="text-sm text-gray-600">
-                  {isSocketConnected ? "Connected" : "Disconnected"}
-                </span>
-              </div>
-
-              {/* View Mode Toggle */}
-              <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode("both")}
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === "both"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  Both
-                </button>
-                <button
-                  onClick={() => setViewMode("map")}
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === "map"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  Map
-                </button>
-                <button
-                  onClick={() => setViewMode("details")}
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === "details"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  Details
-                </button>
-              </div>
-
-              {/* Refresh Button */}
-              <button
-                onClick={connectSocket}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <FiRefreshCw className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
+    <div className="min-h-screen bg-white pt-24 pb-32">
+      {/* Status Card */}
+      <div className="max-w-2xl mx-auto px-4 mt-6">
+        <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-semibold text-lg">Service in Progress</span>
+            <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">En Route</span>
           </div>
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+            <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: "70%" }} />
+          </div>
+          <span className="text-gray-600 text-sm">Estimated arrival <span className="text-blue-600 font-semibold">{mockService.eta} minutes</span></span>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-center">
-              <FiAlertCircle className="w-5 h-5 text-red-500 mr-2" />
-              <span className="text-red-700">{error}</span>
-              <button
-                onClick={clearError}
-                className="ml-auto text-red-500 hover:text-red-700"
-              >
-                ×
-              </button>
-            </div>
+      {/* Map Section */}
+      <div className="max-w-4xl mx-auto px-4 mt-8">
+        <div className="bg-white rounded-xl shadow overflow-hidden">
+          <Image src="/Assets/mocks/map-mock.png" alt="Map" width={900} height={300} className="w-full h-72 object-cover" />
+        </div>
+      </div>
+
+      {/* Details and Benefits */}
+      <div className="max-w-4xl mx-auto px-4 mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Service Details */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+            <span>Service Details</span>
+          </h2>
+          <div className="text-sm text-gray-700 space-y-2">
+            <div className="flex justify-between"><span>Order ID</span><span className="font-mono font-semibold">{mockService.orderId}</span></div>
+            <div className="flex justify-between"><span>Service</span><span className="font-semibold">{mockService.name}</span></div>
+            <div className="flex justify-between"><span>Provider</span><span className="font-semibold">{mockService.provider}</span></div>
+            <div className="flex justify-between"><span>Booking Time</span><span className="font-semibold">{mockService.bookingTime}</span></div>
+            <div className="flex justify-between"><span>Status</span><span className="font-semibold">{mockService.status}</span></div>
           </div>
-        )}
-
-        {/* Main Content */}
-        {viewMode === "both" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Map Section */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">Live Map</h2>
-              <LiveTrackingMap jobId={currentJob.id} className="h-96" />
+        </div>
+        {/* Real-Time Tracking Benefits */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+            <span>Real-Time Tracking Benefits</span>
+          </h2>
+          <div className="flex flex-col gap-4 text-sm text-gray-700">
+            <div className="flex items-start gap-3">
+              <span className="inline-block bg-yellow-100 text-yellow-700 rounded-full p-2"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#fbbf24" strokeWidth="2" /><path d="M12 6v6l4 2" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
+              <div>
+                <span className="font-semibold">Stay Informed</span>
+                <p>Know exactly when your provider will arrive. No more guessing games.</p>
+              </div>
             </div>
-
-            {/* Enhanced Tracking Display */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Tracking Details
-              </h2>
-              <div className="max-h-96 overflow-y-auto">
-                <EnhancedTrackingDisplay />
+            <div className="flex items-start gap-3">
+              <span className="inline-block bg-blue-100 text-blue-700 rounded-full p-2"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="#3b82f6" strokeWidth="2"/><path d="M8 12h8M8 16h5" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"/></svg></span>
+              <div>
+                <span className="font-semibold">Plan Your Day</span>
+                <p>Accurate ETAs allow you to manage your time effectively.</p>
               </div>
             </div>
           </div>
-        )}
-
-        {viewMode === "map" && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">Live Map</h2>
-            <LiveTrackingMap
-              jobId={currentJob.id}
-              className="h-[calc(100vh-200px)]"
-            />
-          </div>
-        )}
-
-        {viewMode === "details" && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Tracking Details
-            </h2>
-            <EnhancedTrackingDisplay />
-          </div>
-        )}
-
-        {/* Real-time Status Bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      isSocketConnected ? "bg-green-500" : "bg-red-500"
-                    }`}
-                  />
-                  <span className="text-gray-600">
-                    {isSocketConnected
-                      ? "Live Updates Active"
-                      : "Connection Lost"}
-                  </span>
-                </div>
-
-                {currentJob && (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-gray-600">Job ID:</span>
-                    <span className="font-mono text-gray-900">
-                      {currentJob.id}
-                    </span>
-                  </div>
-                )}
-
-                {isTrackingActive && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-600">Live Tracking Active</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="text-gray-500">
-                Last updated: {new Date().toLocaleTimeString()}
-              </div>
-            </div>
+        </div>
+        {/* Payment Details */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+            <span>Payment Details</span>
+          </h2>
+          <div className="text-sm text-gray-700 space-y-2">
+            <div className="flex justify-between"><span>Amount</span><span className="font-semibold">₹499</span></div>
+            <div className="flex justify-between"><span>Payment Method</span><span className="font-semibold">Online (UPI)</span></div>
+            <div className="flex justify-between"><span>Status</span><span className="font-semibold text-green-600">Paid</span></div>
           </div>
         </div>
       </div>

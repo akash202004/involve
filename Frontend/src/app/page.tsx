@@ -6,22 +6,10 @@ import ServiceSelection from '@/app/components/Feature/Page';
 import WaitingTime from "@/app/components/Waiting-Time/Page";
 import FAQ from "@/app/components/FAQ/Page";
 import Testimonial from "@/app/components/Testimonial/page";
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import FloatingButton from './components/ui/ChatWidget/FloatingButton';
-import { useUser } from '@civic/auth/react';
-// import axios from 'axios';
 export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
-
-  // useEffect(()=>{
-  //   const userEmail = useUser()?.email;
-  //   if (userEmail) {
-  //     const userDetails = await axios.get(`http://localhost:3000/api/v1/users/email/${userEmail}`);
-  //     const userId = userDetails.data.id;
-  //     const lat = userDetails.data.lat;
-  //     const lng = userDetails.data.lng;
-
-  // })
 
   return (
     <div className="w-full max-w-4xl mx-auto">

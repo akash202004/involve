@@ -4,7 +4,6 @@ import { useState, ChangeEvent, FormEvent, useRef, useEffect } from "react";
 import styles from "./onboarding.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useUser } from "@civic/auth/react";
 import { CLOUDINARY_CONFIG } from "@/app/config/cloudinary";
 
 // --- Icon Components ---
@@ -144,7 +143,6 @@ const uploadImageToCloudinary = async (file: File): Promise<string> => {
 
 export default function WorkerOnboardingPage() {
   const router = useRouter();
-  const { user } = useUser();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -307,10 +305,6 @@ export default function WorkerOnboardingPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      alert("You must be logged in to submit a profile.");
-      return;
-    }
 
     // Validate phone number before submission
     if (!validatePhoneNumber(formData.phoneNumber)) {
@@ -384,7 +378,7 @@ export default function WorkerOnboardingPage() {
 
         // Store in localStorage as backup
         localStorage.setItem(
-          `workerProfile_${user.email}`,
+          `workerProfile_${formData.email}`,
           JSON.stringify({
             ...formData,
             phoneNumber: formattedPhoneNumber, // Store formatted number

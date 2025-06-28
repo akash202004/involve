@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useUser } from "@civic/auth/react";
 import { useCart } from "../cart/cartContext";
 import { getOrCreateUserByEmail } from "@/lib/userService";
 import {
@@ -556,7 +555,6 @@ const parseDurationToMinutes = (duration: string): number => {
 const ServiceBookingPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, signIn } = useUser();
   const { addToCart, cart } = useCart();
 
   // State management

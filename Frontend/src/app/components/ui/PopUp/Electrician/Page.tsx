@@ -10,37 +10,59 @@ interface ElectricianPlumberPopupProps {
 interface ServiceItem {
   name: string;
   icon: string;
+  price: number;
 }
+
+const SERVICE_PRICES: Record<string, number> = {
+  'Electrical Repair': 499, // Maps to Wiring
+  'Wiring Installation': 499, // Maps to Wiring
+  'Switch & Socket Repair': 199, // Maps to Switch Repair
+  'Fan Installation': 299,
+  'Light Installation': 199,
+  'MCB/Fuse Repair': 399, // Maps to MCB Repair
+  'Plumbing Repair': 399, // Maps to Pipe Repair
+  'Pipe Installation': 399, // Maps to Pipe Repair
+  'Tap Repair': 299,
+  'Toilet Repair': 399,
+  'Drain Cleaning': 499,
+  'Water Heater Repair': 599, // Maps to Water Heater
+  'Installation': 399, // Generic installation
+  'AC Installation': 599, // Set a reasonable price
+  'Geyser Installation': 599, // Set a reasonable price
+  'Water Purifier Installation': 499, // Set a reasonable price
+  'Exhaust Fan Installation': 299, // Set a reasonable price
+  'Security Camera Installation': 699, // Set a reasonable price
+};
 
 const ElectricianPlumberPopup: React.FC<ElectricianPlumberPopupProps> = ({ onClose }) => {
   const router = useRouter();
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
   const electricianServices: ServiceItem[] = [
-    { name: 'Electrical Repair', icon: '⚡' },
-    { name: 'Wiring Installation', icon: '🔌' },
-    { name: 'Switch & Socket Repair', icon: '🔌' },
-    { name: 'Fan Installation', icon: '💨' },
-    { name: 'Light Installation', icon: '💡' },
-    { name: 'MCB/Fuse Repair', icon: '🔋' },
+    { name: 'Electrical Repair', icon: '⚡', price: SERVICE_PRICES['Electrical Repair'] },
+    { name: 'Wiring Installation', icon: '🔌', price: SERVICE_PRICES['Wiring Installation'] },
+    { name: 'Switch & Socket Repair', icon: '🔌', price: SERVICE_PRICES['Switch & Socket Repair'] },
+    { name: 'Fan Installation', icon: '💨', price: SERVICE_PRICES['Fan Installation'] },
+    { name: 'Light Installation', icon: '💡', price: SERVICE_PRICES['Light Installation'] },
+    { name: 'MCB/Fuse Repair', icon: '🔋', price: SERVICE_PRICES['MCB/Fuse Repair'] },
   ];
 
   const plumberServices: ServiceItem[] = [
-    { name: 'Plumbing Repair', icon: '🔧' },
-    { name: 'Pipe Installation', icon: '🚰' },
-    { name: 'Tap Repair', icon: '🚰' },
-    { name: 'Toilet Repair', icon: '🚽' },
-    { name: 'Drain Cleaning', icon: '🕳️' },
-    { name: 'Water Heater Repair', icon: '🔥' },
+    { name: 'Plumbing Repair', icon: '🔧', price: SERVICE_PRICES['Plumbing Repair'] },
+    { name: 'Pipe Installation', icon: '🚰', price: SERVICE_PRICES['Pipe Installation'] },
+    { name: 'Tap Repair', icon: '🚰', price: SERVICE_PRICES['Tap Repair'] },
+    { name: 'Toilet Repair', icon: '🚽', price: SERVICE_PRICES['Toilet Repair'] },
+    { name: 'Drain Cleaning', icon: '🛁', price: SERVICE_PRICES['Drain Cleaning'] },
+    { name: 'Water Heater Repair', icon: '🔥', price: SERVICE_PRICES['Water Heater Repair'] },
   ];
 
   const installationServices: ServiceItem[] = [
-    { name: 'Installation', icon: '🔨' },
-    { name: 'AC Installation', icon: '❄️' },
-    { name: 'Geyser Installation', icon: '🔥' },
-    { name: 'Water Purifier Installation', icon: '💧' },
-    { name: 'Exhaust Fan Installation', icon: '💨' },
-    { name: 'Security Camera Installation', icon: '📹' },
+    { name: 'Installation', icon: '🔨', price: SERVICE_PRICES['Installation'] },
+    { name: 'AC Installation', icon: '❄️', price: SERVICE_PRICES['AC Installation'] },
+    { name: 'Geyser Installation', icon: '🔥', price: SERVICE_PRICES['Geyser Installation'] },
+    { name: 'Water Purifier Installation', icon: '💧', price: SERVICE_PRICES['Water Purifier Installation'] },
+    { name: 'Exhaust Fan Installation', icon: '💨', price: SERVICE_PRICES['Exhaust Fan Installation'] },
+    { name: 'Security Camera Installation', icon: '📹', price: SERVICE_PRICES['Security Camera Installation'] },
   ];
 
   const handleServiceClick = (serviceName: string) => {
@@ -88,6 +110,7 @@ const ElectricianPlumberPopup: React.FC<ElectricianPlumberPopupProps> = ({ onClo
                 >
                   <div className="text-3xl mb-2">{item.icon}</div>
                   <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                  <span className="text-xs text-yellow-700 font-semibold mt-1">₹{item.price}</span>
                 </div>
               ))}
             </div>
@@ -107,6 +130,7 @@ const ElectricianPlumberPopup: React.FC<ElectricianPlumberPopupProps> = ({ onClo
                 >
                   <div className="text-3xl mb-2">{item.icon}</div>
                   <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                  <span className="text-xs text-yellow-700 font-semibold mt-1">₹{item.price}</span>
                 </div>
               ))}
             </div>
@@ -126,6 +150,7 @@ const ElectricianPlumberPopup: React.FC<ElectricianPlumberPopupProps> = ({ onClo
                 >
                   <div className="text-3xl mb-2">{item.icon}</div>
                   <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                  <span className="text-xs text-yellow-700 font-semibold mt-1">₹{item.price}</span>
                 </div>
               ))}
             </div>

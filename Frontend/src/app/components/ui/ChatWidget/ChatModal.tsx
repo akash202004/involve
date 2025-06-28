@@ -19,7 +19,31 @@ const VideoIcon = () => (
   </svg>
 );
 
-type ServiceResult = { keyword: string; };
+type Worker = {
+  workerId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  profilePicture?: string;
+  address?: string;
+  description?: string;
+  experienceYears: number;
+  category: string;
+  subCategory: string;
+};
+
+type WorkersResponse = {
+  message: string;
+  data: Worker[];
+  error?: string;
+};
+
+type ServiceResult = { 
+  keyword: string; 
+  workers: WorkersResponse;
+};
+
 interface ChatModalProps { isOpen: boolean; onClose: () => void; }
 
 const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
@@ -80,6 +104,13 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
     recognition.start();
   };
 
+  const handleBookWorker = (worker: Worker) => {
+    // Navigate to booking page with worker details
+    const serviceName = `${worker.category} Service`;
+    const url = `/booking/services?service=${encodeURIComponent(serviceName)}&workerId=${worker.workerId}`;
+    window.open(url, '_blank');
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -96,14 +127,28 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
         @keyframes listening-pulse-blue { 0%, 100% { box-shadow: 0 0 10px 2px rgba(29, 78, 216, 0.7); } 50% { box-shadow: 0 0 14px 4px rgba(37, 99, 235, 1); } }
         .blue-button:hover { background-color: #2563EB; }
         .icon-button {
-          flex: 1; padding: 10px; /* COMPACT UI: Reduced padding */
+          flex: 1; padding: 10px;
           background: rgba(0, 0, 0, 0.05);
-          border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 10px; /* COMPACT UI: Smaller radius */
+          border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 10px;
           color: #374151; cursor: pointer; display: flex; flex-direction: column;
-          align-items: center; justify-content: center; gap: 4px; /* COMPACT UI: Reduced gap */
+          align-items: center; justify-content: center; gap: 4px;
           transition: background-color 0.2s;
         }
         .icon-button:hover { background: rgba(0, 0, 0, 0.1); }
+        .worker-card {
+          background: white; border: 1px solid #E5E7EB; border-radius: 12px;
+          padding: 12px; margin-bottom: 8px; cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .worker-card:hover {
+          border-color: #1D4ED8; box-shadow: 0 4px 12px rgba(29, 78, 216, 0.15);
+        }
+        .book-button {
+          background: #10B981; color: white; border: none; border-radius: 8px;
+          padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;
+          transition: background-color 0.2s;
+        }
+        .book-button:hover { background: #059669; }
       `}</style>
       <div 
         className={isClosing ? 'modal-overlay-close' : 'modal-overlay-open'}
@@ -113,7 +158,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
         <div
           className={isClosing ? 'modal-panel-close' : 'modal-panel-open'}
           style={{
-            position: 'relative', width: '100%', maxWidth: '420px', // COMPACT UI: Slightly smaller max-width
+            position: 'relative', width: '100%', maxWidth: '480px',
             margin: '0 24px 96px 24px',
             background: 'rgba(249, 250, 251, 0.85)',
             backdropFilter: 'blur(20px)',
@@ -121,11 +166,12 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
             borderRadius: '24px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             color: '#1F2937',
+            maxHeight: '80vh',
+            overflow: 'hidden',
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Main content padding is reduced */}
-          <div style={{ padding: '24px' }}>
+          <div style={{ padding: '24px', maxHeight: 'calc(80vh - 48px)', overflow: 'auto' }}>
               <form onSubmit={(e) => { e.preventDefault(); handleSubmit(description); }}>
                 <h1 style={{ fontSize: '22px', fontWeight: 'bold', color: '#111827', marginBottom: '4px' }}>AI Service Assistant</h1>
                 <p style={{ color: '#4B5563', marginBottom: '16px', fontSize: '14px' }}>How can we help?</p>
@@ -183,14 +229,62 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
                 <div style={{ marginTop: '16px', padding: '16px', background: 'linear-gradient(135deg, #E0E7FF, #C7D2FE)', borderRadius: '16px' }}>
                   {error && <p style={{ color: '#BE123C', textAlign: 'center', fontWeight: '500' }}>{error}</p>}
                   {result && (
-                    <div style={{ textAlign: 'center' }}>
-                      <p style={{ color: '#4338CA', fontSize: '12px', fontWeight: '500' }}>Service Required:</p>
-                      <p style={{
-                        color: '#1E1B4B', fontSize: '18px', fontWeight: 'bold', textTransform: 'uppercase',
-                        letterSpacing: '0.05em', marginTop: '8px', lineHeight: '1.4', wordBreak: 'break-all'
-                      }}>
-                        {result.keyword}
-                      </p>
+                    <div>
+                      <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                        <p style={{ color: '#4338CA', fontSize: '12px', fontWeight: '500' }}>Service Required:</p>
+                        <p style={{
+                          color: '#1E1B4B', fontSize: '18px', fontWeight: 'bold', textTransform: 'uppercase',
+                          letterSpacing: '0.05em', marginTop: '8px', lineHeight: '1.4', wordBreak: 'break-all'
+                        }}>
+                          {result.keyword}
+                        </p>
+                      </div>
+                      
+                      {/* Workers Section */}
+                      {result.workers && (
+                        <div>
+                          {result.workers.error ? (
+                            <p style={{ color: '#BE123C', textAlign: 'center', fontSize: '14px' }}>
+                              {result.workers.error}
+                            </p>
+                          ) : result.workers.data && result.workers.data.length > 0 ? (
+                            <div>
+                              <p style={{ color: '#4338CA', fontSize: '14px', fontWeight: '500', marginBottom: '12px' }}>
+                                Available Workers ({result.workers.data.length}):
+                              </p>
+                              <div style={{ maxHeight: '300px', overflow: 'auto' }}>
+                                {result.workers.data.map((worker, index) => (
+                                  <div key={worker.workerId} className="worker-card">
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <div style={{ flex: 1 }}>
+                                        <p style={{ fontWeight: '600', fontSize: '14px', margin: '0 0 4px 0' }}>
+                                          {worker.firstName} {worker.lastName}
+                                        </p>
+                                        <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 4px 0' }}>
+                                          {worker.category} • {worker.experienceYears} years experience
+                                        </p>
+                                        <p style={{ fontSize: '12px', color: '#6B7280', margin: '0' }}>
+                                          {worker.phoneNumber}
+                                        </p>
+                                      </div>
+                                      <button 
+                                        className="book-button"
+                                        onClick={() => handleBookWorker(worker)}
+                                      >
+                                        Book Now
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <p style={{ color: '#6B7280', textAlign: 'center', fontSize: '14px' }}>
+                              No workers available for this service at the moment.
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

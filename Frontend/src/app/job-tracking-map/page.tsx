@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useUser } from "@civic/auth/react";
 import { useJobTracking } from "@/lib/jobTracking";
 import { PageLoadAnimation, PulsingDots } from "@/components/LoadingAnimations";
 import {
@@ -21,7 +20,6 @@ import {
 const JobTrackingMapPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useUser();
   const {
     currentJob,
     assignedWorker,

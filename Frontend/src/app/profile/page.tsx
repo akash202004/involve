@@ -1,12 +1,12 @@
 "use client";
 
-import { useUser } from '@civic/auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 import Link from 'next/link';
 // @ts-ignore
 import { v4 as uuidv4 } from 'uuid';
+import { useUser, SignInButton } from '@clerk/nextjs';
 
 interface UserProfile {
   id?: string;
@@ -23,7 +23,7 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
-  const { user, isLoading: authLoading, signOut } = useUser();
+  const { isSignedIn, user, isLoaded } = useUser();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile>({
     firstName: '',
@@ -38,89 +38,16 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/');
-    }
-  }, [user, authLoading, router]);
-
   // Load user data when authenticated
   useEffect(() => {
     if (user) {
-      const loadProfile = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-          const email = user.email ?? '';
-          
-          // First try to get user by email from localStorage or generate new ID
-          let userId = localStorage.getItem('userId');
-          
-          if (userId) {
-            // Try to get user by ID first
-            const response = await fetch(`http://localhost:5000/api/v1/users/${userId}`);
-            if (response.ok) {
-              const userData = await response.json();
-              setProfile({
-                id: userData.id,
-                firstName: userData.firstName || '',
-                lastName: userData.lastName || '',
-                phoneNumber: userData.phoneNumber || '',
-                email: user.email || '',
-                autoLocation: userData.autoLocation || '',
-                address: userData.address || '',
-                city: userData.city || '',
-                state: userData.state || '',
-                country: userData.country || '',
-                zipCode: userData.zipCode || undefined,
-              });
-              return;
-            }
-          }
-          
-          // If no user found by ID, try to find by email in all users
-          const allUsersResponse = await fetch('http://localhost:5000/api/v1/users');
-          if (allUsersResponse.ok) {
-            const allUsers = await allUsersResponse.json();
-            const existingUser = allUsers.find((u: any) => u.email === email);
-            
-            if (existingUser) {
-              // Store the existing user ID
-              localStorage.setItem('userId', existingUser.id);
-              setProfile({
-                id: existingUser.id,
-                firstName: existingUser.firstName || '',
-                lastName: existingUser.lastName || '',
-                phoneNumber: existingUser.phoneNumber || '',
-                email: user.email || '',
-                autoLocation: existingUser.autoLocation || '',
-                address: existingUser.address || '',
-                city: existingUser.city || '',
-                state: existingUser.state || '',
-                country: existingUser.country || '',
-                zipCode: existingUser.zipCode || undefined,
-              });
-              return;
-            }
-          }
-          
-          // If no existing user found, initialize with auth email
-          setProfile(prev => ({
-            ...prev,
-            email: user.email || '',
-            autoLocation: '',
-          }));
-          
-        } catch (error) {
-          console.error('Error loading profile:', error);
-          setError('Failed to load profile. Please try again.');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      loadProfile();
+      setProfile(prev => ({
+        ...prev,
+        email: user.primaryEmailAddress?.emailAddress || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+      }));
+      // Optionally, fetch more profile data from your backend here
     }
   }, [user]);
 
@@ -266,23 +193,12 @@ export default function ProfilePage() {
     }
   };
 
-  if (authLoading || isLoading) {
+  if (isLoaded && !isSignedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please log in to view your profile</h1>
-          <p className="text-gray-600">Redirecting to home page...</p>
+          <SignInButton />
+          <p className="mt-4 text-gray-600">Please sign in to view your profile.</p>
         </div>
       </div>
     );
@@ -294,7 +210,7 @@ export default function ProfilePage() {
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 px-6 py-8">
-            <div className="flex items-center justify-between">
+            <div className="flex justify-between items-center mb-4">
               <div>
                 <h1 className="text-3xl font-bold text-white">Profile</h1>
                 <p className="text-yellow-100 mt-1">Manage your account information</p>

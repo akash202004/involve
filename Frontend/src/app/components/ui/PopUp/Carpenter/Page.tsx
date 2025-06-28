@@ -10,19 +10,29 @@ interface CarpenterPopupProps {
 interface CarpenterService {
   name: string;
   icon: string;
+  price: number;
 }
+
+const SERVICE_PRICES: Record<string, number> = {
+  'Woodwork': 399, // Not in SERVICE_DETAILS, set a reasonable price
+  'Furniture Assembly': 399, // Not in SERVICE_DETAILS, set a reasonable price
+  'Door Repair': 299,
+  'Window Repair': 399,
+  'Cabinet Installation': 599,
+  'Custom Shelves': 199, // Maps to Shelf Installation
+};
 
 const CarpenterPopup: React.FC<CarpenterPopupProps> = ({ onClose }) => {
   const router = useRouter();
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
   const carpenterServices: CarpenterService[] = [
-    { name: 'Woodwork', icon: '🪵' },
-    { name: 'Furniture Assembly', icon: '🛠️' },
-    { name: 'Door Repair', icon: '🚪' },
-    { name: 'Window Repair', icon: '🪟' },
-    { name: 'Cabinet Installation', icon: '🗄️' },
-    { name: 'Custom Shelves', icon: '📚' },
+    { name: 'Woodwork', icon: '🪵', price: SERVICE_PRICES['Woodwork'] },
+    { name: 'Furniture Assembly', icon: '🛠️', price: SERVICE_PRICES['Furniture Assembly'] },
+    { name: 'Door Repair', icon: '🚪', price: SERVICE_PRICES['Door Repair'] },
+    { name: 'Window Repair', icon: '🪟', price: SERVICE_PRICES['Window Repair'] },
+    { name: 'Cabinet Installation', icon: '🗄️', price: SERVICE_PRICES['Cabinet Installation'] },
+    { name: 'Custom Shelves', icon: '📚', price: SERVICE_PRICES['Custom Shelves'] },
   ];
 
   const handleServiceClick = (serviceName: string) => {
@@ -61,6 +71,7 @@ const CarpenterPopup: React.FC<CarpenterPopupProps> = ({ onClose }) => {
               >
                 <div className="text-3xl mb-2">{item.icon}</div>
                 <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                <span className="text-xs text-yellow-700 font-semibold mt-1">₹{item.price}</span>
               </div>
             ))}
           </div>

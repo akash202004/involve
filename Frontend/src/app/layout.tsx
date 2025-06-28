@@ -3,11 +3,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavbarDemo from "@/app/components/Navbar/Page";
 import FooterSecond from "@/app/components/Footer/Page";
-import { CivicAuthProvider } from "@civic/auth/nextjs";
 import { CartProvider } from "./booking/cart/cartContext";
 import { JobTrackingProvider } from "@/lib/jobTracking";
 import 'leaflet/dist/leaflet.css';
+import { ClerkProvider } from '@clerk/nextjs';
 
+const clerkPubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,11 +37,11 @@ export default function RootLayout({
       >
         <JobTrackingProvider>
           <CartProvider>
-            <CivicAuthProvider>
+            <ClerkProvider publishableKey={clerkPubKey}>
               <NavbarDemo />
               <main className="flex-1">{children}</main>
               <FooterSecond />
-            </CivicAuthProvider>
+            </ClerkProvider>
           </CartProvider>
         </JobTrackingProvider>
       </body>

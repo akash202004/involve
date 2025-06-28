@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useUser } from "@civic/auth/react";
 import { useJobTracking } from "@/lib/jobTracking";
 import LiveTrackingMap from "../components/LiveTrackingMap";
 import EnhancedTrackingDisplay from "../components/EnhancedTrackingDisplay";
@@ -18,7 +17,6 @@ import {
 const TrackingDashboard: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useUser();
   const {
     currentJob,
     isSocketConnected,
@@ -33,14 +31,9 @@ const TrackingDashboard: React.FC = () => {
   const jobId = searchParams.get("jobId");
 
   useEffect(() => {
-    if (!user) {
-      router.push("/");
-      return;
-    }
-
     // Connect to socket for real-time updates
     connectSocket();
-  }, [user, router, connectSocket]);
+  }, [connectSocket]);
 
   // Handle fullscreen toggle
   const toggleFullscreen = () => {
@@ -57,20 +50,6 @@ const TrackingDashboard: React.FC = () => {
   const handleViewModeChange = (mode: "split" | "map" | "details") => {
     setViewMode(mode);
   };
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FiArrowLeft className="w-8 h-8 text-red-500" />
-          </div>
-          <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
-          <p className="text-gray-600">Please sign in to view tracking dashboard.</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!currentJob) {
     return (

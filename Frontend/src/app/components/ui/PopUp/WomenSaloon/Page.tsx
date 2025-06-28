@@ -7,11 +7,18 @@ interface PopupProps {
   onClose: () => void;
 }
 
+const SERVICE_PRICES: Record<string, number> = {
+  'Hair Color': 899,
+  'Waxing': 199,
+  'Nails': 299, // Maps to Manicure
+  'Hair Cut': 299, // Maps to Haircut
+};
+
 const services = [
-  { name: 'Hair Color', icon: '🎨' },
-  { name: 'Waxing', icon: '🧴' },
-  { name: 'Nails', icon: '💅' },
-  { name: 'Hair Cut', icon: '✂️' },
+  { name: 'Hair Color', icon: '🎨', price: SERVICE_PRICES['Hair Color'] },
+  { name: 'Waxing', icon: '🧴', price: SERVICE_PRICES['Waxing'] },
+  { name: 'Nails', icon: '💅', price: SERVICE_PRICES['Nails'] },
+  { name: 'Hair Cut', icon: '✂️', price: SERVICE_PRICES['Hair Cut'] },
 ];
 
 const WomenSalonPopup: React.FC<PopupProps> = ({ onClose }) => {
@@ -40,6 +47,7 @@ const WomenSalonPopup: React.FC<PopupProps> = ({ onClose }) => {
             >
               <div className="text-3xl mb-2">{service.icon}</div>
               <span className="text-sm text-center">{service.name}</span>
+              <span className="text-xs text-yellow-700 font-semibold mt-1">₹{service.price}</span>
             </div>
           ))}
         </div>

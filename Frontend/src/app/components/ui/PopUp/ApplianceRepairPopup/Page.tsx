@@ -11,27 +11,42 @@ interface ApplianceItem {
   name: string;
   icon: string;
   description?: string;
+  price: number;
 }
+
+const SERVICE_PRICES: Record<string, number> = {
+  'AC Repair': 599,
+  'Washing Machine Repair': 399,
+  'Television Repair': 399, // TV Repair in SERVICE_DETAILS
+  'Laptop Repair': 499, // Not in SERVICE_DETAILS, set a reasonable price
+  'Air Purifier Repair': 399, // Not in SERVICE_DETAILS, set a reasonable price
+  'Air Cooler Repair': 399, // Not in SERVICE_DETAILS, set a reasonable price
+  'Geyser Repair': 599, // Not in SERVICE_DETAILS, set a reasonable price
+  'Water Purifier Installation': 499, // Not in SERVICE_DETAILS, set a reasonable price
+  'Refrigerator Repair': 499,
+  'Microwave Repair': 299,
+  'Chimney Repair': 499, // Not in SERVICE_DETAILS, set a reasonable price
+};
 
 const ApplianceRepairPopup: React.FC<ApplianceRepairPopupProps> = ({ onClose }) => {
   const router = useRouter();
   const [selectedAppliance, setSelectedAppliance] = useState<string | null>(null);
 
   const homeAppliances: ApplianceItem[] = [
-    { name: 'AC Repair', icon: '❄️' },
-    { name: 'Washing Machine Repair', icon: '🧺' },
-    { name: 'Television Repair', icon: '📺' },
-    { name: 'Laptop Repair', icon: '💻' },
-    { name: 'Air Purifier Repair', icon: '🌬️' },
-    { name: 'Air Cooler Repair', icon: '🌪️' },
-    { name: 'Geyser Repair', icon: '🔥' },
+    { name: 'AC Repair', icon: '❄️', price: SERVICE_PRICES['AC Repair'] },
+    { name: 'Washing Machine Repair', icon: '🧺', price: SERVICE_PRICES['Washing Machine Repair'] },
+    { name: 'Television Repair', icon: '📺', price: SERVICE_PRICES['Television Repair'] },
+    { name: 'Laptop Repair', icon: '💻', price: SERVICE_PRICES['Laptop Repair'] },
+    { name: 'Air Purifier Repair', icon: '🌬️', price: SERVICE_PRICES['Air Purifier Repair'] },
+    { name: 'Air Cooler Repair', icon: '🌪️', price: SERVICE_PRICES['Air Cooler Repair'] },
+    { name: 'Geyser Repair', icon: '🔥', price: SERVICE_PRICES['Geyser Repair'] },
   ];
 
   const kitchenAppliances: ApplianceItem[] = [
-    { name: 'Water Purifier Installation', icon: '💧' },
-    { name: 'Refrigerator Repair', icon: '🧊' },
-    { name: 'Microwave Repair', icon: '🍽️' },
-    { name: 'Chimney Repair', icon: '🏠' },
+    { name: 'Water Purifier Installation', icon: '💧', price: SERVICE_PRICES['Water Purifier Installation'] },
+    { name: 'Refrigerator Repair', icon: '🧊', price: SERVICE_PRICES['Refrigerator Repair'] },
+    { name: 'Microwave Repair', icon: '🍽️', price: SERVICE_PRICES['Microwave Repair'] },
+    { name: 'Chimney Repair', icon: '🏠', price: SERVICE_PRICES['Chimney Repair'] },
   ];
 
   const handleApplianceClick = (applianceName: string) => {
@@ -78,6 +93,7 @@ const ApplianceRepairPopup: React.FC<ApplianceRepairPopupProps> = ({ onClose }) 
                 >
                   <div className="text-3xl mb-2">{item.icon}</div>
                   <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                  <span className="text-xs text-yellow-700 font-semibold mt-1">₹{item.price}</span>
                 </div>
               ))}
             </div>
@@ -97,6 +113,7 @@ const ApplianceRepairPopup: React.FC<ApplianceRepairPopupProps> = ({ onClose }) 
                 >
                   <div className="text-3xl mb-2">{item.icon}</div>
                   <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                  <span className="text-xs text-yellow-700 font-semibold mt-1">₹{item.price}</span>
                 </div>
               ))}
             </div>

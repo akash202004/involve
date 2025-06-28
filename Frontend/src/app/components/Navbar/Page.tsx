@@ -1,10 +1,8 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { UserButton, useUser } from "@civic/auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useCart } from "../../booking/cart/cartContext";
-import Image from "next/image";
+import { useCart } from '../../booking/cart/cartContext';
 
 // --- SVG Icon Components (Replaces @tabler/icons-react) ---
 const IconMapPin = ({ size = 24, className = "" }) => (
@@ -186,9 +184,9 @@ export default function App() {
     }
   }, []);
 
-  const { user, signOut } = useUser();
   const router = useRouter();
   const { cart } = useCart();
+  const { isSignedIn, user, isLoaded } = useUser();
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white font-sans border-b border-gray-200">
@@ -314,15 +312,13 @@ export default function App() {
                 <div className="absolute right-0 mt-3 min-w-[12rem] bg-white rounded-md shadow-xl border border-gray-200 z-50 py-2 px-3 ring-1 ring-black ring-opacity-5 transition-all duration-150">
                   <div className="px-4 py-2">
                     {user ? (
-                      <p className="text-sm text-gray-700">
-                        Hello, {user.name || "User"}!
-                      </p>
+                      <p className="text-sm text-gray-700">Hello, {user.name || 'User'}!</p>
                     ) : (
                       <p className="text-sm text-gray-700">Welcome, Guest!</p>
                     )}
                   </div>
                   <div className="border-t border-gray-100"></div>
-                  {user ? (
+                  {isSignedIn ? (
                     <>
                       <button
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -333,20 +329,14 @@ export default function App() {
                       >
                         Profile
                       </button>
-                      <button
-                        className="block w-full text-left px-4 py-2 mt-1 text-sm font-semibold text-white bg-yellow-500 rounded-md hover:bg-yellow-400 transition-colors duration-200"
-                        onClick={() => {
-                          setIsProfileMenuOpen(false);
-                          signOut();
-                        }}
-                      >
-                        Log Out
-                      </button>
+                      <div className="block w-full text-left px-4 py-2 mt-1">
+                        <SignOutButton />
+                      </div>
                       <div className="border-t border-gray-100"></div>
                     </>
                   ) : (
                     <div className="p-2">
-                      <UserButton />
+                      <SignInButton />
                     </div>
                   )}
                 </div>

@@ -7,13 +7,22 @@ interface PopupProps {
   onClose: () => void;
 }
 
+const SERVICE_PRICES: Record<string, number> = {
+  'Car Service': 999,
+  'Bike Service': 499,
+  'Emergency Service': 799, // Not in SERVICE_DETAILS, set a reasonable price
+  'Tire Leak': 399, // Maps to Tire Service
+  'AC Service': 599,
+  'Oil Change': 299,
+};
+
 const services = [
-  { name: 'Car Service', icon: '🚗' },
-  { name: 'Bike Service', icon: '🏍️' },
-  { name: 'Emergency Service', icon: '🚨' },
-  { name: 'Tire Leak', icon: '🛞' },
-  { name: 'AC Service', icon: '❄️' },
-  { name: 'Oil Change', icon: '🛢️' },
+  { name: 'Car Service', icon: '🚗', price: SERVICE_PRICES['Car Service'] },
+  { name: 'Bike Service', icon: '🏍️', price: SERVICE_PRICES['Bike Service'] },
+  { name: 'Emergency Service', icon: '🚨', price: SERVICE_PRICES['Emergency Service'] },
+  { name: 'Tire Leak', icon: '🛞', price: SERVICE_PRICES['Tire Leak'] },
+  { name: 'AC Service', icon: '❄️', price: SERVICE_PRICES['AC Service'] },
+  { name: 'Oil Change', icon: '🛢️', price: SERVICE_PRICES['Oil Change'] },
 ];
 
 const MechanicsPopup: React.FC<PopupProps> = ({ onClose }) => {
@@ -42,6 +51,7 @@ const MechanicsPopup: React.FC<PopupProps> = ({ onClose }) => {
             >
               <div className="text-3xl mb-2">{service.icon}</div>
               <span className="text-sm text-center">{service.name}</span>
+              <span className="text-xs text-yellow-700 font-semibold mt-1">₹{service.price}</span>
             </div>
           ))}
         </div>
