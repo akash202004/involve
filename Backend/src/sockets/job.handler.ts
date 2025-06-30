@@ -21,6 +21,12 @@ interface UpdateLocationPayload {
   lng: number;
 }
 
+interface WorkerHeartbeatPayload {
+  workerId: string;
+  lat: number;
+  lng: number;
+}
+
 // Store active job tracking sessions
 const activeJobTracking = new Map<
   string,
@@ -77,14 +83,19 @@ export const registerJobSocketHandlers = (socket: any) => {
       }
 
       // Check if worker exists and is available
-      const [worker] = await db
-        .select()
+      const [worker] = await db.select()
         .from(workers)
-        .where(eq(workers.id, workerId));
+        .where(
+          and(
+            eq(workers.id, workerId),
+            eq(workers.isActive, true)
+          )
+        );
 
       if (!worker) {
-        console.log("❌ [JOB_ACCEPT] Worker not found:", workerId);
-        socket.emit("job_error", { message: "Worker not found" });
+        socket.emit("job_error", {
+          message: "Worker not available or inactive"
+        });
         return;
       }
 
@@ -238,8 +249,7 @@ export const registerJobSocketHandlers = (socket: any) => {
       try {
         // Log the decline for analytics
         console.log(
-          `📊 [JOB_DECLINE] Decline logged for worker ${workerId} on job ${jobId}${
-            reason ? `: ${reason}` : ""
+          `📊 [JOB_DECLINE] Decline logged for worker ${workerId} on job ${jobId}${reason ? `: ${reason}` : ""
           }`
         );
 
@@ -423,6 +433,23 @@ export const registerJobSocketHandlers = (socket: any) => {
           message: "Worker disconnected. Location tracking stopped.",
         });
       }
+    }
+  });
+
+  socket.on("worker_heartbeat", async ({ workerId, lat, lng }: WorkerHeartbeatPayload) => {
+    // Update last active time
+    await db.update(workers)
+      .set({ lastActiveAt: new Date() })
+      .where(eq(workers.id, workerId));
+  
+    // Update live location
+    if (lat && lng) {
+      await db.insert(liveLocations)
+        .values({ workerId, lat, lng })
+        .onConflictDoUpdate({
+          target: liveLocations.workerId,
+          set: { lat, lng, createdAt: new Date() }
+        });
     }
   });
 

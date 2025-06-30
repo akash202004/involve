@@ -9,7 +9,7 @@ import {
   resetBroadcastMetrics,
   getJobById,
   updateJobStatus,
-  deleteJob
+  deleteJob,
 } from "../controllers/job.controller";
 
 

@@ -11,58 +11,11 @@ import CarpenterPopup from '@/app/components/ui/PopUp/Carpenter/Page';
 import MechanicsPopup from '@/app/components/ui/PopUp/Mechanics/Page';
 import Image from 'next/image';
 import FeatureImage from './FeatureImage';
-
-interface ServiceItem {
-  id: string;
-  title: string;
-  icon: string;
-  isNew?: boolean;
-  route: string;
-}
+import { MAIN_SERVICES } from '@/lib/services';
 
 const ServiceSelection: React.FC = () => {
   const router = useRouter();
   const [activePopup, setActivePopup] = useState<string | null>(null);
-
-  const services: ServiceItem[] = [
-    {
-      id: 'womens-salon',
-      title: "Women's Salon & Spa",
-      icon: '/Assets/female-svgrepo-com.svg',
-      route: '',
-    },
-    {
-      id: 'mens-salon',
-      title: "Men's Salon & Massage",
-      icon: '/Assets/men-in-suits-to-guide-svgrepo-com.svg',
-      route: '',
-    },
-    {
-      id: 'mechanics',
-      title: 'Mechanics',
-      icon: '/Assets/spraying-svgrepo-com.svg',
-      isNew: true,
-      route: '',
-    },
-    {
-      id: 'electrician',
-      title: 'Electrician',
-      icon: '/Assets/plumber-svgrepo-com.svg',
-      route: '',
-    },
-    {
-      id: 'plumber',
-      title: 'Plumber',
-      icon: '/Assets/plumber-svgrepo-com.svg',
-      route: '',
-    },
-    {
-      id: 'carpenter',
-      title: 'Carpenter',
-      icon: '/Assets/painting-brush-svgrepo-com.svg',
-      route: '',
-    },
-  ];
 
   const handleServiceClick = (serviceId: string) => {
     setActivePopup(serviceId);
@@ -79,7 +32,7 @@ const ServiceSelection: React.FC = () => {
         <div className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl mx-auto p-2 sm:p-6 bg-white rounded-xl">
           <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-800 mb-6">From Booking to Service in Under 10 Minutes</h2>
           <div className="grid grid-cols-2 gap-4 sm:gap-6">
-            {services.map((service) => (
+            {MAIN_SERVICES.map((service) => (
               <div
                 key={service.id}
                 onClick={() => handleServiceClick(service.id)}

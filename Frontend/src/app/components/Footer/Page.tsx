@@ -1,75 +1,90 @@
 "use client";
-import { usePathname } from 'next/navigation';
-import React from 'react';
-import Link from 'next/link';
-import { FaGithub, FaLinkedin, FaDiscord, FaHome } from 'react-icons/fa';
+import { usePathname } from "next/navigation";
+import React from "react";
+import Link from "next/link";
+import { FaGithub, FaLinkedin, FaDiscord, FaHome } from "react-icons/fa";
 import { RiTwitterXFill } from "react-icons/ri";
 
 const FooterSecond = () => {
   const pathname = usePathname();
-  if (pathname.startsWith('/worker')) {
-    return null;//If on a worker page, render nothing
+
+  // Hide footer on worker routes
+  if (pathname.startsWith("/worker")) {
+    return null;
   }
 
   const brandDetails = {
     brandIcon: <FaHome className="w-6 h-6 text-gray-600" />,
-    brandName: 'BrandName',
-    address: '2261 Market Street #5039 San <br /> Francisco, CA 94114',
+    brandName: "BrandName",
+    address: "2261 Market Street #5039 San <br /> Francisco, CA 94114",
   };
 
   const socialIcons = [
-    { name: 'Twitter', icon: <RiTwitterXFill className="w-5 h-5" />, link: 'https://x.com/ayushmxxn' },
-    { name: 'GitHub', icon: <FaGithub className="w-5 h-5" />, link: 'https://github.com/ayushmxxn' },
-    { name: 'LinkedIn', icon: <FaLinkedin className="w-5 h-5" />, link: 'https://linkedin.com' },
-    { name: 'Discord', icon: <FaDiscord className="w-5 h-5" />, link: 'https://discord.com/invite/kzk6uWey3g' },
+    {
+      name: "Twitter",
+      icon: <RiTwitterXFill className="w-5 h-5" />,
+      link: "https://x.com/ayushmxxn",
+    },
+    {
+      name: "GitHub",
+      icon: <FaGithub className="w-5 h-5" />,
+      link: "https://github.com/ayushmxxn",
+    },
+    {
+      name: "LinkedIn",
+      icon: <FaLinkedin className="w-5 h-5" />,
+      link: "https://linkedin.com",
+    },
+    {
+      name: "Discord",
+      icon: <FaDiscord className="w-5 h-5" />,
+      link: "https://discord.com/invite/kzk6uWey3g",
+    },
   ];
 
   const footerSections = [
     {
-      title: 'Product',
+      title: "Product",
       links: [
-        { text: 'Features', url: '/features' },
-        { text: 'Pricing', url: '/pricing' },
-        { text: 'Case Studies', url: '/case-studies' },
-        { text: 'Reviews', url: '/reviews' },
+        { text: "Features", url: "/features" },
+        { text: "Pricing", url: "/pricing" },
+        { text: "Case Studies", url: "/case-studies" },
+        { text: "Reviews", url: "/reviews" },
       ],
     },
     {
-      title: 'Company',
+      title: "Company",
       links: [
-        { text: 'About', url: '/about' },
-        { text: 'Careers', url: '/careers' },
-        { text: 'Contact', url: '/contact' },
-        { text: 'Blog', url: '/blog' },
+        { text: "About", url: "/about" },
+        { text: "Careers", url: "/careers" },
+        { text: "Contact", url: "/contact" },
+        { text: "Blog", url: "/blog" },
       ],
     },
     {
-      title: 'Resources',
+      title: "Resources",
       links: [
-        { text: 'Documentation', url: '/documentation' },
-        { text: 'Help Center', url: '/help-center' },
-        { text: 'API Reference', url: '/api-reference' },
-        { text: 'Status', url: '/status' },
+        { text: "Documentation", url: "/documentation" },
+        { text: "Help Center", url: "/help-center" },
+        { text: "API Reference", url: "/api-reference" },
+        { text: "Status", url: "/status" },
       ],
     },
     {
-      title: 'Legal',
+      title: "Legal",
       links: [
-        { text: 'Privacy Policy', url: '/privacy-policy' },
-        { text: 'Terms of Service', url: '/terms-of-service' },
-        { text: 'Cookie Policy', url: '/cookie-policy' },
-        { text: 'GDPR', url: '/gdpr' },
+        { text: "Privacy Policy", url: "/privacy-policy" },
+        { text: "Terms of Service", url: "/terms-of-service" },
+        { text: "Cookie Policy", url: "/cookie-policy" },
+        { text: "GDPR", url: "/gdpr" },
       ],
     },
     {
-      title: 'Admin',
-      links: [
-        { text: 'Admin', url: '/admin' },
-      ],
+      title: "Admin",
+      links: [{ text: "Admin", url: "/admin" }],
     },
   ];
 
-  
   return (
     <footer className="bg-white text-gray-800 py-8 px-6 shadow-lg">
       <div className="max-w-7xl mx-auto">
@@ -77,9 +92,14 @@ const FooterSecond = () => {
           <div className="col-span-1 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center mb-4">
               {brandDetails.brandIcon}
-              <span className="text-xl font-bold ml-2">{brandDetails.brandName}</span>
+              <span className="text-xl font-bold ml-2">
+                {brandDetails.brandName}
+              </span>
             </div>
-            <p className="text-sm mb-4" dangerouslySetInnerHTML={{ __html: brandDetails.address }} />
+            <p
+              className="text-sm mb-4"
+              dangerouslySetInnerHTML={{ __html: brandDetails.address }}
+            />
             <div className="flex space-x-4">
               {socialIcons.map((icon, index) => (
                 <a
@@ -98,11 +118,16 @@ const FooterSecond = () => {
           <div className="sm:col-span-2 lg:col-span-5 grid grid-cols-2 sm:grid-cols-5 gap-8 ">
             {footerSections.map((section, index) => (
               <div key={index} className="space-y-4">
-                <h3 className="font-semibold mb-2 text-sm uppercase tracking-wider">{section.title}</h3>
+                <h3 className="font-semibold mb-2 text-sm uppercase tracking-wider">
+                  {section.title}
+                </h3>
                 <ul className="space-y-2">
                   {section.links.map((link, linkIndex) => (
                     <li key={linkIndex}>
-                      <Link href={link.url} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                      <Link
+                        href={link.url}
+                        className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                      >
                         {link.text}
                       </Link>
                     </li>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
+import { useToast } from '@/components/Toast';
 
 export interface CartService {
   name: string;
@@ -21,9 +22,18 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartService[]>([]);
+  const [isClient, setIsClient] = useState(false);
+  const { showToast } = useToast();
 
-  // Load cart from localStorage on mount
+  // Set client flag to prevent hydration issues
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Load cart from localStorage on mount (client-side only)
+  useEffect(() => {
+    if (!isClient) return;
+    
     try {
       const stored = localStorage.getItem('cart');
       if (stored) {
@@ -34,16 +44,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       console.error('Error loading cart from localStorage:', error);
       setCart([]);
     }
-  }, []);
+  }, [isClient]);
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to localStorage whenever it changes (client-side only)
   useEffect(() => {
+    if (!isClient) return;
+    
     try {
       localStorage.setItem('cart', JSON.stringify(cart));
     } catch (error) {
       console.error('Error saving cart to localStorage:', error);
     }
-  }, [cart]);
+  }, [cart, isClient]);
 
   // Memoize cart calculations
   const cartTotal = useMemo(() => {
@@ -57,15 +69,24 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   // Optimize cart operations with useCallback
   const addToCart = useCallback((service: CartService) => {
     setCart((prev) => [...prev, service]);
-  }, []);
+    showToast(`${service.name} added to cart!`, 'success');
+  }, [showToast]);
 
   const removeFromCart = useCallback((index: number) => {
-    setCart((prev) => prev.filter((_, i) => i !== index));
-  }, []);
+    setCart((prev) => {
+      const removedItem = prev[index];
+      const newCart = prev.filter((_, i) => i !== index);
+      if (removedItem) {
+        showToast(`${removedItem.name} removed from cart`, 'info');
+      }
+      return newCart;
+    });
+  }, [showToast]);
 
   const clearCart = useCallback(() => {
     setCart([]);
-  }, []);
+    showToast('Cart cleared successfully', 'success');
+  }, [showToast]);
 
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({

@@ -125,6 +125,12 @@ export const workerSchema = z.object({
     .max(15, { message: "PAN card must be at most 15 characters" })
     .optional(),
 
+  isActive: z.boolean({ message: "IsActive must be a boolean" }).default(false),
+
+  lastActive: z
+    .date({ message: "Last active must be a valid date" })
+    .optional(),
+
   createdAt: z.date({ message: "CreatedAt must be a valid date" }).optional(),
 });
 

@@ -1,0 +1,21 @@
+.goLiveButton {
+  margin: 1.5rem 0 1.25rem 0;
+  padding: 0.18rem 1.1rem;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.10);
+}
+.goLiveButton:hover {
+  background-color: #059669;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.18);
+  transform: translateY(-2px) scale(1.03);
+} 

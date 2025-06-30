@@ -1,11 +1,14 @@
-# 🚀 Rivet - On-Demand Local Services Platform
+# 🚀 Involve - On-Demand Local Services Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black.svg)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 
-> **Rivet** - Your one-stop solution for instant local service booking. Connect with skilled professionals in minutes, not hours.
+> **Involve** - Your one-stop solution for instant local service booking. Connect with skilled professionals in minutes, not hours.
+
+![img](./images/AI%20CONTENT.png)
+![img](./images/1.png)
 
 ## 📋 Table of Contents
 
@@ -74,9 +77,9 @@ Imagine you're on a long drive with your car on a highway, and suddenly the engi
 
 ## 💡 Solution Overview
 
-**Rivet** is a revolutionary on-demand local services platform that connects users with skilled professionals in under 10 minutes. Our platform leverages cutting-edge technology to provide instant, reliable, and affordable services for various needs.
+**Involve** is a revolutionary on-demand local services platform that connects users with skilled professionals in under 10 minutes. Our platform leverages cutting-edge technology to provide instant, reliable, and affordable services for various needs.
 
-### What Makes Rivet Unique
+### What Makes Involve Unique
 
 1. **⚡ Instant Booking** - No prior appointments needed, 24/7 availability
 2. **🚀 Fast Service Guarantee** - 10-minute arrival time guarantee
@@ -95,7 +98,7 @@ Imagine you're on a long drive with your car on a highway, and suddenly the engi
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        RIVET PLATFORM                          │
+│                        INVOLVE PLATFORM                          │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
@@ -182,8 +185,8 @@ Imagine you're on a long drive with your car on a highway, and suddenly the engi
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/palsoumaditya/rivet-platform.git
-   cd rivet-platform
+   git clone https://github.com/palsoumaditya/involve-platform.git
+   cd involve-platform
    ```
 
 2. **Backend Setup**
@@ -249,7 +252,7 @@ Create `.env` files in each directory with the following variables:
 
 **Backend/.env**
 ```env
-DATABASE_URL=postgresql://user:password@localhost:5432/rivet_db
+DATABASE_URL=postgresql://user:password@localhost:5432/involve_db
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=your-jwt-secret
 CLOUDINARY_CLOUD_NAME=your-cloud-name
@@ -494,7 +497,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - **Customer Lifetime Value**: $500+ per customer annually
 - **Market Penetration Goal**: 5% of target market within 3 years
 
-This comprehensive approach positions Rivet as not just a service platform, but a complete solution to real-world problems that affect millions of people daily. Our technology-driven approach, combined with human-centric service delivery, creates a sustainable competitive advantage in the rapidly growing on-demand services market.
+This comprehensive approach positions Involve as not just a service platform, but a complete solution to real-world problems that affect millions of people daily. Our technology-driven approach, combined with human-centric service delivery, creates a sustainable competitive advantage in the rapidly growing on-demand services market.
 
 ## 🗺️ Future Roadmap
 

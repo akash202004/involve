@@ -4,6 +4,7 @@ import { workerSchema } from "@/types/validation";
 import { eq } from "drizzle-orm";
 import { Request, Response } from "express";
 import { ZodError } from "zod";
+import { liveLocations } from "@/db/schema";
 
 // Create Worker
 export const createWorker = async (req: Request, res: Response) => {
@@ -151,6 +152,73 @@ export const deleteWorker = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error deleting worker:", error);
     res.status(500).json({ error: "Failed to delete worker" });
+    return;
+  }
+};
+
+// Update Worker Availability
+export const updateWorkerAvailability = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { isActive, lat, lng } = req.body;
+
+    // Validate the worker exists
+    const existingWorker = await db
+      .select()
+      .from(workers)
+      .where(eq(workers.id, id));
+
+    if (existingWorker.length === 0) {
+      res.status(404).json({ error: "Worker not found" });
+      return;
+    }
+
+    // Update availability and last active timestamp
+    const updateData: any = {
+      isActive: isActive,
+      lastActiveAt: isActive ? new Date() : null,
+    };
+
+    const updated = await db
+      .update(workers)
+      .set(updateData)
+      .where(eq(workers.id, id))
+      .returning();
+
+    // If worker is going live and location is provided, update live location
+    if (isActive && lat && lng) {
+      try {
+        // Check if live location exists for this worker
+        const existingLocation = await db
+          .select()
+          .from(liveLocations)
+          .where(eq(liveLocations.workerId, id));
+
+        if (existingLocation.length > 0) {
+          // Update existing location
+          await db
+            .update(liveLocations)
+            .set({ lat, lng })
+            .where(eq(liveLocations.workerId, id));
+        } else {
+          // Create new location record
+          await db
+            .insert(liveLocations)
+            .values({ workerId: id, lat, lng });
+        }
+      } catch (locationError) {
+        console.error("Error updating live location:", locationError);
+        // Don't fail the entire request if location update fails
+      }
+    }
+
+    res.status(200).json({ 
+      message: "Worker availability updated", 
+      data: updated[0] 
+    });
+  } catch (error) {
+    console.error("Error updating worker availability:", error);
+    res.status(500).json({ error: "Failed to update worker availability" });
     return;
   }
 };

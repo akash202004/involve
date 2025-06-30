@@ -1,7 +1,7 @@
 import { db } from "@/config/drizzle";
 import { specializations, workers } from "@/db/schema";
 import { specializationSchema } from "@/types/validation";
-import { eq } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { Request, Response } from "express";
 import { ZodError } from "zod";
 
@@ -142,5 +142,46 @@ export const deleteSpecialization = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ error: "Failed to delete specialization" });
     return;
+  }
+};
+
+export const getWorkersBySpecialization = async (req: Request, res: Response) => {
+  try {
+    console.log("Params:", req.params);
+    const { category, subcategory } = req.params;
+
+    const workerSpecs = await db
+      .select({ workerId: specializations.workerId })
+      .from(specializations)
+      .where(
+        and(
+          eq(specializations.category, category as any),
+          eq(specializations.subCategory, subcategory as any)
+        )
+      );
+    console.log("workerSpecs:", workerSpecs);
+
+    if (workerSpecs.length === 0) {
+      res.status(404).json({ error: "No workers found for this specialization" });
+      return;
+    }
+
+    const workerIds = workerSpecs.map(spec => spec.workerId);
+
+    const workerDetails = await db
+      .select({
+        id: workers.id,
+        firstName: workers.firstName,
+        lastName: workers.lastName
+      })
+      .from(workers)
+      .where(inArray(workers.id, workerIds));
+    console.log("workerDetails:", workerDetails);
+
+    const names = workerDetails.map(w => `${w.firstName} ${w.lastName}`);
+    res.status(200).json({ data: names });
+  } catch (error) {
+    console.error("Error in getWorkersBySpecialization:", error);
+    res.status(500).json({ error: "Failed to fetch workers by specialization" });
   }
 };

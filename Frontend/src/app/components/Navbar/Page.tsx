@@ -2,7 +2,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useCart } from '../../booking/cart/cartContext';
+import Image from "next/image";
+import { useCart } from "../../booking/cart/cartContext";
+import { useUser, SignInButton, SignOutButton, useClerk } from "@clerk/nextjs";
+import { useToast } from "@/components/Toast";
+import { useEnsureUser } from "@/lib/useEnsureUser";
 
 // --- SVG Icon Components (Replaces @tabler/icons-react) ---
 const IconMapPin = ({ size = 24, className = "" }) => (
@@ -118,9 +122,17 @@ export default function App() {
   const pathname = usePathname();
 
   // Hide navbar on /worker route and all worker sub-routes (onboarding, dashboard, etc.)
+  // This must be before any hooks to avoid Rules of Hooks violation
   if (pathname === "/worker" || pathname.startsWith("/worker/")) {
     return null;
   }
+
+  const { showToast } = useToast();
+  const { signOut } = useClerk();
+  const { isSignedIn, user, isLoaded } = useUser();
+
+  // Add user registration hook
+  const { dbUser, isEnsuring, error: userError } = useEnsureUser();
 
   // --- STATE MANAGEMENT ---
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -129,6 +141,7 @@ export default function App() {
   const [location, setLocation] = useState("");
   const [autoLocation, setAutoLocation] = useState<string>("");
   const [isLocationPopupOpen, setIsLocationPopupOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   // --- REFS for Click Outside Logic ---
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
@@ -141,8 +154,18 @@ export default function App() {
     { name: "Worker", link: "/worker" },
   ];
 
+  const router = useRouter();
+  const { cart } = useCart();
+
+  // Set client flag to prevent hydration issues
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // --- EVENT HANDLERS & EFFECTS ---
   useEffect(() => {
+    if (!isClient) return; // Only run on client
+
     function handleClickOutside(event: MouseEvent) {
       if (
         profileMenuRef.current &&
@@ -161,9 +184,11 @@ export default function App() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [profileMenuRef, locationRef]);
+  }, [profileMenuRef, locationRef, isClient]);
 
   useEffect(() => {
+    if (!isClient) return; // Only run on client
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -182,29 +207,77 @@ export default function App() {
         () => {}
       );
     }
-  }, []);
+  }, [isClient]);
 
-  const router = useRouter();
-  const { cart } = useCart();
-  const { isSignedIn, user, isLoaded } = useUser();
+  // Show welcome toast when user signs in and is registered in backend
+  useEffect(() => {
+    if (isSignedIn && user && dbUser && !isEnsuring) {
+      showToast(
+        `Welcome back, ${
+          user.firstName || user.username || "User"
+        }! You're all set.`,
+        "success"
+      );
+    }
+  }, [isSignedIn, user, dbUser, isEnsuring, showToast]);
+
+  // Show error toast if user registration fails
+  useEffect(() => {
+    if (userError && isSignedIn) {
+      showToast(
+        "Failed to sync your account. Please try refreshing the page.",
+        "error"
+      );
+    }
+  }, [userError, isSignedIn, showToast]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      showToast("You have been signed out successfully", "info");
+      setIsProfileMenuOpen(false);
+    } catch (error) {
+      showToast("Error signing out. Please try again.", "error");
+    }
+  };
+
+  const handleProfileClick = () => {
+    showToast("Navigating to your profile...", "info");
+    setIsProfileMenuOpen(false);
+    router.push("/profile");
+  };
+
+  const handleCartClick = () => {
+    if (cart.length > 0) {
+      showToast(
+        `You have ${cart.length} item${
+          cart.length > 1 ? "s" : ""
+        } in your cart`,
+        "info"
+      );
+    } else {
+      showToast("Your cart is empty", "warning");
+    }
+    router.push("/booking/cart");
+  };
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white font-sans border-b border-gray-200">
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           {/* ====== Left Section: Logo and Main Navigation ====== */}
-          <div className="flex items-center space-x-2 px-18">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <div className="relative w-[150px] h-[80px]">
+              <div className="relative w-[120px] h-[60px] sm:w-[150px] sm:h-[80px]">
                 <Image
-                  src="/Assets/a.jpg"
+                  src="/Assets/logo.png"
                   alt="Go-Fix-O Logo"
                   fill
                   className="object-contain"
                 />
               </div>
             </Link>
-            <div className="hidden md:flex items-center space-x-6">
+            <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
@@ -218,26 +291,24 @@ export default function App() {
           </div>
 
           {/* ====== Right Section: Actions and User Controls ====== */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Location Selector (Desktop) */}
             <div className="hidden lg:flex relative" ref={locationRef}>
               <button
-                className="flex items-center space-x-2 border rounded-lg px-4 py-2 hover:bg-transparent transition w-64"
+                className="flex items-center space-x-2 border rounded-lg px-3 py-2 hover:bg-gray-50 transition w-56 xl:w-64"
                 onClick={() => setIsLocationOpen((v) => !v)}
                 type="button"
               >
-                <IconMapPin size={20} className="text-gray-500" />
+                <IconMapPin size={18} className="text-gray-500" />
                 <span className="truncate text-gray-700 text-sm font-medium">
-                  {location
-                    ? location
-                    : autoLocation
-                    ? autoLocation
+                  {isClient && (location || autoLocation)
+                    ? location || autoLocation
                     : "Select Location"}
                 </span>
-                <IconChevronDown size={18} className="text-gray-400" />
+                <IconChevronDown size={16} className="text-gray-400" />
               </button>
               {isLocationOpen && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white border rounded-lg shadow-lg z-50 p-4">
+                <div className="absolute top-full left-0 mt-2 w-56 xl:w-64 bg-white border rounded-lg shadow-lg z-50 p-4">
                   <input
                     type="text"
                     className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -276,9 +347,11 @@ export default function App() {
                 </div>
               )}
             </div>
+
+            {/* Search Bar (Desktop) */}
             <div className="hidden md:flex">
-              <div className="flex items-center border rounded-lg px-3 py-2 w-56">
-                <IconSearch size={20} className="text-gray-400 mr-2" />
+              <div className="flex items-center border rounded-lg px-3 py-2 w-48 lg:w-56">
+                <IconSearch size={18} className="text-gray-400 mr-2" />
                 <input
                   type="text"
                   placeholder="Search for services..."
@@ -286,13 +359,15 @@ export default function App() {
                 />
               </div>
             </div>
+
+            {/* Cart Button */}
             <div className="relative">
               <button
-                className="p-2 rounded-full hover:bg-transparent transition-colors"
-                onClick={() => router.push("/booking/cart")}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                onClick={handleCartClick}
                 aria-label="Shopping Cart"
               >
-                <IconShoppingCart size={24} className="text-gray-700" />
+                <IconShoppingCart size={20} className="text-gray-700" />
               </button>
               {cart.length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
@@ -300,19 +375,44 @@ export default function App() {
                 </span>
               )}
             </div>
-            <div className="relative" ref={profileMenuRef}>
+
+            {/* Profile Menu (Desktop) */}
+            <div className="hidden md:block relative" ref={profileMenuRef}>
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="p-2 rounded-full hover:bg-transparent transition-colors focus:outline-none"
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
                 aria-label="User Profile"
               >
-                <IconUser size={24} className="text-gray-700" />
+                <IconUser size={20} className="text-gray-700" />
+                {/* Loading indicator for user registration */}
+                {isEnsuring && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                )}
               </button>
               {isProfileMenuOpen && (
                 <div className="absolute right-0 mt-3 min-w-[12rem] bg-white rounded-md shadow-xl border border-gray-200 z-50 py-2 px-3 ring-1 ring-black ring-opacity-5 transition-all duration-150">
                   <div className="px-4 py-2">
                     {user ? (
-                      <p className="text-sm text-gray-700">Hello, {user.name || 'User'}!</p>
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          Hello, {user.firstName || user.username || "User"}!
+                        </p>
+                        {isEnsuring && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Syncing your account...
+                          </p>
+                        )}
+                        {dbUser && !isEnsuring && (
+                          <p className="text-xs text-green-600 mt-1">
+                            ✓ Account synced
+                          </p>
+                        )}
+                        {userError && (
+                          <p className="text-xs text-red-600 mt-1">
+                            ⚠ Sync failed
+                          </p>
+                        )}
+                      </div>
                     ) : (
                       <p className="text-sm text-gray-700">Welcome, Guest!</p>
                     )}
@@ -322,37 +422,50 @@ export default function App() {
                     <>
                       <button
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => {
-                          setIsProfileMenuOpen(false);
-                          router.push("/profile");
-                        }}
+                        onClick={handleProfileClick}
+                        disabled={isEnsuring}
                       >
                         Profile
                       </button>
-                      <div className="block w-full text-left px-4 py-2 mt-1">
-                        <SignOutButton />
-                      </div>
+                      <button
+                        className="block w-full text-left px-4 py-2 my-2 font-semibold bg-yellow-500 border border-yellow-500 text-white rounded-lg shadow-sm hover:bg-yellow-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleSignOut}
+                        disabled={isEnsuring}
+                        style={{ fontFamily: "inherit" }}
+                      >
+                        Sign Out
+                      </button>
                       <div className="border-t border-gray-100"></div>
                     </>
                   ) : (
                     <div className="p-2">
-                      <SignInButton />
+                      <SignInButton>
+                        <button
+                          className="w-full px-4 py-2 font-semibold bg-yellow-500 border border-yellow-500 text-white rounded-lg shadow-sm hover:bg-yellow-600 transition-colors duration-200"
+                          style={{ fontFamily: "inherit" }}
+                          type="button"
+                        >
+                          Sign In
+                        </button>
+                      </SignInButton>
                     </div>
                   )}
                 </div>
               )}
             </div>
+
+            {/* Mobile Toggle Button */}
             <div className="md:hidden flex items-center">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:bg-transparent focus:outline-none"
+                className="inline-flex items-center justify-center p-3 bg-white text-black hover:bg-gray-50 focus:outline-none transition-all duration-200"
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? (
-                  <IconX size={24} />
+                  <IconX size={20} className="text-black" />
                 ) : (
                   <svg
-                    className="h-6 w-6"
+                    className="h-5 w-5 text-black"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -374,17 +487,17 @@ export default function App() {
 
       {/* ====== Mobile Navigation Menu (Dropdown) ====== */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
-          <div className="px-4 pt-4 pb-3 space-y-3">
+        <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+          <div className="px-4 pt-6 pb-6 space-y-4">
             {/* Mobile Location Selector (input) */}
-            <div className="flex items-center w-full border border-transparent rounded-lg px-3 py-2.5">
+            <div className="flex items-center w-full border border-gray-300 rounded-lg px-4 py-3 bg-gray-50">
               <IconMapPin
                 size={20}
                 className="text-gray-500 mr-3 flex-shrink-0"
               />
               <input
                 type="text"
-                className="w-full outline-none bg-transparent text-gray-700 text-sm"
+                className="w-full outline-none bg-transparent text-gray-700 text-sm font-medium"
                 placeholder="Enter your location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -396,33 +509,110 @@ export default function App() {
             </div>
 
             {/* Mobile Search Bar */}
-            <div className="flex items-center rounded-lg px-3 py-2.5 w-full">
+            <div className="flex items-center border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 w-full">
               <IconSearch
                 size={20}
-                className="text-gray-400 mr-3 flex-shrink-0"
+                className="text-gray-500 mr-3 flex-shrink-0"
               />
               <input
                 type="text"
                 placeholder="Search for services..."
-                className="w-full outline-none bg-transparent text-gray-700 text-sm"
+                className="w-full outline-none bg-transparent text-gray-700 text-sm font-medium"
               />
             </div>
 
             {/* Divider */}
-            <div className="border-t border-gray-200 !my-3"></div>
+            <div className="border-t border-gray-200 my-4"></div>
 
             {/* Mobile Nav Links */}
-            <div className="space-y-1">
+            <div className="space-y-2">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.link}
-                  className="block text-gray-600 hover:bg-gray-100 hover:text-blue-600 px-3 py-2 rounded-md text-base font-medium transition-colors"
+                  className="block text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 border border-transparent hover:border-yellow-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
+            </div>
+
+            {/* Mobile User Actions */}
+            <div className="border-t border-gray-200 pt-4 space-y-3">
+              {/* Cart Button */}
+              <button
+                onClick={() => {
+                  handleCartClick();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 rounded-lg transition-all duration-200 border border-transparent hover:border-yellow-200"
+              >
+                <div className="flex items-center">
+                  <IconShoppingCart size={20} className="mr-3" />
+                  <span className="font-medium">Cart</span>
+                </div>
+                {cart.length > 0 && (
+                  <span className="bg-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
+                    {cart.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Profile/Login Button */}
+              {isSignedIn ? (
+                <div className="space-y-2">
+                  {/* User Status Indicator */}
+                  <div className="px-4 py-2 bg-gray-50 rounded-lg">
+                    {isEnsuring && (
+                      <p className="text-xs text-blue-600">
+                        Syncing your account...
+                      </p>
+                    )}
+                    {dbUser && !isEnsuring && (
+                      <p className="text-xs text-green-600">✓ Account synced</p>
+                    )}
+                    {userError && (
+                      <p className="text-xs text-red-600">⚠ Sync failed</p>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      handleProfileClick();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 rounded-lg transition-all duration-200 border border-transparent hover:border-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isEnsuring}
+                  >
+                    <div className="flex items-center">
+                      <IconUser size={20} className="mr-3" />
+                      <span className="font-medium">Profile</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-3 font-semibold bg-yellow-500 border border-yellow-500 text-white rounded-lg shadow-sm hover:bg-yellow-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isEnsuring}
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <div className="p-2">
+                  <SignInButton>
+                    <button
+                      className="w-full px-4 py-3 font-semibold bg-yellow-500 border border-yellow-500 text-white rounded-lg shadow-sm hover:bg-yellow-600 transition-colors duration-200"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Sign In
+                    </button>
+                  </SignInButton>
+                </div>
+              )}
             </div>
           </div>
         </div>

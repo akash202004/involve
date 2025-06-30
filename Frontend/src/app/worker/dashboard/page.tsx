@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import styles from "./dashboard.module.css";
-import { useJobTracking } from "@/lib/jobTracking";
-import { PageLoadAnimation, PulsingDots } from "@/components/LoadingAnimations";
+import { useUser } from "@clerk/clerk-react";
 import "leaflet/dist/leaflet.css";
+import JobRequestCard from "./jobRequestCard";
 import {
   FiUser,
   FiLogOut,
@@ -31,356 +31,60 @@ import {
   FiXCircle,
 } from "react-icons/fi";
 import ThemeToggle from "./ThemeToggle";
-
-// --- Chart.js Imports for the Line Chart ---
-import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from "chart.js";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+import { useWorkerDashboard } from "./useWorkerDashboard";
+import socketManager from "@/lib/socket";
+import GoLiveButton from "./GoLiveButton";
 
 const WorkerMap = dynamic(() => import("./WorkerMap"), {
   ssr: false,
   loading: () => <div className={styles.mapPlaceholder}>Loading Map...</div>,
 });
 
-const WeeklyLineChart = () => {
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "bottom" as const,
-        labels: { boxWidth: 20, padding: 20, font: { size: 12 } },
-      },
-      title: { display: false },
-      tooltip: { mode: "index" as const, intersect: false },
-    },
-    scales: {
-      x: { grid: { display: false } },
-      y: {
-        grid: { color: "rgba(200, 200, 200, 0.1)", borderDash: [5, 5] },
-        beginAtZero: true,
-      },
-    },
-    interaction: { mode: "index" as const, intersect: false },
-  };
-  const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const data = {
-    labels,
-    datasets: [
-      {
-        fill: true,
-        label: "Earnings ($)",
-        data: [180, 400, 290, 350, 80, 500, 270],
-        borderColor: "rgb(22, 163, 74)",
-        backgroundColor: "rgba(22, 163, 74, 0.2)",
-        tension: 0.3,
-      },
-      {
-        fill: true,
-        label: "Jobs Completed",
-        data: [3, 8, 5, 6, 2, 9, 5],
-        borderColor: "rgb(59, 130, 246)",
-        backgroundColor: "rgba(59, 130, 246, 0.2)",
-        tension: 0.3,
-      },
-    ],
-  };
-  return (
-    <div className={styles.lineChartContainer}>
-      <Line options={options} data={data} />
-    </div>
-  );
-};
-
-// Updated types for job tracking
-type JobStatus = "idle" | "incoming" | "accepted" | "in_progress" | "completed";
-type LatLngTuple = [number, number];
-
-interface JobRequest {
-  id: string;
-  distance: string;
-  fare: number;
-  title: string;
-  clientLocation: LatLngTuple;
-  description: string;
-  location: string;
-  lat: number;
-  lng: number;
-  userId: string;
-  durationMinutes?: number;
-}
-
-type HistoryJob = JobRequest & { status: "completed" | "declined" };
-
 export default function WorkerDashboardPage() {
   const router = useRouter();
+  const { user } = useUser();
   const {
-    currentJob,
-    assignedWorker,
-    isJobAccepted,
-    isTrackingActive,
-    workerLocation,
-    acceptJob,
-    updateLocation,
-    completeJob,
-    isSocketConnected,
-    connectSocket,
-    error,
-    clearError,
-  } = useJobTracking();
+    // State
+    theme,
+    isLive,
+    location,
+    locationError,
+    jobStatus,
+    jobRequest,
+    jobHistory,
+    route,
+    routeLoading,
+    countdownTime,
+    earnings,
+    timeWorked,
+    jobsCompleted,
+    performance,
+    weeklyGoal,
+    isEditingGoal,
+    goalInput,
+    profile,
+    workerId,
 
-  const [theme, setTheme] = useState("light");
-  const [isLive, setIsLive] = useState(false);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
-    null
-  );
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const watchIdRef = useRef<number | null>(null);
+    // Handlers
+    toggleTheme,
+    toggleLiveStatus,
+    handleAcceptJob,
+    handleDeclineJob,
+    handleCompleteJob,
+    handleSetGoal,
+    setGoalInput,
+    setIsEditingGoal,
+    handleLogout,
+    checkWorkerStatus,
+    testJobBroadcast,
+  } = useWorkerDashboard();
 
-  const [jobStatus, setJobStatus] = useState<JobStatus>("idle");
-  const [jobRequest, setJobRequest] = useState<JobRequest | null>(null);
-  const [jobHistory, setJobHistory] = useState<HistoryJob[]>([]);
-  const [route, setRoute] = useState<LatLngTuple[] | null>(null);
+  // Active job UI state
+  const isJobIncoming = jobStatus === "incoming" && jobRequest;
+  const isJobAccepted = jobStatus === "accepted" && jobRequest;
+  const [showJobRequests, setShowJobRequests] = useState(false);
 
-  // Profile state
-  const [profile, setProfile] = useState<{
-    firstName: string;
-    imageUrl: string | null;
-  }>({ firstName: "Worker", imageUrl: null });
-
-  const [earnings, setEarnings] = useState(0);
-  const [timeWorked, setTimeWorked] = useState(0);
-  const [jobsCompleted, setJobsCompleted] = useState(0);
-  const [performance] = useState({ rating: 4.8, successRate: 96 });
-  const [weeklyGoal, setWeeklyGoal] = useState({ target: 2000 });
-  const [goalInput, setGoalInput] = useState("2000");
-  const [isEditingGoal, setIsEditingGoal] = useState(false);
-
-  // Connect to socket when component mounts
-  useEffect(() => {
-    connectSocket();
-  }, [connectSocket]);
-
-  // Handle incoming job notifications
-  useEffect(() => {
-    if (currentJob && !isJobAccepted) {
-      // Convert current job to job request format
-      const newJobRequest: JobRequest = {
-        id: currentJob.id,
-        distance: "2.5 km", // You can calculate this
-        fare: 500, // You can calculate this based on distance
-        title: currentJob.description,
-        clientLocation: [currentJob.lat, currentJob.lng] as LatLngTuple,
-        description: currentJob.description,
-        location: currentJob.location,
-        lat: currentJob.lat,
-        lng: currentJob.lng,
-        userId: currentJob.userId,
-        durationMinutes: currentJob.durationMinutes,
-      };
-
-      setJobRequest(newJobRequest);
-      setJobStatus("incoming");
-    }
-  }, [currentJob, isJobAccepted]);
-
-  // Handle job acceptance
-  useEffect(() => {
-    if (isJobAccepted && currentJob) {
-      setJobStatus("accepted");
-      setJobRequest(null);
-
-      // Start location tracking if worker is live
-      if (isLive && location) {
-        startLocationTracking();
-      }
-    }
-  }, [isJobAccepted, currentJob, isLive, location]);
-
-  useEffect(() => {
-    const savedProfile = localStorage.getItem("userProfile");
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-    }
-  }, []);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("worker-theme") || "light";
-    setTheme(savedTheme);
-    document.documentElement.className =
-      savedTheme === "dark" ? styles.darkTheme : "";
-  }, []);
-
-  useEffect(() => {
-    let timerInterval: NodeJS.Timeout | undefined = undefined;
-    if (isLive) {
-      timerInterval = setInterval(() => {
-        setTimeWorked((prevTime) => prevTime + 1);
-      }, 1000);
-    }
-    return () => {
-      clearInterval(timerInterval);
-    };
-  }, [isLive]);
-
-  useEffect(() => {
-    if (isLive) {
-      setLocationError(null);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          setLocationError(
-            "Could not get location. Please enable location services."
-          );
-          setIsLive(false);
-        },
-        { enableHighAccuracy: true }
-      );
-      watchIdRef.current = navigator.geolocation.watchPosition((position) => {
-        setLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      });
-    } else {
-      if (watchIdRef.current)
-        navigator.geolocation.clearWatch(watchIdRef.current);
-      setLocation(null);
-    }
-    return () => {
-      if (watchIdRef.current)
-        navigator.geolocation.clearWatch(watchIdRef.current);
-    };
-  }, [isLive]);
-
-  const fetchRoute = async (
-    start: { lat: number; lng: number },
-    end: LatLngTuple
-  ) => {
-    try {
-      const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end[1]},${end[0]}?overview=full&geometries=geojson`;
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data.routes && data.routes.length > 0) {
-        const routeCoords = data.routes[0].geometry.coordinates.map(
-          (c: [number, number]) => [c[1], c[0]] as LatLngTuple
-        );
-        setRoute(routeCoords);
-      }
-    } catch (e) {
-      console.error("Failed to fetch route:", e);
-    }
-  };
-
-  const handleSimulateJob = () => {
-    if (!isLive || !location) {
-      alert("You must be 'Online' to receive jobs.");
-      return;
-    }
-    if (jobStatus !== "idle") {
-      alert("You already have an active job offer.");
-      return;
-    }
-
-    const clientLat = location.lat + (Math.random() - 0.5) * 0.1;
-    const clientLng = location.lng + (Math.random() - 0.5) * 0.1;
-
-    setJobRequest({
-      id: Date.now().toString(),
-      title: "New Delivery Request",
-      distance: (Math.random() * 8 + 1).toFixed(1),
-      fare: Math.floor(Math.random() * 25 + 15),
-      clientLocation: [clientLat, clientLng] as LatLngTuple,
-      description: "New Delivery Request",
-      location: "New Delivery Request",
-      lat: clientLat,
-      lng: clientLng,
-      userId: "",
-    });
-    setJobStatus("incoming");
-  };
-
-  const handleAcceptJob = () => {
-    setJobStatus("accepted");
-    if (location && jobRequest) {
-      fetchRoute(location, jobRequest.clientLocation);
-    }
-  };
-
-  const resetJobState = () => {
-    setJobStatus("idle");
-    setJobRequest(null);
-    setRoute(null);
-  };
-
-  const handleDeclineJob = () => {
-    if (jobRequest) {
-      setJobHistory((prev) => [{ ...jobRequest, status: "declined" }, ...prev]);
-    }
-    resetJobState();
-  };
-
-  const handleCompleteJob = () => {
-    if (jobRequest) {
-      setEarnings((prevEarnings) => prevEarnings + jobRequest.fare);
-      setJobsCompleted((prevCount) => prevCount + 1);
-      setJobHistory((prev) => [
-        { ...jobRequest, status: "completed" },
-        ...prev,
-      ]);
-    }
-    resetJobState();
-  };
-
-  const handleSetGoal = () => {
-    const newTarget = parseInt(goalInput, 10);
-    if (!isNaN(newTarget) && newTarget > 0) {
-      setWeeklyGoal({ target: newTarget });
-      setIsEditingGoal(false);
-    } else {
-      alert("Please enter a valid positive number for your goal.");
-    }
-  };
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("worker-theme", newTheme);
-    document.documentElement.className =
-      newTheme === "dark" ? styles.darkTheme : "";
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("userProfile");
-    router.push("/");
-  };
-
+  // Format time helper function (kept inline as requested)
   const formatTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -390,24 +94,9 @@ export default function WorkerDashboardPage() {
       .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  const isJobIncoming = jobStatus === "incoming" && jobRequest;
-  const isJobAcceptedWorker = jobStatus === "accepted" && jobRequest;
-
-  // Start location tracking for accepted job
-  const startLocationTracking = () => {
-    if (!currentJob || !isLive) return;
-
-    const locationInterval = setInterval(() => {
-      if (location && isTrackingActive) {
-        updateLocation(currentJob.id, "", location.lat, location.lng);
-      }
-    }, 5000); // Update every 5 seconds
-
-    return () => clearInterval(locationInterval);
-  };
-
   return (
     <>
+      {/* Job Request Modal */}
       {isJobIncoming && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -416,6 +105,8 @@ export default function WorkerDashboardPage() {
               <button
                 onClick={handleDeclineJob}
                 className={styles.closeModalButton}
+                title="Close job offer"
+                aria-label="Close job offer"
               >
                 <FiX />
               </button>
@@ -429,8 +120,15 @@ export default function WorkerDashboardPage() {
                     <FiMapPin size={14} /> {jobRequest.distance} km away
                   </span>
                   <span className={styles.detail}>
-                    <FiDollarSign size={14} /> Est. Fare: ${jobRequest.fare}
+                    <FiDollarSign size={14} /> Est. Fare: ₹{jobRequest.fare}
                   </span>
+                  {countdownTime > 0 && (
+                    <span className={styles.countdown}>
+                      <FiClock size={14} /> Time remaining:{" "}
+                      {Math.floor(countdownTime / 60)}:
+                      {(countdownTime % 60).toString().padStart(2, "0")}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -452,6 +150,36 @@ export default function WorkerDashboardPage() {
         </div>
       )}
 
+      {showJobRequests && jobRequest && (
+        <JobRequestCard
+          job={jobRequest}
+          onAccept={handleAcceptJob}
+          onDecline={handleDeclineJob}
+          onClose={() => setShowJobRequests(false)}
+        />
+      )}
+
+      {/* Debug info */}
+      {showJobRequests && !jobRequest && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            background: "white",
+            padding: "20px",
+            border: "1px solid black",
+            zIndex: 1000,
+          }}
+        >
+          <p>Debug: showJobRequests is true but jobRequest is null</p>
+          <p>jobStatus: {jobStatus}</p>
+          <p>isLive: {isLive.toString()}</p>
+          <button onClick={() => setShowJobRequests(false)}>Close</button>
+        </div>
+      )}
+
+      {/* Main Dashboard */}
       <div className={styles.pageWrapper}>
         <div className={styles.dashboardContainer}>
           <header className={styles.header}>
@@ -463,16 +191,37 @@ export default function WorkerDashboardPage() {
                 className={`${styles.iconButton} ${styles.goLiveButton} ${
                   isLive ? styles.live : ""
                 }`}
-                onClick={() => setIsLive(!isLive)}
+                onClick={toggleLiveStatus}
                 title={isLive ? "Go Offline" : "Go Live"}
+                disabled={!workerId}
               >
                 <FiRadio />
               </button>
               <ThemeToggle theme={theme} onToggle={toggleTheme} />
               <button
                 className={styles.iconButton}
-                title="Check for new jobs"
-                onClick={handleSimulateJob}
+                title="Test Job Broadcast"
+                onClick={testJobBroadcast}
+                style={{ backgroundColor: "#f59e0b", color: "white" }}
+              >
+                🧪
+              </button>
+              <button
+                className={styles.iconButton}
+                title="Check Worker Status"
+                onClick={checkWorkerStatus}
+                style={{ backgroundColor: "#10b981", color: "white" }}
+              >
+                📊
+              </button>
+              <button
+                className={styles.iconButton}
+                title="Notifications"
+                onClick={() => {
+                  console.log("Notification clicked, jobRequest:", jobRequest);
+                  console.log("showJobRequests will be:", !showJobRequests);
+                  setShowJobRequests(true);
+                }}
                 disabled={!isLive || jobStatus !== "idle"}
               >
                 <FiBell />
@@ -483,7 +232,7 @@ export default function WorkerDashboardPage() {
               <div className={styles.profileBlock}>
                 <button
                   className={styles.iconButton}
-                  onClick={() => router.push("/worker/onboarding")}
+                  onClick={() => router.push("/worker/profile")}
                 >
                   {profile.imageUrl ? (
                     <img
@@ -508,6 +257,7 @@ export default function WorkerDashboardPage() {
           </header>
 
           <main className={styles.contentGrid}>
+            {/* Map Card */}
             <div className={`${styles.card} ${styles.mapCard}`}>
               <h3 className={styles.cardHeader}>
                 <FiMapPin /> Live Map
@@ -547,21 +297,23 @@ export default function WorkerDashboardPage() {
               </div>
             </div>
 
+            {/* Stats Cards */}
             <div className={styles.rightSidebar}>
               <div className={styles.statCardRow}>
                 <div className={`${styles.card} ${styles.statCard}`}>
                   <div
                     className={styles.statIconContainer}
-                    style={{
-                      "--icon-bg-color": "rgba(16, 185, 129, 0.1)",
-                      "--icon-color": "var(--accent-green)",
-                    }}
+                    style={
+                      {
+                        "--icon-bg-color": "rgba(16, 185, 129, 0.1)",
+                      } as React.CSSProperties
+                    }
                   >
                     <FiDollarSign className={styles.statIcon} />
                   </div>
                   <div className={styles.statTextContainer}>
                     <div className={styles.statValue}>
-                      ${earnings.toFixed(2)}
+                      ₹{earnings.toFixed(2)}
                     </div>
                     <div className={styles.subtleHeader}>Earnings</div>
                   </div>
@@ -569,10 +321,11 @@ export default function WorkerDashboardPage() {
                 <div className={`${styles.card} ${styles.statCard}`}>
                   <div
                     className={styles.statIconContainer}
-                    style={{
-                      "--icon-bg-color": "rgba(59, 130, 246, 0.1)",
-                      "--icon-color": "var(--accent-blue)",
-                    }}
+                    style={
+                      {
+                        "--icon-bg-color": "rgba(59, 130, 246, 0.1)",
+                      } as React.CSSProperties
+                    }
                   >
                     <FiClock className={styles.statIcon} />
                   </div>
@@ -586,10 +339,11 @@ export default function WorkerDashboardPage() {
                 <div className={`${styles.card} ${styles.statCard}`}>
                   <div
                     className={styles.statIconContainer}
-                    style={{
-                      "--icon-bg-color": "rgba(139, 92, 246, 0.1)",
-                      "--icon-color": "var(--accent-purple)",
-                    }}
+                    style={
+                      {
+                        "--icon-bg-color": "rgba(139, 92, 246, 0.1)",
+                      } as React.CSSProperties
+                    }
                   >
                     <FiCheckCircle className={styles.statIcon} />
                   </div>
@@ -600,74 +354,67 @@ export default function WorkerDashboardPage() {
                 </div>
               </div>
 
-              <div className={`${styles.card} ${styles.chartCard}`}>
+              {/* Active Job Card */}
+              <div
+                className={`${styles.card} ${styles.opportunitiesCard} ${
+                  isJobAccepted ? styles.highlight : ""
+                }`}
+              >
                 <h3 className={styles.cardHeader}>
-                  <FiActivity /> Weekly Activity
+                  <FiBriefcase /> Active Job
                 </h3>
-                <WeeklyLineChart />
+                {isJobAccepted ? (
+                  <div className={styles.activeJobContent}>
+                    <div className={styles.activeJobRow}>
+                      <span className={styles.activeJobLabel}>Status</span>
+                      <span
+                        className={`${styles.statusBadge} ${styles.statusInProgress}`}
+                      >
+                        In Progress
+                      </span>
+                    </div>
+                    <div className={styles.activeJobRow}>
+                      <span className={styles.activeJobLabel}>Task</span>
+                      <span className={styles.activeJobValue}>
+                        {jobRequest.title}
+                      </span>
+                    </div>
+                    <div className={styles.activeJobRow}>
+                      <span className={styles.activeJobLabel}>Est. Fare</span>
+                      <span className={styles.activeJobValue}>
+                        ₹{jobRequest.fare.toFixed(2)}
+                      </span>
+                    </div>
+                    <button
+                      className={`${styles.jobButton} ${styles.completeButton}`}
+                      onClick={handleCompleteJob}
+                    >
+                      Complete Job
+                    </button>
+                  </div>
+                ) : (
+                  <div className={styles.emptyStateContainer}>
+                    <FiPower size={48} className={styles.emptyStateIcon} />
+                    <h4 className={styles.emptyStateTitle}>
+                      {isLive ? "Ready for Jobs" : "You Are Offline"}
+                    </h4>
+                    <p className={styles.emptyStateText}>
+                      {isLive
+                        ? "Waiting for the next available job in your area."
+                        : "Go live to start receiving job alerts from clients."}
+                    </p>
+                    {!isLive && (
+                      <GoLiveButton
+                        onClick={toggleLiveStatus}
+                        disabled={!workerId}
+                      />
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div
-              className={`${styles.card} ${styles.opportunitiesCard} ${
-                isJobAccepted ? styles.highlight : ""
-              }`}
-            >
-              <h3 className={styles.cardHeader}>
-                <FiBriefcase /> Active Job
-              </h3>
-              {isJobAccepted && jobRequest ? (
-                <div className={styles.activeJobContent}>
-                  <div className={styles.activeJobRow}>
-                    <span className={styles.activeJobLabel}>Status</span>
-                    <span
-                      className={`${styles.statusBadge} ${styles.statusInProgress}`}
-                    >
-                      In Progress
-                    </span>
-                  </div>
-                  <div className={styles.activeJobRow}>
-                    <span className={styles.activeJobLabel}>Task</span>
-                    <span className={styles.activeJobValue}>
-                      {jobRequest.title}
-                    </span>
-                  </div>
-                  <div className={styles.activeJobRow}>
-                    <span className={styles.activeJobLabel}>Est. Fare</span>
-                    <span className={styles.activeJobValue}>
-                      ${jobRequest.fare.toFixed(2)}
-                    </span>
-                  </div>
-                  <button
-                    className={`${styles.jobButton} ${styles.completeButton}`}
-                    onClick={handleCompleteJob}
-                  >
-                    Complete Job
-                  </button>
-                </div>
-              ) : (
-                <div className={styles.emptyStateContainer}>
-                  <FiPower size={48} className={styles.emptyStateIcon} />
-                  <h4 className={styles.emptyStateTitle}>
-                    {isLive ? "Ready for Jobs" : "You Are Offline"}
-                  </h4>
-                  <p className={styles.emptyStateText}>
-                    {isLive
-                      ? "Waiting for the next available job in your area."
-                      : "Go live to start receiving job alerts from clients."}
-                  </p>
-                  {!isLive && (
-                    <button
-                      className={`${styles.jobButton} ${styles.goLiveCardButton}`}
-                      onClick={() => setIsLive(true)}
-                    >
-                      <FiRadio /> Go Live
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
+            {/* Job History Card */}
             <div className={`${styles.card} ${styles.recentJobsCard}`}>
               <h3 className={styles.cardHeader}>
                 <FiList /> Job History
@@ -692,7 +439,7 @@ export default function WorkerDashboardPage() {
                         </span>
                       </div>
                       <div className={styles.jobItemFare}>
-                        ${job.fare.toFixed(2)}
+                        ₹{job.fare.toFixed(2)}
                       </div>
                     </div>
                   ))}
@@ -708,6 +455,7 @@ export default function WorkerDashboardPage() {
               )}
             </div>
 
+            {/* Performance Card */}
             <div className={`${styles.card} ${styles.performanceCard}`}>
               <h3 className={styles.cardHeader}>
                 <FiTrendingUp /> Performance
@@ -746,6 +494,7 @@ export default function WorkerDashboardPage() {
               </div>
             </div>
 
+            {/* Weekly Goal Card */}
             <div className={`${styles.card} ${styles.goalCard}`}>
               <div className={styles.goalHeader}>
                 <h3 className={styles.cardHeader}>
@@ -789,7 +538,7 @@ export default function WorkerDashboardPage() {
                   >
                     <div className={styles.goalInnerCircle}>
                       <span className={styles.goalCurrentValue}>
-                        ${earnings.toFixed(2)}
+                        ₹{earnings.toFixed(2)}
                       </span>
                       <span className={styles.goalPercentage}>
                         {Math.round((earnings / weeklyGoal.target) * 100)}%
@@ -799,7 +548,7 @@ export default function WorkerDashboardPage() {
                   <div className={styles.goalTargetText}>
                     Target:{" "}
                     <span className={styles.goalTargetValue}>
-                      ${weeklyGoal.target.toLocaleString()}
+                      ₹{weeklyGoal.target.toLocaleString()}
                     </span>
                   </div>
                 </div>

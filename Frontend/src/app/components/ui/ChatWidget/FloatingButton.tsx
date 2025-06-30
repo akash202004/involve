@@ -19,18 +19,16 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({ onClick }) => {
   return (
     <>
       <style>{`
-        .final-blue-button {
+        .final-yellow-button {
           position: fixed;
           bottom: 24px;
           right: 24px;
           height: 64px;
           width: 64px;
-          /* THE DEEPER BLUE COLOR YOU REQUESTED */
-          background-color: #1D4ED8; 
+          background-color: #FACC15; /* Yellow */
           border-radius: 9999px;
           border: none;
-          /* A shadow that matches the new, deeper blue */
-          box-shadow: 0 10px 25px -5px rgba(29, 78, 216, 0.5), 0 8px 10px -6px rgba(29, 78, 216, 0.3);
+          box-shadow: 0 10px 25px -5px rgba(250, 204, 21, 0.5), 0 8px 10px -6px rgba(250, 204, 21, 0.3);
           cursor: pointer;
           outline: none;
           display: flex;
@@ -38,15 +36,14 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({ onClick }) => {
           justify-content: center;
           transition: transform 0.2s ease-out;
         }
-        .final-blue-button:hover {
+        .final-yellow-button:hover {
           transform: scale(1.1);
-          /* A slightly lighter blue on hover for a nice effect */
-          background-color: #2563EB;
+          background-color: #fde047; /* Lighter yellow on hover */
         }
       `}</style>
       <button
         onClick={onClick}
-        className="final-blue-button"
+        className="final-yellow-button"
         aria-label="Open AI Assistant"
       >
         <VoiceIcon />

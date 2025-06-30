@@ -11,7 +11,10 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.32.2",
     "@clerk/nextjs": "^6.23.1",
+    "@mapbox/polyline": "^1.2.1",
+    "@stripe/stripe-js": "^7.4.0",
     "@tabler/icons-react": "^3.34.0",
+    "@types/mapbox__polyline": "^1.0.5",
     "chart.js": "^4.5.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.18.1",
@@ -28,6 +31,7 @@
     "react-simple-maps": "^3.0.0",
     "recharts": "^2.15.4",
     "socket.io-client": "^4.8.1",
+    "stripe": "^18.2.1",
     "tailwind-merge": "^3.3.1",
     "uuid": "^11.1.0"
   },

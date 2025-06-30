@@ -139,3 +139,41 @@ export const getOrCreateUserByEmail = async (
     throw error;
   }
 };
+
+/**
+ * Ensure user exists in database when they sign in with Clerk
+ * This is a fallback to the webhook in case it fails
+ * @param clerkUser - Clerk user object
+ * @returns User object from database
+ */
+export const ensureUserExists = async (clerkUser: any): Promise<User | null> => {
+  try {
+    if (!clerkUser) {
+      console.log("No Clerk user provided");
+      return null;
+    }
+
+    const email = clerkUser.primaryEmailAddress?.emailAddress || 
+                  clerkUser.emailAddresses?.[0]?.emailAddress;
+    
+    if (!email) {
+      console.log("No email found in Clerk user");
+      return null;
+    }
+
+    console.log("Ensuring user exists for email:", email);
+    
+    // Use the existing getOrCreateUserByEmail function
+    const user = await getOrCreateUserByEmail(email, {
+      firstName: clerkUser.firstName,
+      lastName: clerkUser.lastName,
+      phoneNumber: clerkUser.phoneNumbers?.[0]?.phoneNumber,
+    });
+
+    console.log("✅ User ensured in database:", user.id);
+    return user;
+  } catch (error) {
+    console.error("Error ensuring user exists:", error);
+    return null;
+  }
+};

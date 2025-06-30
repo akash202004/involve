@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import NavbarDemo from "@/app/components/Navbar/Page";
+import Navbar from "@/app/components/Navbar/Page";
 import FooterSecond from "@/app/components/Footer/Page";
 import { CartProvider } from "./booking/cart/cartContext";
 import { JobTrackingProvider } from "@/lib/jobTracking";
-import 'leaflet/dist/leaflet.css';
-import { ClerkProvider } from '@clerk/nextjs';
+import { ToastProvider } from "@/components/Toast";
+import { UserEnsurer } from "@/components/UserEnsurer";
+import "leaflet/dist/leaflet.css";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const clerkPubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -36,13 +38,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <JobTrackingProvider>
-          <CartProvider>
-            <ClerkProvider publishableKey={clerkPubKey}>
-              <NavbarDemo />
-              <main className="flex-1">{children}</main>
-              <FooterSecond />
-            </ClerkProvider>
-          </CartProvider>
+          <ClerkProvider publishableKey={clerkPubKey}>
+            <ToastProvider>
+              <CartProvider>
+                <UserEnsurer />
+                <Navbar />
+                <main className="flex-1">{children}</main>
+                <FooterSecond />
+              </CartProvider>
+            </ToastProvider>
+          </ClerkProvider>
         </JobTrackingProvider>
       </body>
     </html>

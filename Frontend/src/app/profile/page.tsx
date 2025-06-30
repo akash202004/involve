@@ -7,6 +7,7 @@ import Link from 'next/link';
 // @ts-ignore
 import { v4 as uuidv4 } from 'uuid';
 import { useUser, SignInButton } from '@clerk/nextjs';
+import { useToast } from '@/components/Toast';
 
 interface UserProfile {
   id?: string;
@@ -25,6 +26,7 @@ interface UserProfile {
 export default function ProfilePage() {
   const { isSignedIn, user, isLoaded } = useUser();
   const router = useRouter();
+  const { showToast } = useToast();
   const [profile, setProfile] = useState<UserProfile>({
     firstName: '',
     lastName: '',
@@ -88,19 +90,25 @@ export default function ProfilePage() {
     try {
       // Validate required fields
       if (!profile.firstName.trim()) {
-        setError('First name is required');
+        const errorMsg = 'First name is required';
+        setError(errorMsg);
+        showToast(errorMsg, 'error');
         setIsSubmitting(false);
         return;
       }
       
       if (!profile.lastName.trim()) {
-        setError('Last name is required');
+        const errorMsg = 'Last name is required';
+        setError(errorMsg);
+        showToast(errorMsg, 'error');
         setIsSubmitting(false);
         return;
       }
       
       if (!profile.phoneNumber.trim()) {
-        setError('Phone number is required');
+        const errorMsg = 'Phone number is required';
+        setError(errorMsg);
+        showToast(errorMsg, 'error');
         setIsSubmitting(false);
         return;
       }
@@ -108,7 +116,9 @@ export default function ProfilePage() {
       // Validate and format phone number
       const formattedPhone = validatePhoneNumber(profile.phoneNumber);
       if (formattedPhone.length !== 12) {
-        setError('Phone number must be 12 digits (including country code, e.g., 91XXXXXXXXXX)');
+        const errorMsg = 'Phone number must be 12 digits (including country code, e.g., 91XXXXXXXXXX)';
+        setError(errorMsg);
+        showToast(errorMsg, 'error');
         setIsSubmitting(false);
         return;
       }
@@ -131,6 +141,7 @@ export default function ProfilePage() {
       
       if (profile.id) {
         // Update existing user
+        showToast('Updating your profile...', 'info');
         response = await fetch(`http://localhost:5000/api/v1/users/${profile.id}`, {
           method: 'PUT',
           headers: {
@@ -140,6 +151,7 @@ export default function ProfilePage() {
         });
       } else {
         // Create new user
+        showToast('Creating your profile...', 'info');
         const userId = uuidv4();
         localStorage.setItem('userId', userId);
         
@@ -157,7 +169,11 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || errorData.message || 'Failed to save profile');
+        const errorMsg = errorData.error || errorData.message || 'Failed to save profile';
+        setError(errorMsg);
+        showToast(errorMsg, 'error');
+        setIsSubmitting(false);
+        return;
       }
 
       const result = await response.json();
@@ -179,7 +195,9 @@ export default function ProfilePage() {
         }));
       }
       
-      setSuccess('Profile saved successfully!');
+      const successMsg = 'Profile saved successfully!';
+      setSuccess(successMsg);
+      showToast(successMsg, 'success');
       setIsEditing(false);
       
       // Clear success message after 3 seconds
@@ -187,10 +205,24 @@ export default function ProfilePage() {
       
     } catch (error: any) {
       console.error('Error saving profile:', error);
-      setError(error.message || 'Failed to save profile. Please try again.');
+      const errorMsg = error.message || 'Failed to save profile. Please try again.';
+      setError(errorMsg);
+      showToast(errorMsg, 'error');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+    showToast('Edit mode enabled. Make your changes and click Save.', 'info');
+  };
+
+  const handleCancelClick = () => {
+    setIsEditing(false);
+    setError(null);
+    setSuccess(null);
+    showToast('Edit mode cancelled. No changes were saved.', 'warning');
   };
 
   if (isLoaded && !isSignedIn) {
@@ -429,7 +461,10 @@ export default function ProfilePage() {
                 <input
                   type="number"
                   value={profile.zipCode || ''}
-                  onChange={(e) => handleInputChange('zipCode', parseInt(e.target.value) || undefined)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleInputChange('zipCode', value ? parseInt(value) : 0);
+                  }}
                   disabled={!isEditing}
                   className={`w-full px-3 py-2 border rounded-md ${
                     isEditing 
@@ -444,7 +479,7 @@ export default function ProfilePage() {
               <div className="flex gap-4 pt-6">
                 {!isEditing ? (
                   <button
-                    onClick={() => setIsEditing(true)}
+                    onClick={handleEditClick}
                     className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -469,11 +504,7 @@ export default function ProfilePage() {
                       {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </button>
                     <button
-                      onClick={() => {
-                        setIsEditing(false);
-                        setError(null);
-                        setSuccess(null);
-                      }}
+                      onClick={handleCancelClick}
                       className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md transition-colors duration-200"
                     >
                       Cancel

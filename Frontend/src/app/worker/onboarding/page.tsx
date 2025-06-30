@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ChangeEvent, FormEvent, useRef, useEffect } from "react";
+import { useUser } from '@clerk/nextjs';
 import styles from "./onboarding.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -143,6 +144,7 @@ const uploadImageToCloudinary = async (file: File): Promise<string> => {
 
 export default function WorkerOnboardingPage() {
   const router = useRouter();
+  const { user, isLoaded } = useUser();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -181,10 +183,10 @@ export default function WorkerOnboardingPage() {
   const [isCheckingWorker, setIsCheckingWorker] = useState(true);
 
   useEffect(() => {
-    if (user?.email) {
-      setFormData((prev) => ({ ...prev, email: user.email || "" }));
+    if (user?.primaryEmailAddress?.emailAddress) {
+      setFormData((prev) => ({ ...prev, email: user.primaryEmailAddress?.emailAddress || "" }));
       // Check if worker already exists
-      checkWorkerExists(user.email);
+      checkWorkerExists(user.primaryEmailAddress?.emailAddress);
     } else {
       setIsCheckingWorker(false);
     }
@@ -397,7 +399,7 @@ export default function WorkerOnboardingPage() {
       }
     } catch (error) {
       console.error("Network error:", error);
-      setErrorMessage("Network error occurred. Please try again.");
+      setErrorMessage("Network error occurred. Please check if the backend server is running at http://localhost:5000");
       setSubmissionStatus("error");
     }
   };

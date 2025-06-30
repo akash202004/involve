@@ -6,6 +6,7 @@ import {
   getWorkerByEmail,
   updateWorker,
   deleteWorker,
+  updateWorkerAvailability,
 } from "@/controllers/worker.controller";
 
 const router = express.Router();
@@ -16,5 +17,6 @@ router.get("/email/:email", getWorkerByEmail);
 router.get("/:id", getWorkerById);
 router.put("/:id", updateWorker);
 router.delete("/:id", deleteWorker);
+router.patch("/:id/availability", updateWorkerAvailability);
 
 export default router;
